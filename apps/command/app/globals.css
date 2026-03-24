@@ -1,0 +1,106 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
+    --font-roboto: 'Roboto', sans-serif;
+  }
+
+  * {
+    font-family: 'Roboto', sans-serif !important;
+    text-transform: none !important;
+    font-weight: 400 !important;
+    font-size: 16px !important;
+  }
+
+  body {
+    background-color: #000000 !important;
+    color: #ffffff;
+    margin: 0;
+  }
+
+  * {
+    font-family: 'Roboto', sans-serif !important;
+    font-weight: 400 !important;
+    text-transform: none !important;
+    border-radius: inherit;
+  }
+
+  h1, h2, h3, h4, h5, h6, label, span, div, p, button {
+    text-transform: none !important;
+    letter-spacing: -0.01em !important;
+    font-weight: 400 !important;
+  }
+}
+
+@layer utilities {
+  .rounded-5px {
+    border-radius: 5px !important;
+  }
+  
+  /* Ironclad Density: -20% spacing */
+  .p-4 { padding: 0.8rem !important; } /* 13px instead of 16px */
+  .m-4 { margin: 0.8rem !important; }
+  .gap-4 { gap: 0.8rem !important; }
+  .p-10 { padding: 1.6rem !important; } 
+  .space-y-4 > * + * { margin-top: 0.8rem !important; }
+
+  /* Sovereign Unified Cards */
+  .card-sovereign {
+    background-color: rgba(255, 255, 255, 0.08) !important;
+    border: 1px solid rgba(255, 255, 255, 0.25) !important;
+    border-radius: 5px !important;
+    backdrop-filter: blur(8px);
+  }
+}
+
+/* Global Force 5px */
+div, button, input, section, aside, header, nav, img {
+  border-radius: 5px !important;
+}
+
+/* Scrollbar Customization */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #000000;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1a1a1a;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #252525;
+}
+
+/* Ambient Viewport Glow - Isolated for Command */
+@keyframes pulse-glow-command {
+  0%, 100% { opacity: 0.08; transform: scale(1); }
+  50% { opacity: 0.18; transform: scale(1.05); }
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: -1;
+  background: 
+    radial-gradient(circle at 0% 0%, var(--command-portal-glow-color, #22D3EE) 0%, transparent 40%),
+    radial-gradient(circle at 100% 0%, var(--command-portal-glow-color, #22D3EE) 0%, transparent 40%),
+    radial-gradient(circle at 100% 100%, var(--command-portal-glow-color, #22D3EE) 0%, transparent 40%),
+    radial-gradient(circle at 0% 100%, var(--command-portal-glow-color, #22D3EE) 0%, transparent 40%);
+  filter: blur(60px);
+  animation: pulse-glow-command 10s ease-in-out infinite;
+}

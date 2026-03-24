@@ -1,0 +1,12 @@
+{
+    "name": "nodl-root",
+    "version": "1.0.0",
+    "private": true,
+    "scripts": {
+        "dev:all": "concurrently -n \"BACKEND,NODLR,MESH,COMMAND\" -c \"bgBlue,bgGreen,bgMagenta,bgCyan\" \"cd nodld && go run cmd/nodld/main.go\" \"cd apps/nodlr && npm run dev\" \"cd apps/mesh && npm run dev\" \"cd apps/command && npm run dev\"",
+        "start:all": "./scripts/start-all.sh"
+    },
+    "devDependencies": {
+        "concurrently": "^8.2.2"
+    }
+}

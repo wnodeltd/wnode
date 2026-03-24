@@ -1,0 +1,91 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: #080808;
+    --foreground: #ffffff;
+    --surface: #111111;
+    --font-roboto: 'Roboto', sans-serif;
+    --emerald: #10b981;
+    --gold: #fbbf24;
+    --border: rgba(255, 255, 255, 0.08);
+    --radius: 5px;
+  }
+}
+
+* {
+  font-family: var(--font-roboto) !important;
+  font-weight: 400 !important;
+  font-style: normal !important;
+  font-variant: normal !important;
+  border-radius: inherit;
+  padding-bottom: calc(attr(padding-bottom) * 0.8);
+}
+
+body {
+  color: rgba(255, 255, 255, 0.8);
+  background: var(--background);
+  font-size: 16px;
+  line-height: 1.5;
+  overflow-y: auto !important;
+  min-height: 100vh;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: #ffffff;
+}
+
+h1 { font-size: 32px; }
+h2 { font-size: 28px; }
+h3 { font-size: 24px; }
+
+.text-small {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.surface-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.glass-card {
+  background: rgba(17, 17, 17, 0.8);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+main, .main-container {
+  overflow-y: auto !important;
+  height: 100vh;
+}
+
+/* Ambient Viewport Glow - Isolated for Mesh */
+@keyframes pulse-glow-mesh {
+  0%, 100% { opacity: 0.08; transform: scale(1); }
+  50% { opacity: 0.18; transform: scale(1.05); }
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: -1;
+  background: 
+    radial-gradient(circle at 0% 0%, var(--mesh-portal-glow-color, #fcba03) 0%, transparent 40%),
+    radial-gradient(circle at 100% 0%, var(--mesh-portal-glow-color, #fcba03) 0%, transparent 40%),
+    radial-gradient(circle at 100% 100%, var(--mesh-portal-glow-color, #fcba03) 0%, transparent 40%),
+    radial-gradient(circle at 0% 100%, var(--mesh-portal-glow-color, #fcba03) 0%, transparent 40%);
+  filter: blur(60px);
+  animation: pulse-glow-mesh 10s ease-in-out infinite;
+}
