@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
-import { X, ExternalLink, CreditCard, Clock, CheckCircle2, AlertCircle } from "lucide-react";
+import { X, ExternalLink, CreditCard, Clock, CheckCircle2, AlertCircle, Info } from "lucide-react";
 
 interface AccountInfo {
     id: string;
@@ -21,7 +21,8 @@ export default function FinancesPage() {
     useEffect(() => {
         const fetchAccount = async () => {
             try {
-                const res = await fetch(`http://127.0.0.1:8080/account/${MOCK_USER_ID}`);
+                const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://api.nodl.one';
+                const res = await fetch(`${apiBase}/account/${MOCK_USER_ID}`);
                 if (res.ok) setAccount(await res.json());
             } catch (err) {
                 console.error("Failed to fetch account:", err);
@@ -36,7 +37,8 @@ export default function FinancesPage() {
         if (!account) return;
         const newFreq = account.payoutFrequency === "daily" ? "weekly" : "daily";
         try {
-            const res = await fetch(`http://127.0.0.1:8080/account/${MOCK_USER_ID}`, {
+            const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://api.nodl.one';
+            const res = await fetch(`${apiBase}/account/${MOCK_USER_ID}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ payoutFrequency: newFreq })
@@ -49,7 +51,8 @@ export default function FinancesPage() {
 
     const handleOnboard = async () => {
         try {
-            const res = await fetch('http://127.0.0.1:8080/api/v1/stripe/connect/onboard', {
+            const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://api.nodl.one';
+            const res = await fetch(`${apiBase}/api/v1/stripe/connect/onboard`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
@@ -184,16 +187,12 @@ export default function FinancesPage() {
                                      <span className="text-[12px] text-[#22D3EE] font-mono uppercase-none tracking-widest font-bold">Consolidated Data</span>
                                      <div className="card-sovereign p-8 space-y-6 bg-white/[0.02]">
                                         <div className="flex justify-between text-[16px] border-b border-white/5 pb-4">
-                                            <span className="text-slate-400">Gross Total</span>
+                                            <span className="text-slate-400">Gross Revenue</span>
                                             <span className="text-white font-mono">$ 0.00</span>
                                         </div>
-                                        <div className="flex justify-between text-[16px] border-b border-white/5 pb-4">
-                                            <span className="text-slate-400">Platform Fees (5%)</span>
-                                            <span className="text-slate-500 font-mono">$ 0.00</span>
-                                        </div>
                                         <div className="flex justify-between text-[18px]">
-                                            <span className="text-[#22D3EE] italic">Net Payout</span>
-                                            <span className="text-white font-mono font-bold">$ 0.00</span>
+                                            <span className="text-[#22D3EE] italic">Account standing</span>
+                                            <span className="text-white font-mono font-bold">Nominal</span>
                                         </div>
                                      </div>
                                 </div>

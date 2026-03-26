@@ -22,7 +22,7 @@ export default function Navbar() {
                     <div className="text-[9px] text-slate-500 uppercase  tracking-widest mb-1">Total Network Payouts</div>
                     <div className="text-lg text-white font-black  tracking-tighter leading-none">$1,248,012.00</div>
                 </div>
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyber-crimson/20 to-cyber-violet/20 border border-white/5 flex items-center justify-center  text-sm text-cyber-crimson font-bold">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#22D3EE]/20 to-cyber-violet/20 border border-white/5 flex items-center justify-center  text-sm text-[#22D3EE] font-bold">
                     AG
                 </div>
             </div>

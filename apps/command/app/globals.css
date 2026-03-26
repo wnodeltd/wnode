@@ -49,11 +49,17 @@
   .space-y-4 > * + * { margin-top: 0.8rem !important; }
 
   /* Sovereign Unified Cards */
-  .card-sovereign {
+  .card-sovereign, .card {
     background-color: rgba(255, 255, 255, 0.08) !important;
     border: 1px solid rgba(255, 255, 255, 0.25) !important;
     border-radius: 5px !important;
     backdrop-filter: blur(8px);
+    transition: all 0.2s ease-in-out;
+  }
+
+  .card-sovereign:hover, .card-sovereign.active {
+    border-color: #22D3EE !important;
+    box-shadow: 0 0 15px rgba(34, 211, 238, 0.1);
   }
 }
 
@@ -103,4 +109,13 @@ body::before {
     radial-gradient(circle at 0% 100%, var(--command-portal-glow-color, #22D3EE) 0%, transparent 40%);
   filter: blur(60px);
   animation: pulse-glow-command 10s ease-in-out infinite;
+}
+@keyframes green-pulse {
+    0% { background: linear-gradient(135deg, #10b981 0%, #22d3ee 100%); opacity: 0.8; }
+    50% { background: linear-gradient(135deg, #059669 0%, #0891b2 100%); opacity: 1; }
+    100% { background: linear-gradient(135deg, #10b981 0%, #22d3ee 100%); opacity: 0.8; }
+}
+
+.animate-green-mesh {
+    animation: green-pulse 3s infinite;
 }

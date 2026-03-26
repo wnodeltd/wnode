@@ -69,12 +69,14 @@ export default function PricingPage() {
     const [selectedTier, setSelectedTier] = useState<string | null>(null);
     const [alerts, setAlerts] = useState<Alert[]>([]);
     const [isOwner] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     const fetchPricingData = async () => {
         try {
+            const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://api.nodl.one';
             const [pricingRes, alertsRes] = await Promise.all([
-                fetch('http://127.0.0.1:8080/pricing'),
-                fetch('http://127.0.0.1:8080/pricing/alerts')
+                fetch(`${apiBase}/pricing`),
+                fetch(`${apiBase}/pricing/alerts`)
             ]);
             
             if (pricingRes.ok) {
@@ -87,6 +89,7 @@ export default function PricingPage() {
             }
         } catch (err) {
             console.error("Failed to fetch data:", err);
+            setError("Connection to API gateway failed.");
         }
     };
 
@@ -98,7 +101,8 @@ export default function PricingPage() {
 
     const updateOverride = async (tierId: string, rule: PricingRule) => {
         try {
-            const res = await fetch('http://127.0.0.1:8080/pricing/override', {
+            const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://api.nodl.one';
+            const res = await fetch(`${apiBase}/pricing/override`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ tierID: tierId, rule })
@@ -158,7 +162,7 @@ export default function PricingPage() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {alerts.slice(0, 2).map((alert, idx) => (
                                 <div key={idx} className={`p-3 rounded-[5px] border flex items-center gap-3 animate-in fade-in duration-500 ${
-                                    alert.level === 'critical' ? 'bg-red-500/10 border-red-500/30 text-red-400' :
+                                    alert.level === 'critical' ? 'bg-[#22D3EE]/10 border-[#22D3EE]/30 text-[#22D3EE]' :
                                     alert.level === 'warning' ? 'bg-orange-500/10 border-orange-500/30 text-orange-400' :
                                     'bg-blue-500/10 border-blue-500/30 text-blue-400'
                                 }`}>

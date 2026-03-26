@@ -4,8 +4,12 @@ import { useState } from "react";
 import Sidebar from "../components/Sidebar";
 import { 
     Search, Plus, X, Shield, Cpu, History, 
-    Activity, ArrowRightLeft, Power 
+    Activity, ArrowRightLeft, Power, Leaf
 } from "lucide-react";
+import useSWR from 'swr';
+import ImpactCard from "../components/ImpactCard";
+
+const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 export default function ClientsPage() {
     const [searchQuery, setSearchQuery] = useState("");
@@ -13,11 +17,38 @@ export default function ClientsPage() {
     const [isEditMode, setIsEditMode] = useState(false);
     const [editData, setEditData] = useState({ name: 'Enterprise Mesh', email: 'ops@enterprise.mesh', standing: 'High-Performance' });
 
-    const clients = [
-        { id: 'CLI_9821_Z', compute: '1.2M TH/s', tasks: 12, balance: '$4,210.00', status: 'Active' },
-        { id: 'CLI_1002_A', compute: '450K TH/s', tasks: 4, balance: '$1,102.50', status: 'Active' },
-        { id: 'CLI_5561_B', compute: '2.8M TH/s', tasks: 28, balance: '$12,411.00', status: 'High-Performance' },
-    ];
+    const { data: pulseData } = useSWR('http://127.0.0.1:8080/api/system/pulse', fetcher, { refreshInterval: 5000 });
+    const { data: peersData } = useSWR('http://127.0.0.1:8080/peers', fetcher, { refreshInterval: 5000 });
+    const { data: globalImpact } = useSWR('http://127.0.0.1:8080/api/impact', fetcher, { refreshInterval: 5000 });
+
+    const [activeTab, setActiveTab] = useState("all");
+
+    const [sortBy, setSortBy] = useState("id");
+
+    const livePeers = peersData || [];
+    const pulse = pulseData || {};
+
+    const clients = livePeers.map((p: any) => {
+        const session = pulse[p.dna] || {}; // We use DNA as the key in registry
+        const health = session.health || { score: 1.0, latency: 0 };
+        
+        return {
+            id: p.id,
+            dna: p.dna,
+            latency: `${(health.latency / 1e6).toFixed(1)}ms`,
+            score: health.score,
+            integrity: session.integrityScore ?? 1.0,
+            status: session.status || 'Active',
+            co2: ((session.totalUptime || 0) / 3.6e12 * (0.120 - 0.012) * 0.3).toFixed(2),
+        };
+    }).filter((c: any) => {
+        if (activeTab === "integrity") return c.status !== 'Active';
+        if (searchQuery) return c.id.toLowerCase().includes(searchQuery.toLowerCase()) || c.dna.toLowerCase().includes(searchQuery.toLowerCase());
+        return true;
+    }).sort((a: any, b: any) => {
+        if (sortBy === "health") return b.score - a.score;
+        return a.id.localeCompare(b.id);
+    });
 
     const activeTasks = [
         { id: 'TSK-990', purpose: 'LLM Fine-tuning', nodes: 8, status: 'Running' },
@@ -37,9 +68,30 @@ export default function ClientsPage() {
                 </header>
 
                 <main className="flex-1 p-10 overflow-y-auto pb-24 space-y-10">
-                    <div className="pb-2">
-                        <h2 className="text-[16px] font-normal tracking-tight text-white mb-1 uppercase-none">Client registry</h2>
-                        <p className="text-[14px] text-slate-400 font-normal uppercase-none">Monitor enterprise and retail compute consumption.</p>
+                    <div className="pb-2 flex justify-between items-end">
+                        <div>
+                            <h2 className="text-[16px] font-normal tracking-tight text-white mb-1 uppercase-none">Client registry</h2>
+                            <p className="text-[14px] text-slate-400 font-normal uppercase-none">Monitor enterprise and retail compute consumption.</p>
+                        </div>
+                        <div className="flex bg-white/5 p-1 rounded-[5px]">
+                            <button 
+                                onClick={() => setActiveTab("all")}
+                                className={`px-6 py-1.5 rounded-[4px] text-[12px] transition-all ${activeTab === "all" ? "bg-white/10 text-white" : "text-slate-500 hover:text-white"}`}
+                            >
+                                All Accounts
+                            </button>
+                            <button 
+                                onClick={() => setActiveTab("integrity")}
+                                className={`px-6 py-1.5 rounded-[4px] text-[12px] transition-all ${activeTab === "integrity" ? "bg-[#EF4444]/10 text-[#EF4444]" : "text-slate-500 hover:text-white"}`}
+                            >
+                                Integrity Flags
+                                {clients.filter((c: any) => c.status !== 'Active').length > 0 && 
+                                    <span className="ml-2 bg-[#EF4444] text-white text-[9px] px-1.5 py-0.5 rounded-full">
+                                        {clients.filter((c: any) => c.status !== 'Active').length}
+                                    </span>
+                                }
+                            </button>
+                        </div>
                     </div>
 
                     <div className="card-sovereign p-6 flex items-center gap-6">
@@ -53,32 +105,66 @@ export default function ClientsPage() {
                                 className="w-full bg-black/50 border border-white/10 rounded-[5px] pl-12 pr-4 py-3 text-[14px] focus:outline-none focus:border-[#22D3EE]/50 transition-all placeholder:text-slate-700 font-normal"
                             />
                         </div>
-                        <button className="bg-[#22D3EE] hover:bg-[#22D3EE]/80 text-black px-8 py-3 rounded-[5px] text-[14px] flex items-center gap-2 font-normal transition-all">
-                            <Plus className="w-4 h-4" /> Add Client
-                        </button>
+                        <div className="flex items-center gap-4 shrink-0">
+                            <span className="text-[12px] text-slate-500 uppercase-none">Sort by:</span>
+                            <div className="flex bg-white/5 p-1 rounded-[5px]">
+                                <button 
+                                    onClick={() => setSortBy("id")}
+                                    className={`px-4 py-1.5 rounded-[4px] text-[12px] transition-all ${sortBy === "id" ? "bg-[#22D3EE] text-black" : "text-slate-400 hover:text-white"}`}
+                                >
+                                    Default
+                                </button>
+                                <button 
+                                    onClick={() => setSortBy("health")}
+                                    className={`px-4 py-1.5 rounded-[4px] text-[12px] transition-all ${sortBy === "health" ? "bg-[#22D3EE] text-black" : "text-slate-400 hover:text-white"}`}
+                                >
+                                    Top Earners
+                                </button>
+                            </div>
+                            <button className="bg-[#22D3EE] hover:bg-[#22D3EE]/80 text-black px-6 py-3 rounded-[5px] text-[14px] flex items-center gap-2 font-normal transition-all">
+                                <Plus className="w-4 h-4" /> Add Client
+                            </button>
+                        </div>
                     </div>
 
                     <div className="card-sovereign overflow-hidden">
                         <table className="w-full text-left">
                             <thead className="bg-white/[0.04] text-[12px] text-slate-400 uppercase-none border-b border-white/10">
                                 <tr>
-                                    <th className="px-6 py-5 font-normal">Client ID</th>
-                                    <th className="px-6 py-5 font-normal">Compute Purchased</th>
-                                    <th className="px-6 py-5 font-normal">Active Tasks</th>
-                                    <th className="px-6 py-5 font-normal text-right">Balance (USD)</th>
+                                    <th className="px-6 py-5 font-normal text-slate-400">Peer ID</th>
+                                    <th className="px-6 py-5 font-normal text-slate-400">Hardware DNA</th>
+                                    <th className="px-6 py-5 font-normal text-slate-400">Latency</th>
+                                    <th className="px-6 py-5 font-normal text-slate-400">Node Health</th>
+                                    <th className="px-6 py-5 font-normal text-slate-400">Integrity</th>
+                                    <th className="px-6 py-5 font-normal text-slate-400">CO₂ Saved (kg)</th>
+                                    <th className="px-6 py-5 font-normal text-slate-400 text-right">Status</th>
                                 </tr>
                             </thead>
                             <tbody className="text-[14px] text-slate-300 divide-y divide-white/5">
-                                {clients.map((row) => (
+                                {clients.map((row: any) => (
                                     <tr 
                                         key={row.id} 
                                         onClick={() => setSelectedClient(row)}
                                         className="hover:bg-white/[0.02] cursor-pointer group transition-colors"
                                     >
                                         <td className="px-6 py-4 font-mono text-[11px] text-[#22D3EE] group-hover:text-white transition-colors">{row.id}</td>
-                                        <td className="px-6 py-4">{row.compute}</td>
-                                        <td className="px-6 py-4 font-mono text-[11px] text-slate-500">{row.tasks} Tasks</td>
-                                        <td className="px-6 py-4 text-white text-right font-normal">{row.balance}</td>
+                                        <td className="px-6 py-4 font-mono text-[11px] text-slate-400 truncate max-w-[150px]">{row.dna}</td>
+                                        <td className="px-6 py-4 font-mono text-[11px] text-slate-500">{row.latency}</td>
+                                        <td className="px-6 py-4">
+                                            <div className="w-32 h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                                <div 
+                                                    className={`h-full transition-all duration-500 ${row.score < 0.3 ? 'bg-[#EF4444]' : 'bg-[#22D3EE]'}`}
+                                                    style={{ width: `${row.score * 100}%` }}
+                                                />
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className="text-[12px] font-mono text-[#22D3EE]">
+                                                {(row.integrity * 100).toFixed(0)}%
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4 font-mono text-[11px] text-emerald-500">{row.co2}</td>
+                                        <td className={`px-6 py-4 text-right font-normal ${row.status !== 'Active' ? 'text-[#EF4444]' : 'text-[#22D3EE]'}`}>{row.status}</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -92,7 +178,10 @@ export default function ClientsPage() {
                             <header className="p-8 border-b border-white/10 flex items-center justify-between">
                                 <div className="flex flex-col">
                                     <span className="text-[10px] text-slate-500 uppercase-none mb-1">Client master drawer</span>
-                                    <h3 className="text-[20px] text-white font-normal uppercase-none">{selectedClient.id}</h3>
+                                    <div className="flex items-baseline gap-3">
+                                        <h3 className="text-[20px] text-white font-normal uppercase-none">{selectedClient.id}</h3>
+                                        <span className="text-[12px] text-[#22D3EE] font-mono">{(selectedClient.integrity * 100).toFixed(0)}% Integrity</span>
+                                    </div>
                                 </div>
                                 <button onClick={() => { setSelectedClient(null); setIsEditMode(false); }} className="p-2 hover:bg-white/5 rounded-full transition-colors">
                                     <X className="w-6 h-6 text-slate-500 hover:text-white" />
@@ -162,6 +251,19 @@ export default function ClientsPage() {
 
                                 <section className="space-y-6">
                                     <div className="flex items-center gap-2 text-[14px] text-white">
+                                        <Leaf className="w-4 h-4 text-emerald-500" />
+                                        <span>Environmental contribution</span>
+                                    </div>
+                                    <ImpactCard 
+                                        carbonSaved={parseFloat(selectedClient.co2)}
+                                        kmAvoided={parseFloat(selectedClient.co2) * 5.7}
+                                        treeDays={parseFloat(selectedClient.co2) / 0.06}
+                                        isActive={selectedClient.status === 'Active'}
+                                    />
+                                </section>
+
+                                <section className="space-y-6">
+                                    <div className="flex items-center gap-2 text-[14px] text-white">
                                         <History className="w-4 h-4 text-[#22D3EE]" />
                                         <span>Purchase history</span>
                                     </div>
@@ -182,7 +284,23 @@ export default function ClientsPage() {
                                 </section>
                             </div>
 
-                            <footer className="p-8 border-t border-white/25 bg-black absolute bottom-0 w-full">
+                            <footer className="p-8 border-t border-white/25 bg-black absolute bottom-0 w-full space-y-4">
+                                {selectedClient.status !== 'Active' && (
+                                    <button 
+                                        onClick={async () => {
+                                            await fetch('http://127.0.0.1:8080/registry/release', {
+                                                method: 'POST',
+                                                headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify({ hardwareDNA: selectedClient.dna })
+                                            });
+                                            alert('Account Restored to Active Status');
+                                            setSelectedClient(null);
+                                        }}
+                                        className="w-full py-4 bg-[#22D3EE] text-black rounded-[5px] text-[14px] font-bold shadow-[0_0_20px_rgba(34,211,238,0.3)] hover:brightness-110 transition-all mb-4"
+                                    >
+                                        Review & Release Account
+                                    </button>
+                                )}
                                 {isEditMode ? (
                                     <div className="flex gap-4">
                                         <button onClick={() => setIsEditMode(false)} className="flex-1 py-4 bg-white/5 border border-white/10 rounded-[5px] text-[14px] text-slate-500 hover:bg-white/10 transition-colors">Cancel</button>
