@@ -6,13 +6,35 @@ import {
     Activity, Shield, Zap, Server, Globe, Terminal, ChevronUp, ChevronDown 
 } from "lucide-react";
 import Sidebar from "./components/Sidebar";
+import { useEffect } from "react";
 
 export default function CommandCentrePage() {
     const [isTelemetryOpen, setIsTelemetryOpen] = useState(false);
+    const [data, setData] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try {
+                const res = await fetch('/api/stats');
+                if (res.ok) {
+                    const json = await res.json();
+                    setData(json);
+                }
+            } catch (err) {
+                console.error("Dashboard fetch failed:", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+        fetchData();
+        const interval = setInterval(fetchData, 5000);
+        return () => clearInterval(interval);
+    }, []);
 
     const metrics = [
-        { label: 'Active nodes', value: 42, unit: 'Nodes', icon: Server, color: 'text-white', status: 'online', delta: '+2' },
-        { label: 'Global load', value: 68, unit: '%', icon: Activity, color: 'text-white', pulse: true },
+        { label: 'Active nodes', value: data?.activeNodes || 0, unit: 'Nodes', icon: Server, color: 'text-white', status: 'online', delta: '+2' },
+        { label: 'Global load', value: data?.networkLoad || 0, unit: '%', icon: Activity, color: 'text-white', pulse: true },
         { label: 'Network payouts', value: '412.8', unit: 'USD', icon: Zap, color: 'text-white', delta: '+12.4% (24h)' },
         { label: 'System latency', value: '124.2', unit: 'ms', icon: Globe, color: 'text-white', sub: 'Optimized' },
     ];

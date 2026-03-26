@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import "./globals.css";
+import { Libp2pProvider } from "./components/Libp2pProvider";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     const router = useRouter();
@@ -54,15 +55,20 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                         margin: 0;
                         padding: 0;
                     }
-                    .card { 
+                    .card, .card-sovereign { 
                         background: rgba(255, 255, 255, 0.08) !important; 
                         border: 1px solid rgba(255, 255, 255, 0.25) !important; 
                         border-radius: 5px !important; 
+                        backdrop-filter: blur(8px) !important;
                     }
                 ` }} />
             </head>
             <body data-portal="command" style={{ backgroundColor: 'black', color: 'white', '--command-portal-glow-color': '#22D3EE' } as any}>
-                {pathname === "/login" ? children : (isAuthenticated ? children : null)}
+                <Libp2pProvider>
+                    <React.Suspense fallback={<div className="h-screen w-screen bg-black" />}>
+                        {pathname === "/login" ? children : (isAuthenticated ? children : null)}
+                    </React.Suspense>
+                </Libp2pProvider>
             </body>
         </html>
     );

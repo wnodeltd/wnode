@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 export async function GET() {
     // Strict IP Standardization for Fedora compatibility
-    const apiUrl = process.env.NODLD_API_URL || 'http://127.0.0.1:8080';
+    const apiUrl = process.env.NODLD_API_URL || 'https://api.nodl.one';
 
     try {
         const res = await fetch(`${apiUrl}/stats`, {

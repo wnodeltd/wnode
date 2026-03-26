@@ -21,6 +21,7 @@ import (
 	"github.com/obregan/nodl/nodld/internal/p2p"
 	"github.com/obregan/nodl/nodld/internal/pricing"
 	"github.com/obregan/nodl/nodld/internal/account"
+	"github.com/obregan/nodl/nodld/internal/impact"
 )
 
 // Server is the Fiber-based HTTP/WebSocket API server.
@@ -82,7 +83,10 @@ func New(dispatcher *jobs.Dispatcher, store *jobs.Store, pricingStore *pricing.S
 	})
 
 	app.Use(recover.New())
-	app.Use(cors.New())
+	app.Use(cors.New(cors.Config{
+		AllowOrigins: "https://cmd.nodl.one, https://nodl.one, https://mesh.nodl.one, https://nodlr.nodl.one, http://localhost:3000",
+		AllowHeaders: "Origin, Content-Type, Accept",
+	}))
 	app.Use(logger.New())
 
 	s := &Server{
@@ -137,6 +141,15 @@ func (s *Server) registerRoutes() {
 	s.app.Post("/account/onboard", s.handleOnboardAccount)
 	s.app.Get("/affiliates/tree/:id", s.handleGetAffiliateTree)
 	s.app.Post("/affiliates/transfer", s.handleTransferAffiliate)
+	s.app.Post("/affiliates/genesis/swap", s.handleSwapGenesisSlot) // RBAC Lvl 4
+	
+	// Hardware Registry
+	s.app.Get("/registry", s.handleGetRegistry)
+	s.app.Post("/registry/register", s.handleRegisterHardware)
+	s.app.Post("/registry/release", s.handleReleaseHardware)
+	s.app.Post("/api/admin/resolve-flag", s.handleResolveFlag)
+	s.app.Get("/api/system/pulse", s.handleGetSystemPulse)
+	s.app.Get("/api/impact", s.handleGetImpact)
 
 	// Real-time event stream
 	s.app.Get("/ws", websocket.New(s.handleWebSocket))
@@ -434,6 +447,50 @@ func (s *Server) handleGetAffiliateTree(c *fiber.Ctx) error {
 	return c.JSON(tree)
 }
 
+func (s *Server) handleSwapGenesisSlot(c *fiber.Ctx) error {
+	// In a real system, verify RBAC Lvl 4 here
+	var req struct {
+		Index    int    `json:"index"` // 1-5
+		NewEmail string `json:"newEmail"`
+		StripeID string `json:"stripeId"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request"})
+	}
+
+	if req.Index < 1 || req.Index > 5 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid index"})
+	}
+
+	nodlrs := s.accountStore.ListNodlrs()
+	var founder *account.Nodlr
+	for _, n := range nodlrs {
+		if n.IsFounder && n.FounderIndex == req.Index {
+			founder = n
+			break
+		}
+	}
+
+	if founder == nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "founder slot not found"})
+	}
+
+	oldEmail := founder.Email
+	founder.Email = req.NewEmail
+	founder.StripeConnectID = req.StripeID
+	
+	s.log.Info("genesis slot swapped", 
+		zap.Int("index", req.Index), 
+		zap.String("old", oldEmail), 
+		zap.String("new", req.NewEmail))
+
+	return c.JSON(fiber.Map{
+		"status":         "success",
+		"accruedBalance": founder.AccruedFounderBalance,
+		"message":        "Slot unlocked. Future payouts will hit the new Stripe ID.",
+	})
+}
+
 func (s *Server) handleTransferAffiliate(c *fiber.Ctx) error {
 	var req struct {
 		ChildID     string `json:"childId"`
@@ -447,5 +504,84 @@ func (s *Server) handleTransferAffiliate(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
+	return c.SendStatus(fiber.StatusOK)
+}
+func (s *Server) handleGetRegistry(c *fiber.Ctx) error {
+	if s.host == nil {
+		return c.JSON(fiber.Map{})
+	}
+	return c.JSON(s.host.Registry().List())
+}
+
+func (s *Server) handleGetSystemPulse(c *fiber.Ctx) error {
+	if s.host == nil {
+		return c.JSON(fiber.Map{})
+	}
+	// Return the same registry list but under the pulse endpoint
+	return c.JSON(s.host.Registry().List())
+}
+
+func (s *Server) handleGetImpact(c *fiber.Ctx) error {
+	if s.host == nil {
+		return c.JSON(fiber.Map{})
+	}
+
+	totalUptime := time.Duration(0)
+	list := s.host.Registry().List()
+	for _, session := range list {
+		totalUptime += session.TotalUptime
+	}
+
+	metrics := impact.CalculateSavings(totalUptime)
+	return c.JSON(metrics)
+}
+func (s *Server) handleRegisterHardware(c *fiber.Ctx) error {
+	var req struct {
+		HardwareDNA string `json:"hardwareDNA"`
+		SessionID   string `json:"sessionId"`
+		IsVM        bool   `json:"isVM"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request body"})
+	}
+
+	if s.host == nil {
+		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{"error": "p2p host not initialized"})
+	}
+
+	success := s.host.Registry().Register(req.HardwareDNA, req.SessionID, req.IsVM)
+	return c.JSON(fiber.Map{"success": success})
+}
+
+func (s *Server) handleReleaseHardware(c *fiber.Ctx) error {
+	var req struct {
+		HardwareDNA string `json:"hardwareDNA"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request body"})
+	}
+
+	if s.host == nil {
+		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{"error": "p2p host not initialized"})
+	}
+
+	s.host.Registry().Release(req.HardwareDNA)
+	return c.SendStatus(fiber.StatusOK)
+}
+
+func (s *Server) handleResolveFlag(c *fiber.Ctx) error {
+	var req struct {
+		HardwareDNA string `json:"hardwareDNA"`
+		Action      string `json:"action"` // "clear" or "shadow-bench"
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request body"})
+	}
+
+	if s.host == nil {
+		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{"error": "p2p host not initialized"})
+	}
+
+	s.host.Registry().ResolveFlag(req.HardwareDNA, req.Action)
 	return c.SendStatus(fiber.StatusOK)
 }
