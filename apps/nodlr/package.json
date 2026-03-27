@@ -21,7 +21,7 @@
         "@libp2p/websockets": "^1.0.0",
         "@libp2p/webrtc": "^1.0.0",
         "@libp2p/mplex": "^10.0.0",
-        "@libp2p/noise": "^15.0.0",
+        "@libp2p/noise": "^14.0.0",
         "@multiformats/multiaddr": "^12.1.0"
     },
     "devDependencies": {
