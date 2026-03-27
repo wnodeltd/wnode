@@ -56,7 +56,7 @@ export default function DashboardPage() {
             {/* Header */}
             <div className="flex justify-between items-end border-b border-white/10 pb-6">
                 <div>
-                    <h2 className="text-3xl font-normal tracking-tight text-white mb-1.5">Overview snapshot</h2>
+                    <h2 className="text-3xl font-normal tracking-tight text-white mb-1.5">Grow Your Affiliate Network</h2>
                     <p className="text-16px text-slate-400 font-normal">Your node's health and operational work summary</p>
                 </div>
 

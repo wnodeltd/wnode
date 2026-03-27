@@ -2,8 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '../../src/lib/supabase';
-import { Shield, Lock, ArrowRight, Layers, Loader2 } from 'lucide-react';
+import { Shield, ArrowRight, Layers, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function LoginPage() {
@@ -26,14 +25,7 @@ export default function LoginPage() {
             return;
         }
 
-        try {
-            const { error } = await supabase.auth.signInWithPassword({ email, password });
-            if (!error) router.push('/');
-        } catch (err) {
-            console.error(err);
-        } finally {
-            setIsLoading(false);
-        }
+        setIsLoading(false);
     };
 
     return (

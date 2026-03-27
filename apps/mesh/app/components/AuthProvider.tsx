@@ -1,13 +1,11 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { supabase } from '../../src/lib/supabase';
-import { User, Session } from '@supabase/supabase-js';
 import { useRouter, usePathname } from 'next/navigation';
 
 interface AuthContextType {
-    user: User | null;
-    session: Session | null;
+    user: any | null;
+    session: any | null;
     profile: any | null;
     isLoading: boolean;
 }
@@ -15,8 +13,8 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-    const [user, setUser] = useState<User | null>(null);
-    const [session, setSession] = useState<Session | null>(null);
+    const [user, setUser] = useState<any | null>(null);
+    const [session, setSession] = useState<any | null>(null);
     const [profile, setProfile] = useState<any | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
@@ -43,24 +41,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         const setData = async () => {
             if (checkBypass()) return;
-
-            try {
-                const { data: { session } } = await supabase.auth.getSession();
-                if (session) {
-                    setSession(session);
-                    setUser(session.user);
-                    const { data: profileData } = await supabase
-                        .from('profiles')
-                        .select('*')
-                        .eq('id', session.user.id)
-                        .single();
-                    setProfile(profileData);
-                }
-            } catch (err) {
-                console.warn('Auth initialization failed:', err);
-            } finally {
-                setIsLoading(false);
-            }
+            setIsLoading(false);
         };
 
         setData();
