@@ -27,8 +27,8 @@ export default function Sidebar() {
         <aside className="fixed inset-y-0 left-0 w-64 bg-black border-r border-white/30 hidden lg:flex flex-col z-50">
             <div className="pt-[24px] pl-8 mb-12 flex flex-col items-start gap-4">
                 <Link href="/">
-                    <div className="flex flex-col items-start select-none">
-                        <img src="/logo.webp" alt="NODL Logo" className="h-10 mb-2" />
+                    <div className="flex flex-col items-start select-none gap-3">
+                        <img src="/logo.webp" alt="NODL Logo" className="h-10" />
                         <span className="text-[10px] font-normal tracking-[0.4em] text-[#22D3EE] uppercase-none">Command Centre</span>
                     </div>
                 </Link>
