@@ -16,6 +16,30 @@ services:
       - redis
     restart: unless-stopped
 
+  nodlr:
+    build:
+      context: ./apps/nodlr
+      dockerfile: Dockerfile
+    ports:
+      - "3001:3000"
+    env_file:
+      - ./nodld/.env
+    depends_on:
+      - nodld
+    restart: unless-stopped
+
+  command-ui:
+    build:
+      context: ./apps/command
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./nodld/.env
+    depends_on:
+      - nodld
+    restart: unless-stopped
+
   redis:
     image: redis:7-alpine
     ports:
