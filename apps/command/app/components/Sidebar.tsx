@@ -28,7 +28,7 @@ export default function Sidebar() {
             <div className="pt-[24px] pl-8 mb-12 flex flex-col items-start gap-4">
                 <Link href="/">
                     <div className="flex flex-col items-start select-none">
-                        <img src="/logo.svg" alt="NODL Logo" className="h-10 mb-2" />
+                        <img src="/logo.webp" alt="NODL Logo" className="h-10 mb-2" />
                         <span className="text-[10px] font-normal tracking-[0.4em] text-[#22D3EE] uppercase-none">Command Centre</span>
                     </div>
                 </Link>
