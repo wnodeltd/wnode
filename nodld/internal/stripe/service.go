@@ -16,6 +16,7 @@ import (
 	"github.com/stripe/stripe-go/v81/paymentintent"
 	"github.com/stripe/stripe-go/v81/transfer"
 	"github.com/stripe/stripe-go/v81/webhook"
+	internalAccount "github.com/obregan/nodl/nodld/internal/account"
 	"go.uber.org/zap"
 )
 
@@ -24,17 +25,19 @@ type Service struct {
 	secretKey      string
 	webhookSecret  string
 	platformAcct   string
+	accountStore   *internalAccount.Store
 	log            *zap.Logger
 }
 
 // NewService creates a configured Stripe service.
 // Stripe SDK is global, so we set the key here.
-func NewService(secretKey, webhookSecret, platformAcct string, log *zap.Logger) *Service {
+func NewService(secretKey, webhookSecret, platformAcct string, accountStore *internalAccount.Store, log *zap.Logger) *Service {
 	stripe.Key = secretKey
 	return &Service{
 		secretKey:     secretKey,
 		webhookSecret: webhookSecret,
 		platformAcct:  platformAcct,
+		accountStore:  accountStore,
 		log:           log,
 	}
 }
@@ -78,7 +81,19 @@ func (s *Service) handleCreateConnectAccount(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	s.log.Info("express account created", zap.String("accountID", acct.ID))
+	s.log.Info("express account created", zap.String("accountID", acct.ID), zap.String("email", req.Email))
+
+	// Find the Nodlr by email and link the ID
+	nodlrs := s.accountStore.ListNodlrs()
+	for _, n := range nodlrs {
+		if n.Email == req.Email {
+			n.StripeConnectID = acct.ID
+			n.PayoutStatus = internalAccount.PayoutStatusPending
+			s.log.Info("nodlr linked to stripe account", zap.String("email", n.Email), zap.String("stripeID", acct.ID))
+			break
+		}
+	}
+
 	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
 		"accountID": acct.ID,
 		"email":     req.Email,
@@ -206,7 +221,7 @@ func (s *Service) handleCreateTransfer(c *fiber.Ctx) error {
 }
 
 // ProcessCommissionPayouts handles the actual Stripe transfers for a commission split.
-func (s *Service) ProcessCommissionPayouts(jobID string, platformAmt int64, payouts map[string]int64) error {
+func (s *Service) ProcessCommissionPayouts(jobID string, platformAmt int64, payouts map[string]int64, transferGroup string) error {
 	if err := s.requireConfigured(); err != nil {
 		return err
 	}
@@ -224,6 +239,7 @@ func (s *Service) ProcessCommissionPayouts(jobID string, platformAmt int64, payo
 			Amount:      stripe.Int64(amt),
 			Currency:    stripe.String("usd"),
 			Destination: stripe.String(acctID),
+			TransferGroup: stripe.String(transferGroup),
 			Metadata: map[string]string{
 				"jobID": jobID,
 				"type":  "commission_payout",
@@ -275,6 +291,18 @@ func (s *Service) handleWebhook(c *fiber.Ctx) error {
 			zap.String("accountID", acct.ID),
 			zap.Bool("detailsSubmitted", acct.DetailsSubmitted),
 		)
+
+		if acct.DetailsSubmitted {
+			// Find the Nodlr by their Stripe ID and update status
+			nodlrs := s.accountStore.ListNodlrs()
+			for _, n := range nodlrs {
+				if n.StripeConnectID == acct.ID {
+					n.PayoutStatus = internalAccount.PayoutStatusActive
+					s.log.Info("nodlr payout status activated", zap.String("email", n.Email))
+					break
+				}
+			}
+		}
 
 	case "payment_intent.succeeded":
 		var pi stripe.PaymentIntent

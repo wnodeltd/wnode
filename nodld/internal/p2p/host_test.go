@@ -15,7 +15,7 @@ func TestNew_HostCreation(t *testing.T) {
 	log, _ := zap.NewDevelopment()
 
 	// Use ephemeral ports for testing
-	h, err := p2p.New(ctx, 0, nil, log)
+	h, err := p2p.New(ctx, 0, nil, nil, log)
 	if err != nil {
 		t.Fatalf("expected host creation to succeed, got: %v", err)
 	}
@@ -31,7 +31,7 @@ func TestHost_PeerCount_Empty(t *testing.T) {
 	defer cancel()
 
 	log, _ := zap.NewDevelopment()
-	h, err := p2p.New(ctx, 0, nil, log)
+	h, err := p2p.New(ctx, 0, nil, nil, log)
 	if err != nil {
 		t.Fatalf("host creation failed: %v", err)
 	}
@@ -47,7 +47,7 @@ func TestHost_ConnectedPeers_Empty(t *testing.T) {
 	defer cancel()
 
 	log, _ := zap.NewDevelopment()
-	h, err := p2p.New(ctx, 0, nil, log)
+	h, err := p2p.New(ctx, 0, nil, nil, log)
 	if err != nil {
 		t.Fatalf("host creation failed: %v", err)
 	}

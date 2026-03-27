@@ -10,8 +10,9 @@
     --font-roboto: 'Roboto', sans-serif;
     --emerald: #10b981;
     --gold: #fbbf24;
-    --border: rgba(255, 255, 255, 0.08);
+    --border: rgba(255, 255, 255, 0.25);
     --radius: 5px;
+    --identifier: #22D3EE;
   }
 }
 
@@ -48,16 +49,10 @@ h3 { font-size: 24px; }
   color: rgba(255, 255, 255, 0.6);
 }
 
-.surface-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-}
-
-.glass-card {
+.glass-card, .surface-card, .card {
   background: rgba(17, 17, 17, 0.8);
   backdrop-filter: blur(8px);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border) !important;
   border-radius: var(--radius);
 }
 
@@ -82,10 +77,19 @@ body::before {
   pointer-events: none;
   z-index: -1;
   background: 
-    radial-gradient(circle at 0% 0%, var(--mesh-portal-glow-color, #fcba03) 0%, transparent 40%),
-    radial-gradient(circle at 100% 0%, var(--mesh-portal-glow-color, #fcba03) 0%, transparent 40%),
-    radial-gradient(circle at 100% 100%, var(--mesh-portal-glow-color, #fcba03) 0%, transparent 40%),
-    radial-gradient(circle at 0% 100%, var(--mesh-portal-glow-color, #fcba03) 0%, transparent 40%);
+    radial-gradient(circle at 0% 0%, var(--mesh-portal-glow-color, #22D3EE) 0%, transparent 40%),
+    radial-gradient(circle at 100% 0%, var(--mesh-portal-glow-color, #22D3EE) 0%, transparent 40%),
+    radial-gradient(circle at 100% 100%, var(--mesh-portal-glow-color, #22D3EE) 0%, transparent 40%),
+    radial-gradient(circle at 0% 100%, var(--mesh-portal-glow-color, #22D3EE) 0%, transparent 40%);
   filter: blur(60px);
   animation: pulse-glow-mesh 10s ease-in-out infinite;
+}
+@keyframes green-pulse {
+    0% { background: linear-gradient(135deg, #10b981 0%, #22d3ee 100%); opacity: 0.8; }
+    50% { background: linear-gradient(135deg, #059669 0%, #0891b2 100%); opacity: 1; }
+    100% { background: linear-gradient(135deg, #10b981 0%, #22d3ee 100%); opacity: 0.8; }
+}
+
+.animate-green-mesh {
+    animation: green-pulse 3s infinite;
 }

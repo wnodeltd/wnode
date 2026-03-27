@@ -18,6 +18,7 @@ export default function Navbar() {
 
             <div className="flex items-center gap-8 text-[11px] font-normal tracking-widest text-slate-400 uppercase">
                 <Link href="/dashboard" className="hover:text-white transition-colors">Overview</Link>
+                <Link href="/growth" className="hover:text-white transition-colors">Growth</Link>
                 <Link href="/dashboard/hardware" className="hover:text-white transition-colors">Hardware</Link>
                 <Link href="/dashboard/settings" className="hover:text-white transition-colors">Security</Link>
             </div>

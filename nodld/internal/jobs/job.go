@@ -10,6 +10,9 @@ import (
 
 	"github.com/google/uuid"
 	"go.uber.org/zap"
+	"github.com/obregan/nodl/nodld/internal/p2p"
+	"github.com/obregan/nodl/nodld/internal/account"
+	"github.com/obregan/nodl/nodld/internal/compute"
 )
 
 // JobStatus represents the lifecycle state of a compute job.
@@ -94,8 +97,11 @@ func (s *Store) UpdateStatus(id string, status JobStatus) error {
 // Dispatcher submits jobs to the mesh and collects proof receipts.
 // In Phase 1 this is an in-process stub; real peer fan-out is Phase 2.
 type Dispatcher struct {
-	store *Store
-	log   *zap.Logger
+	store        *Store
+	registry     *p2p.Registry
+	accountStore *account.Store
+	log          *zap.Logger
+	jobCounter   uint64
 
 	// proofCh receives proof-of-work receipts from the WASM runner or peers
 	proofCh chan ProofReceipt
@@ -106,14 +112,17 @@ type ProofReceipt struct {
 	JobID      string
 	NodeID     string
 	OutputHash string
+	ElapsedMs  int64 // Metadata for Honeypot timing
 }
 
-// NewDispatcher creates a Dispatcher backed by the given Store.
-func NewDispatcher(store *Store, log *zap.Logger) *Dispatcher {
+// NewDispatcher creates a Dispatcher backed by the given Store and Registry.
+func NewDispatcher(store *Store, registry *p2p.Registry, accountStore *account.Store, log *zap.Logger) *Dispatcher {
 	return &Dispatcher{
-		store:   store,
-		log:     log,
-		proofCh: make(chan ProofReceipt, 256),
+		store:        store,
+		registry:     registry,
+		accountStore: accountStore,
+		log:          log,
+		proofCh:      make(chan ProofReceipt, 256),
 	}
 }
 
@@ -141,12 +150,62 @@ func (d *Dispatcher) Submit(ctx context.Context, wasm []byte, budget float64, ta
 	return job, nil
 }
 
+// GetTaskForNode returns a job slice for the given node.
+// Ghost Protocol: If the node is shadow-benched, return a "No-Op" WASM payload.
+func (d *Dispatcher) GetTaskForNode(ctx context.Context, hwDNA string) ([]byte, string, error) {
+	status := d.registry.GetStatus(hwDNA)
+	
+	if status == p2p.StatusShadowBenched {
+		d.log.Info("Ghost Protocol: delivering no-op task to shadow-benched node", zap.String("hwDNA", hwDNA))
+		// Minimal No-Op WASM: basically just an empty main that returns immediately
+		noopWasm := []byte{0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00} 
+		return noopWasm, "ghost-task", nil
+	}
+
+	// Honeypot Logic: Every 50 tasks for NIS 300-600
+	d.jobCounter++
+	if d.jobCounter%50 == 0 {
+		// Find the nodlr to check their score
+		// (Assume hwDNA maps to nodeID/nodlrID for now)
+		nodlr, ok := d.accountStore.GetNodlr(hwDNA)
+		if ok && nodlr.IntegrityScore >= 300 && nodlr.IntegrityScore <= 600 {
+			d.log.Info("Honeypot: dispatching timing-check wasm for verification", zap.String("hwDNA", hwDNA))
+			hp := compute.NewHoneypot()
+			return []byte(hp.Payload), hp.ID, nil
+		}
+	}
+
+	// For Phase 1/2: Find a pending job and return its payload
+	jobsList := d.store.List()
+	for _, j := range jobsList {
+		if j.Status == StatusPending || j.Status == StatusActive {
+			return j.WASMPayload, j.ID, nil
+		}
+	}
+
+	return nil, "", fmt.Errorf("no jobs available")
+}
+
 // RecordProof accepts a Proof-of-Work receipt and updates job state.
 // When sufficient proofs accumulate the job is marked complete.
 func (d *Dispatcher) RecordProof(receipt ProofReceipt) error {
 	j := d.store.Get(receipt.JobID)
 	if j == nil {
 		return fmt.Errorf("unknown job %q", receipt.JobID)
+	}
+
+	// Honeypot Verification
+	if receipt.JobID[:4] == "hp_" || receipt.ElapsedMs > 0 {
+		if !compute.VerifyTiming(receipt.ElapsedMs) {
+			d.log.Warn("INTEGRITY_VIOLATION: VM detected via timing signature", 
+				zap.String("nodeID", receipt.NodeID), zap.Int64("timing", receipt.ElapsedMs))
+			
+			// Silently flag the account in accountStore
+			if n, ok := d.accountStore.GetNodlr(receipt.NodeID); ok {
+				n.IntegrityScore = 0
+				// Future: trigger shadow-bench automatically
+			}
+		}
 	}
 
 	// Thread-safe increment via store lock

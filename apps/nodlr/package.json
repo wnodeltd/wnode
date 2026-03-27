@@ -3,9 +3,9 @@
     "version": "0.1.0",
     "private": true,
     "scripts": {
-        "dev": "next dev -H 127.0.0.1 -p 3001",
-        "build": "next build",
-        "start": "next start -H 127.0.0.1 -p 3001",
+        "dev": "next dev -H 0.0.0.0 -p 3000",
+        "build": "NODE_OPTIONS=\"--max-old-space-size=4096\" next build",
+        "start": "next start -H 0.0.0.0 -p 3000",
         "lint": "next lint"
     },
     "dependencies": {
@@ -16,7 +16,13 @@
         "next": "14.2.3",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
-        "swr": "^2.4.1"
+        "swr": "^2.4.1",
+        "libp2p": "^1.0.0",
+        "@libp2p/websockets": "^1.0.0",
+        "@libp2p/webrtc": "^1.0.0",
+        "@libp2p/mplex": "^10.0.0",
+        "@libp2p/noise": "^15.0.0",
+        "@multiformats/multiaddr": "^12.1.0"
     },
     "devDependencies": {
         "@types/node": "^20.0.0",

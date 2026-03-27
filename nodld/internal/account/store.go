@@ -43,9 +43,10 @@ func (s *Store) CreateNodlr(email, parentID string) (*Nodlr, error) {
 
 	id := uuid.New().String()
 	
-	// Round-robin for organic signups
+	// Round-robin for organic signups (Strict Genesis Rotation)
 	if parentID == "" {
-		parentID = s.founders[s.organicCount%5]
+		slotIndex := s.organicCount % 5
+		parentID = s.founders[slotIndex]
 		s.organicCount++
 	}
 
@@ -53,6 +54,8 @@ func (s *Store) CreateNodlr(email, parentID string) (*Nodlr, error) {
 		ID:              id,
 		Email:           email,
 		PayoutFrequency: PayoutDaily,
+		PayoutStatus:    PayoutStatusIncomplete,
+		IntegrityScore:  600, // Initial trust
 		ParentID:        parentID,
 		CreatedAt:       time.Now(),
 	}
@@ -130,12 +133,30 @@ func (s *Store) TransferAffiliate(childID, newParentID string) error {
 	return nil
 }
 
-// FindUnderFounder checks if a child is in the sub-tree of a specific founder.
-// This is recursive/iterative to find if founderID is a parent at any level.
-// Requirement: 3% bonus is for direct children (L1) and grandchildren (L2).
-func (s *Store) IsInFounderTree(founderID, childID string) bool {
-	l1, l2 := s.ResolveTree(childID)
-	return l1 == founderID || l2 == founderID
+// GetGenesisFounder returns the ID of the Genesis Founder (1-5) who ultimately
+// owns the lineage of this node.
+func (s *Store) GetGenesisFounder(id string) string {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	curr := id
+	for {
+		n, ok := s.nodlrs[curr]
+		if !ok || n.ParentID == "" {
+			// If we hit the top and it's a founder, return it
+			if n != nil && n.IsFounder {
+				return n.ID
+			}
+			return ""
+		}
+		
+		// If current is a founder, we've found it
+		if n.IsFounder {
+			return n.ID
+		}
+		
+		curr = n.ParentID
+	}
 }
 
 func (s *Store) AddCommissions(records []CommissionRecord) {

@@ -20,8 +20,8 @@ func newTestServer(t *testing.T) *api.Server {
 	t.Helper()
 	log, _ := zap.NewDevelopment()
 	store := jobs.NewStore()
-	dispatcher := jobs.NewDispatcher(store, log)
-	return api.New(dispatcher, store, nil, log, time.Now())
+	dispatcher := jobs.NewDispatcher(store, nil, nil, log)
+	return api.New(dispatcher, store, nil, nil, nil, log, time.Now())
 }
 
 func TestHandleHealth(t *testing.T) {

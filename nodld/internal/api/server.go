@@ -157,7 +157,7 @@ func (s *Server) registerRoutes() {
 
 // Listen starts the HTTP server on the given port.
 func (s *Server) Listen(port int) error {
-	return s.app.Listen(fmt.Sprintf("127.0.0.1:%d", port))
+	return s.app.Listen(fmt.Sprintf(":%d", port))
 }
 
 // Shutdown gracefully stops the server.

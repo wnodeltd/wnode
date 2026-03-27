@@ -133,10 +133,19 @@ export default function LoginPage() {
                                     placeholder="Password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-4 text-white  text-sm focus:outline-none focus:border-[#9333ea]/50 transition-all border-b-2"
+                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-4 text-white text-sm focus:outline-none focus:border-[#9333ea]/50 transition-all border-b-2"
                                     required
                                 />
                             </div>
+
+                            {authMode === 'signup' && (
+                                <div className="flex items-start gap-3 p-4 bg-white/5 rounded-xl border border-white/5">
+                                    <input type="checkbox" required className="mt-1 accent-[#9333ea]" />
+                                    <span className="text-[11px] text-slate-400 leading-relaxed">
+                                        I agree to the <span className="text-white font-bold">'One Machine, One Node' (1M1N)</span> policy. I understand that running multiple nodes on a single machine or using virtual machines will result in an <span className="text-red-500">Integrity Score of 0</span> and immediate account suspension.
+                                    </span>
+                                </div>
+                            )}
 
                             {error && (
                                 <div className="text-red-500  text-[10px] uppercase bg-red-500/10 border border-red-500/20 p-3 rounded-lg">

@@ -29,7 +29,7 @@ export async function GET() {
             message: 'Backend Offline',
             activeNodes: 0,
             networkLoad: 0,
-            logs: [{ timestamp: new Date().toISOString(), message: "SYSTEM CRITICAL: NODLD DAEMON UNREACHABLE AT 127.0.0.1:8080" }]
+            logs: [{ timestamp: new Date().toISOString(), message: `SYSTEM CRITICAL: NODLD DAEMON UNREACHABLE AT ${apiUrl}` }]
         }, { status: 503 });
     }
 }
