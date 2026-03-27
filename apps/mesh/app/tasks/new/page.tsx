@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Upload, Terminal, Zap, Shield, Info, Play, BarChart3, Database } from 'lucide-react';
+import { Upload, Terminal, Zap, Shield, Info, Play, BarChart3, Database, Leaf } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function TaskComposer() {
@@ -12,7 +12,8 @@ export default function TaskComposer() {
     const estimates = {
         cost: tier === 'Boost' ? '$12.42' : tier === 'Standard' ? '$4.18' : '$0.85',
         energy: '1.2 kWh',
-        payout: tier === 'Boost' ? '$10.50' : tier === 'Standard' ? '$3.20' : '$0.60'
+        payout: tier === 'Boost' ? '$10.50' : tier === 'Standard' ? '$3.20' : '$0.60',
+        co2: tier === 'Boost' ? '3.2 kg' : tier === 'Standard' ? '1.1 kg' : '0.2 kg'
     };
 
     return (
@@ -113,6 +114,15 @@ export default function TaskComposer() {
                                     <Database className="w-3 h-3 text-mesh-emerald" /> Host Payout Split
                                 </span>
                                 <span className="text-mesh-emerald font-bold">{estimates.payout}</span>
+                            </div>
+                            <div className="flex justify-between items-center text-[10px] uppercase tracking-wider">
+                                <span className="text-slate-400 flex items-center gap-2">
+                                    <Leaf className="w-3 h-3 text-emerald-500 animate-pulse" /> Green Savings
+                                </span>
+                                <span className="text-emerald-500 font-bold">{estimates.co2} CO₂</span>
+                            </div>
+                            <div className="text-[8px] text-slate-600 uppercase text-right -mt-2 mb-2 pr-1">
+                                vs 120W cloud avg.
                             </div>
                             <div className="flex justify-between items-center text-[10px] uppercase tracking-wider">
                                 <span className="text-slate-500 flex items-center gap-2">

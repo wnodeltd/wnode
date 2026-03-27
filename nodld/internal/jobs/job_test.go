@@ -69,7 +69,7 @@ func TestStore_UpdateStatus_NotFound(t *testing.T) {
 func TestDispatcher_Submit(t *testing.T) {
 	log, _ := zap.NewDevelopment()
 	s := jobs.NewStore()
-	d := jobs.NewDispatcher(s, log)
+	d := jobs.NewDispatcher(s, nil, nil, log)
 
 	ctx := context.Background()
 	job, err := d.Submit(ctx, []byte{0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00}, 2.5, 1000)
@@ -87,7 +87,7 @@ func TestDispatcher_Submit(t *testing.T) {
 func TestDispatcher_RecordProof_CompletesJob(t *testing.T) {
 	log, _ := zap.NewDevelopment()
 	s := jobs.NewStore()
-	d := jobs.NewDispatcher(s, log)
+	d := jobs.NewDispatcher(s, nil, nil, log)
 
 	ctx := context.Background()
 	job, _ := d.Submit(ctx, []byte{0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00}, 1.0, 100)

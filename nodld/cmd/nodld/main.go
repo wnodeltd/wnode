@@ -52,17 +52,26 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	// ── P2P Identity ─────────────────────────────────────────────────────────
+	priv, err := p2p.LoadOrCreateIdentity("peer.key")
+	if err != nil {
+		log.Fatal("failed to load/create p2p identity", zap.Error(err))
+	}
+
 	// ── P2P Host ──────────────────────────────────────────────────────────────
-	p2pHost, err := p2p.New(ctx, cfg.P2PPort, cfg.P2PBootstrapPeers, log)
+	p2pHost, err := p2p.New(ctx, cfg.P2PPort, priv, cfg.P2PBootstrapPeers, log)
 	if err != nil {
 		log.Fatal("p2p host failed to start", zap.Error(err))
 	}
 	defer p2pHost.Close()
 	log.Info("libp2p host online", zap.String("peerID", p2pHost.ID()))
 
+	// ── Account & Affiliate Store ─────────────────────────────────────────────
+	accountStore := account.NewStore()
+
 	// ── Job Store + Dispatcher ────────────────────────────────────────────────
 	store := jobs.NewStore()
-	dispatcher := jobs.NewDispatcher(store, log)
+	dispatcher := jobs.NewDispatcher(store, p2pHost.Registry(), accountStore, log)
 	go dispatcher.Run(ctx)
 
 	// ── WASM Runner ───────────────────────────────────────────────────────────
@@ -77,6 +86,7 @@ func main() {
 		cfg.StripeSecretKey,
 		cfg.StripeWebhookSecret,
 		cfg.StripePlatformAccount,
+		accountStore,
 		log,
 	)
 	if !stripeSvc.IsConfigured() {
@@ -89,7 +99,7 @@ func main() {
 	go pricingEngine.Run(ctx)
 
 	// ── Account & Affiliate Store ─────────────────────────────────────────────
-	accountStore := account.NewStore()
+	// (Moved up)
 	
 	// Seed Data for Testing
 	ownerID := "0xFD-OWNER-SYSTEM"
@@ -98,6 +108,7 @@ func main() {
 		ID:              ownerID,
 		Email:           "stephen@nodl.one",
 		PayoutFrequency: account.PayoutDaily,
+		PayoutStatus:    account.PayoutStatusActive,
 		StripeConnectID: "acct_1test",
 		IsFounder:       true,
 		FounderIndex:    1,

@@ -4,10 +4,20 @@ import { useState, useEffect } from "react";
 import { Zap, TrendingUp, Cpu, Server, Activity } from 'lucide-react';
 import { motion, AnimatePresence } from "framer-motion";
 import HealthAnnunciator from "../components/HealthAnnunciator";
+import ImpactCard from "../components/ImpactCard";
+import OnboardingWizard from "../components/OnboardingWizard";
+import useSWR from 'swr';
+
+const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 export default function DashboardPage() {
     const [isHarvesting, setIsHarvesting] = useState(false);
     const [allocation, setAllocation] = useState({ cpu: 0, gpu: 0, ram: 12 });
+    
+    const { data: impactData } = useSWR('http://127.0.0.1:8080/api/impact', fetcher, { refreshInterval: 5000 });
+    const { data: accountData } = useSWR('http://127.0.0.1:8080/api/v1/account/me', fetcher);
+    const impact = impactData || { carbonSavedKg: 0, equivalentKmDriven: 0, treeDays: 0 };
+    const isPayoutActive = accountData?.payoutStatus === 'active';
 
     useEffect(() => {
         let interval: any;
@@ -32,6 +42,14 @@ export default function DashboardPage() {
     }, [isHarvesting]);
 
     const toggleHarvesting = () => setIsHarvesting(!isHarvesting);
+
+    if (accountData && !isPayoutActive) {
+        return (
+            <div className="min-h-screen bg-black flex flex-col justify-center">
+                <OnboardingWizard />
+            </div>
+        );
+    }
 
     return (
         <div className="max-w-6xl mx-auto space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -204,13 +222,6 @@ export default function DashboardPage() {
                                             <span className="text-slate-400 text-[10px] font-normal">.40</span>
                                         </div>
                                     </div>
-                                    <div className="flex justify-between items-end">
-                                        <span className="text-13px text-slate-400 font-normal">Level 2 earnings</span>
-                                        <div className="flex items-baseline gap-1">
-                                            <span className="text-lg font-normal text-white tracking-tighter">$42</span>
-                                            <span className="text-slate-400 text-[10px] font-normal">.10</span>
-                                        </div>
-                                    </div>
                                     <div className="pt-4 border-t border-white/5 flex justify-between items-baseline">
                                         <span className="text-[10px] text-slate-500 uppercase tracking-widest">Total yield</span>
                                         <span className="text-16px font-normal text-white">$124.50</span>
@@ -218,6 +229,13 @@ export default function DashboardPage() {
                                 </div>
                             </div>
                         </div>
+
+                        <ImpactCard 
+                            carbonSaved={impact.carbonSavedKg}
+                            kmAvoided={impact.equivalentKmDriven}
+                            treeDays={impact.treeDays}
+                            isActive={isHarvesting}
+                        />
                     </div>
 
 

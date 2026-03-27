@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Roboto } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "./components/AuthProvider";
+import { Libp2pProvider } from "./components/Libp2pProvider";
 
 const roboto = Roboto({
     subsets: ["latin"],
@@ -27,7 +28,9 @@ export default function RootLayout({
                 style={{ "--nodlr-portal-glow-color": "#ffff00" } as any}
             >
                 <AuthProvider>
-                    {children}
+                    <Libp2pProvider>
+                        {children}
+                    </Libp2pProvider>
                 </AuthProvider>
             </body>
         </html>

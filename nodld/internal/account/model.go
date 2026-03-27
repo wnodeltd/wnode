@@ -12,16 +12,28 @@ const (
 	PayoutWeekly PayoutFrequency = "weekly"
 )
 
+// PayoutStatus defines if a nodlr is ready to receive funds.
+type PayoutStatus string
+
+const (
+	PayoutStatusPending    PayoutStatus = "pending"
+	PayoutStatusIncomplete PayoutStatus = "incomplete"
+	PayoutStatusActive     PayoutStatus = "active"
+)
+
 // Nodlr represents a participant in the Nodl network.
 type Nodlr struct {
-	ID                string          `json:"id"`
-	Email             string          `json:"email"`
-	StripeConnectID   string          `json:"stripeConnectId"`
-	IsFounder         bool            `json:"isFounder"`
-	FounderIndex      int             `json:"founderIndex,omitempty"` // 1-5
-	PayoutFrequency   PayoutFrequency `json:"payoutFrequency"`
-	ParentID          string          `json:"parentId,omitempty"`     // Direct sponsor
-	CreatedAt         time.Time       `json:"createdAt"`
+	ID                    string          `json:"id"`
+	Email                 string          `json:"email"`
+	StripeConnectID       string          `json:"stripeConnectId"`
+	PayoutStatus          PayoutStatus    `json:"payoutStatus"`
+	IntegrityScore        int             `json:"integrityScore"`        // 0-1000
+	AccruedFounderBalance int64           `json:"accruedFounderBalance"` // Cents
+	IsFounder             bool            `json:"isFounder"`
+	FounderIndex          int             `json:"founderIndex,omitempty"` // 1-5
+	PayoutFrequency       PayoutFrequency `json:"payoutFrequency"`
+	ParentID              string          `json:"parentId,omitempty"`     // Direct sponsor
+	CreatedAt             time.Time       `json:"createdAt"`
 }
 
 // AffiliateRelation represents a link in the tree.

@@ -2,14 +2,16 @@ package account
 
 import (
 	"context"
+	"fmt"
 	"time"
 
+	"github.com/obregan/nodl/nodld/internal/p2p"
 	"go.uber.org/zap"
 )
 
 // StripePayer is an interface for the Stripe service method we need.
 type StripePayer interface {
-	ProcessCommissionPayouts(jobID string, platformAmt int64, payouts map[string]int64) error
+	ProcessCommissionPayouts(jobID string, platformAmt int64, payouts map[string]int64, transferGroup string) error
 }
 
 type Scheduler struct {
@@ -50,36 +52,63 @@ func (s *Scheduler) Settle() {
 	now := time.Now()
 
 	for _, n := range nodlrs {
-		if n.StripeConnectID == "" {
+		if n.StripeConnectID == "" || n.PayoutStatus != PayoutStatusActive {
 			continue
 		}
 
-		// Check preference
-		due := false
-		if n.PayoutFrequency == PayoutDaily {
-			due = true // Simplified for MVP: pays out everything pending once an hour
-		} else if n.PayoutFrequency == PayoutWeekly && now.Weekday() == time.Monday {
-			due = true
+		pending := s.store.GetPendingTotal(n.ID)
+		if pending <= 0 {
+			continue
 		}
 
-		if due {
-			pending := s.store.GetPendingTotal(n.ID)
-			if pending > 0 {
-				s.log.Info("executing payout", zap.String("nodlr", n.ID), zap.Int64("amt", pending))
-				
-				// In a real system, we'd record a Payout object and batch these.
-				// For now, we use the Stripe Service's ProcessCommissionPayouts structure.
-				payouts := map[string]int64{
-					n.StripeConnectID: pending,
-				}
-				
-				err := s.stripe.ProcessCommissionPayouts("SETTLEMENT_"+now.Format("20060102"), 0, payouts)
-				if err == nil {
-					s.store.ClearPending(n.ID)
-				} else {
-					s.log.Error("failed to settle nodlr", zap.String("id", n.ID), zap.Error(err))
+		// ── Automated Payout Guard ───────────────────────────────────────────
+		if n.IntegrityScore <= 500 {
+			s.log.Warn("payout guard: holding funds due to low integrity score", 
+				zap.String("nodlr", n.ID), zap.Int("score", n.IntegrityScore))
+			continue
+		}
+
+		// ── Waterfall Engine ─────────────────────────────────────────────────
+		split := p2p.CalculateWaterfall(pending)
+		jobID := fmt.Sprintf("FUSION_%s_%d", n.ID[:8], now.Unix())
+		transferGroup := p2p.GetTransferGroup(jobID)
+
+		payouts := make(map[string]int64)
+
+		// 1. Worker (84%)
+		payouts[n.StripeConnectID] = split.WorkerCents
+
+		// 2. Affiliates (L1: 2%, L2: 6%)
+		l1ID, l2ID := s.store.ResolveTree(n.ID)
+		if l1, ok := s.store.GetNodlr(l1ID); ok && l1.StripeConnectID != "" {
+			payouts[l1.StripeConnectID] = split.L1Cents
+		}
+		if l2, ok := s.store.GetNodlr(l2ID); ok && l2.StripeConnectID != "" {
+			payouts[l2.StripeConnectID] = split.L2Cents
+		}
+
+		// 3. Founder Override (3%)
+		founderID := s.store.GetGenesisFounder(n.ID)
+		if founderID != "" {
+			founder, ok := s.store.GetNodlr(founderID)
+			if ok {
+				// 4. Empty Founder Logic
+				if founder.Email == "system@wnode.ltd" {
+					founder.AccruedFounderBalance += split.FounderCents
+					s.log.Info("accruing founder balance (unassigned slot)", 
+						zap.String("founderID", founderID), zap.Int64("amt", split.FounderCents))
+				} else if founder.StripeConnectID != "" {
+					payouts[founder.StripeConnectID] += split.FounderCents
 				}
 			}
+		}
+		
+		// 5. Execution
+		err := s.stripe.ProcessCommissionPayouts(jobID, split.PlatformCents, payouts, transferGroup)
+		if err == nil {
+			s.store.ClearPending(n.ID)
+		} else {
+			s.log.Error("fusion settlement failed", zap.String("id", n.ID), zap.Error(err))
 		}
 	}
 }
