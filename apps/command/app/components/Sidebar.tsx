@@ -29,7 +29,10 @@ export default function Sidebar() {
                 <Link href="/">
                     <div className="flex flex-col items-start select-none gap-3">
                         <img src="/logo.webp" alt="NODL Logo" className="h-10" />
-                        <span className="text-[10px] font-normal tracking-[0.4em] text-[#22D3EE] uppercase-none">Command Centre</span>
+                        <div className="flex flex-col items-start">
+                            <span className="text-[10px] font-normal tracking-[0.4em] text-[#22D3EE] uppercase-none">Command Centre</span>
+                            <span className="text-[10px] text-slate-500 mt-1 uppercase tracking-widest font-normal">Command Dashboard</span>
+                        </div>
                     </div>
                 </Link>
             </div>
