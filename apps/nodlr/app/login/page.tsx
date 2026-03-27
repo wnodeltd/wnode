@@ -2,7 +2,6 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '../../src/lib/supabase';
 import { Mail, Chrome, ArrowRight, Loader2, Github } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -29,32 +28,11 @@ export default function LoginPage() {
             return;
         }
 
-        try {
-            let result;
-            if (authMode === 'signin') {
-                result = await supabase.auth.signInWithPassword({ email, password });
-            } else {
-                result = await supabase.auth.signUp({ email, password });
-            }
-
-            if (result.error) throw result.error;
-            if (result.data.user) router.push('/dashboard');
-        } catch (err: any) {
-            setError(err.message || 'Authentication failed');
-            setIsLoading(false);
-        }
+        setIsLoading(false);
     };
 
     const handleGoogleLogin = async () => {
-        try {
-            const { error } = await supabase.auth.signInWithOAuth({
-                provider: 'google',
-                options: { redirectTo: `${window.location.origin}/auth/callback` }
-            });
-            if (error) throw error;
-        } catch (err: any) {
-            setError(err.message);
-        }
+        setError('Federated Identity is currently disabled.');
     };
 
     return (

@@ -1,14 +1,12 @@
 'use client';
 
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { supabase } from '../../src/lib/supabase';
-import { User, Session } from '@supabase/supabase-js';
 import LoadingSkeleton from './LoadingSkeleton';
 import { useRouter, usePathname } from 'next/navigation';
 
 interface AuthContextType {
-    user: User | null;
-    session: Session | null;
+    user: any | null;
+    session: any | null;
     profile: any | null;
     isLoading: boolean;
     isGodMode: boolean;
@@ -17,8 +15,8 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-    const [user, setUser] = useState<User | null>(null);
-    const [session, setSession] = useState<Session | null>(null);
+    const [user, setUser] = useState<any | null>(null);
+    const [session, setSession] = useState<any | null>(null);
     const [profile, setProfile] = useState<any | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
@@ -45,57 +43,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         const setData = async () => {
             if (checkBypass()) return;
-
-            try {
-                const { data: { session }, error } = await supabase.auth.getSession();
-                if (session) {
-                    setSession(session);
-                    setUser(session.user);
-
-                    // Fetch profile
-                    const { data: profileData } = await supabase
-                        .from('profiles')
-                        .select('*')
-                        .eq('id', session.user.id)
-                        .single();
-
-                    setProfile(profileData);
-                }
-            } catch (err) {
-                console.warn('Auth initialization failed (Supabase offline?):', err);
-            } finally {
-                setIsLoading(false);
-            }
+            setIsLoading(false);
         };
-
-        let subscription: any = null;
-        try {
-            const { data } = supabase.auth.onAuthStateChange((_event, session) => {
-                if (typeof window !== 'undefined' && localStorage.getItem('nodl_auth_bypass') === 'true') return;
-
-                setSession(session);
-                setUser(session ? session.user : null);
-                if (session) {
-                    supabase.from('profiles')
-                        .select('*')
-                        .eq('id', session.user.id)
-                        .single()
-                        .then(({ data }) => setProfile(data));
-                } else {
-                    setProfile(null);
-                }
-                setIsLoading(false);
-            });
-            subscription = data.subscription;
-        } catch (err) {
-            console.warn('Auth state change subscription failed:', err);
-        }
 
         setData();
-
-        return () => {
-            if (subscription) subscription.unsubscribe();
-        };
     }, [pathname]);
 
     useEffect(() => {

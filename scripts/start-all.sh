@@ -25,9 +25,9 @@ WEB_PID=$!
 
 echo "✅ All systems initiated."
 echo "-----------------------------------"
-echo "Nodlr:   http://127.0.0.1:3001"
-echo "Mesh:    http://127.0.0.1:3002"
-echo "Command: http://127.0.0.1:3003"
+echo "Command: http://127.0.0.1:3001"
+echo "Nodlr:   http://127.0.0.1:3002"
+echo "Mesh:    http://127.0.0.1:3003"
 echo "Web:     http://127.0.0.1:3004"
 echo "Backend: http://127.0.0.1:8080"
 echo "-----------------------------------"
