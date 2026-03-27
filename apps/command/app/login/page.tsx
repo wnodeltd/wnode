@@ -45,11 +45,11 @@ export default function LoginPage() {
             >
                 {/* Logo & Identity */}
                 <div className="flex flex-col items-center space-y-4">
-                    <div className="scale-[3] transform">
+                    <div className="scale-[2.5] transform">
                         <img
-                            src="https://nodl.one/wp-content/uploads/2025/05/nodl-medium.webp"
+                            src="/logo.webp"
                             alt="Nodl"
-                            className="h-3 w-auto"
+                            className="h-6 w-auto"
                         />
                     </div>
                     <div className="pt-8 flex flex-col items-center">

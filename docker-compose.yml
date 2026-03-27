@@ -40,6 +40,18 @@ services:
       - nodld
     restart: unless-stopped
 
+  mesh-ui:
+    build:
+      context: ./apps/mesh
+      dockerfile: Dockerfile
+    ports:
+      - "3002:3000"
+    env_file:
+      - ./nodld/.env
+    depends_on:
+      - nodld
+    restart: unless-stopped
+
   redis:
     image: redis:7-alpine
     ports:
