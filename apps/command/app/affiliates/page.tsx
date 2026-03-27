@@ -32,8 +32,8 @@ export default function AffiliatesPage() {
             try {
                 // In a real setup, we'd fetch the current logged-in user's ID
                 const [accRes, treeRes] = await Promise.all([
-                    fetch(`http://127.0.0.1:8080/account/${MOCK_USER_ID}`),
-                    fetch(`http://127.0.0.1:8080/affiliates/tree/${MOCK_USER_ID}`)
+                    fetch(`http://process.env.NEXT_PUBLIC_API_URL || "https://api.nodl.one"/account/${MOCK_USER_ID}`),
+                    fetch(`http://process.env.NEXT_PUBLIC_API_URL || "https://api.nodl.one"/affiliates/tree/${MOCK_USER_ID}`)
                 ]);
 
                 if (accRes.ok) setAccount(await accRes.json());
@@ -52,14 +52,14 @@ export default function AffiliatesPage() {
         if (!transferModal || !newParentId) return;
         
         try {
-            const res = await fetch('http://127.0.0.1:8080/affiliates/transfer', {
+            const res = await fetch('http://process.env.NEXT_PUBLIC_API_URL || "https://api.nodl.one"/affiliates/transfer', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ childId: transferModal.childId, newParentId })
             });
             if (res.ok) {
                 // Refresh tree
-                const treeRes = await fetch(`http://127.0.0.1:8080/affiliates/tree/${MOCK_USER_ID}`);
+                const treeRes = await fetch(`http://process.env.NEXT_PUBLIC_API_URL || "https://api.nodl.one"/affiliates/tree/${MOCK_USER_ID}`);
                 if (treeRes.ok) setTree(await treeRes.json());
                 setTransferModal(null);
                 setNewParentId("");

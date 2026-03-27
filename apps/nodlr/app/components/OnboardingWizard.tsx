@@ -26,14 +26,14 @@ export default function OnboardingWizard() {
     const handleConnectStripe = async () => {
         setIsConnecting(true);
         try {
-            const res = await fetch('http://127.0.0.1:8080/api/v1/stripe/connect/account', {
+            const res = await fetch('http://process.env.NEXT_PUBLIC_API_URL || "https://api.nodl.one"/api/v1/stripe/connect/account', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: 'nodlr@example.com' }) // In real app, get from auth
             });
             const { accountID } = await res.json();
 
-            const resLink = await fetch('http://127.0.0.1:8080/api/v1/stripe/connect/onboard', {
+            const resLink = await fetch('http://process.env.NEXT_PUBLIC_API_URL || "https://api.nodl.one"/api/v1/stripe/connect/onboard', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
