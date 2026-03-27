@@ -5,11 +5,11 @@ import Link from "next/link";
 export default function Navbar() {
     return (
         <nav className="flex items-center justify-between py-6 px-8 border-b border-white/5 backdrop-blur-xl sticky top-0 z-50">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-6">
                 <img
                     src="https://nodl.one/wp-content/uploads/2025/05/nodl-medium.webp"
                     alt="Nodl"
-                    className="w-16 h-auto"
+                    className="w-16 h-auto mr-2"
                 />
                 <div className="h-4 w-px bg-white/10 mx-1" />
                 <span className="text-[10px] font-normal tracking-[0.2em] uppercase text-slate-500">Dashboard</span>
