@@ -17,11 +17,28 @@ type Store struct {
 }
 
 func NewStore() *Store {
-	return &Store{
+	s := &Store{
 		state: &GlobalPricingState{
 			Tiers: make(map[TierID]*TierState),
 		},
 	}
+
+	// Initialize Nodl Global Matrix
+	initialTiers := []*TierState{
+		{ID: TierTiny, Name: "Tiny", RateTHSec: 0.0006, CPUCores: 4, GPUModel: "No GPU", RAMGB: 8, Description: "Entry-level sandbox compute"},
+		{ID: TierStandard, Name: "Standard", RateTHSec: 0.0018, CPUCores: 16, GPUModel: "T4 GPU", RAMGB: 32, Description: "Balanced general purpose"},
+		{ID: TierHighRAM, Name: "High RAM", RateTHSec: 0.0028, CPUCores: 16, GPUModel: "No GPU", RAMGB: 256, Description: "Data intensive workloads"},
+		{ID: TierBoost, Name: "Boost", RateTHSec: 0.0042, CPUCores: 32, GPUModel: "RTX 4090", RAMGB: 64, Description: "High-performance GPU compute"},
+		{ID: TierUltra, Name: "Ultra", RateTHSec: 0.0084, CPUCores: 64, GPUModel: "2x RTX 4090", RAMGB: 128, Description: "Multi-GPU extreme performance"},
+		{ID: TierDeccTee, Name: "DECC/TEE", RateTHSec: 0.0120, CPUCores: 24, GPUModel: "H100", RAMGB: 80, Description: "Encrypted confidential compute"},
+	}
+
+	for _, t := range initialTiers {
+		t.LastUpdate = time.Now()
+		s.state.Tiers[t.ID] = t
+	}
+
+	return s
 }
 
 func (s *Store) GetState() *GlobalPricingState {
@@ -93,7 +110,7 @@ func (e *Engine) refreshMarketData() {
 	
 	allRates := FetchAllMarketData()
 	
-	tiers := []TierID{TierTiny, TierStandard, TierBoost, TierPro, TierUltra}
+	tiers := []TierID{TierTiny, TierStandard, TierHighRAM, TierBoost, TierUltra, TierDeccTee}
 	for _, t := range tiers {
 		e.updateTier(t, allRates)
 	}
@@ -130,9 +147,44 @@ func (e *Engine) updateTier(id TierID, allRates []MarketRate) {
 	alerts := e.generateAlerts(id, median, existing)
 
 	// 7. Update Store
+	// Robust fallback for static specs (Master Directive)
+	cores := 0
+	gpu := "Unknown GPU"
+	ram := 0
+	desc := "Compute resource"
+	name := string(id)
+
+	switch id {
+	case TierTiny:
+		cores, gpu, ram, desc, name = 4, "No GPU", 8, "Lightweight compute for basic microservices and testing.", "Tiny"
+	case TierStandard:
+		cores, gpu, ram, desc, name = 16, "T4 GPU", 32, "Balanced performance for general-purpose workloads.", "Standard"
+	case TierHighRAM:
+		cores, gpu, ram, desc, name = 16, "No GPU", 256, "Memory-optimized instance for large datasets.", "High RAM"
+	case TierBoost:
+		cores, gpu, ram, desc, name = 32, "RTX 4090", 64, "High-performance compute for demanding applications.", "Boost"
+	case TierUltra:
+		cores, gpu, ram, desc, name = 64, "2x RTX 4090", 128, "Maximum power for intensive processing tasks.", "Ultra"
+	case TierDeccTee:
+		cores, gpu, ram, desc, name = 24, "H100", 80, "Secure enclave with Trusted Execution Environment.", "DECC/TEE"
+	}
+
+	// Carry over from existing if valid, otherwise use defaults above
+	if existing != nil {
+		if existing.CPUCores > 0 { cores = existing.CPUCores }
+		if existing.GPUModel != "" { gpu = existing.GPUModel }
+		if existing.RAMGB > 0 { ram = existing.RAMGB }
+		if existing.Description != "" { desc = existing.Description }
+		if existing.Name != "" { name = existing.Name }
+	}
+
 	newState := &TierState{
 		ID:            id,
-		Name:          string(id),
+		Name:          name,
+		CPUCores:      cores,
+		GPUModel:      gpu,
+		RAMGB:         ram,
+		Description:   desc,
 		LiveMarket:    median,
 		Mean:          mean,
 		Volatility:    vol,
@@ -154,12 +206,14 @@ func (e *Engine) filterRatesForTier(id TierID, all []MarketRate) []MarketRate {
 		matches = func(r MarketRate) bool { return r.Price > 0 && r.Price < 0.02 }
 	case TierStandard:
 		matches = func(r MarketRate) bool { return r.Price >= 0.02 && r.Price < 0.10 }
+	case TierHighRAM:
+		matches = func(r MarketRate) bool { return r.Price >= 0.10 && r.Price < 0.20 }
 	case TierBoost:
-		matches = func(r MarketRate) bool { return r.Price >= 0.10 && r.Price < 0.40 }
-	case TierPro:
-		matches = func(r MarketRate) bool { return r.Price >= 0.40 && r.Price < 1.00 }
+		matches = func(r MarketRate) bool { return r.Price >= 0.20 && r.Price < 0.60 }
 	case TierUltra:
-		matches = func(r MarketRate) bool { return r.Price >= 1.00 }
+		matches = func(r MarketRate) bool { return r.Price >= 0.60 && r.Price < 2.00 }
+	case TierDeccTee:
+		matches = func(r MarketRate) bool { return r.Price >= 2.00 }
 	}
 
 	result := []MarketRate{}

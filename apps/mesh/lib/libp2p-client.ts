@@ -1,9 +1,12 @@
 import { createLibp2p } from 'libp2p'
-import { WebSockets } from '@libp2p/websockets'
+import { webSockets } from '@libp2p/websockets'
 import { webRTC } from '@libp2p/webrtc'
 import { noise } from '@chainsafe/libp2p-noise'
 import { mplex } from '@libp2p/mplex'
 import { multiaddr } from '@multiformats/multiaddr'
+import { base32 } from 'multiformats/bases/base32'
+import { base58btc } from 'multiformats/bases/base58'
+import { base64 } from 'multiformats/bases/base64'
 import { acquireTabLock } from './tab-lock'
 import { getHardwareDNA } from './fingerprint'
 import { runWasmBenchmark } from './benchmark'
@@ -30,20 +33,26 @@ export async function startNodlNode() {
       try {
         libp2p = await createLibp2p({
           transports: [
-            new WebSockets(),
+            webSockets() as any,
             webRTC() as any
           ],
           connectionEncryption: [noise()],
           streamMuxers: [mplex()],
-        });
+          // Register essential bases to avoid "multibase decoder must be provided" errors
+          bases: { base32, base58btc, base64 }
+        } as any);
 
         await libp2p.start();
         console.log('libp2p started. ID:', libp2p.peerId.toString());
 
         // 4. Connect to Anchor
-        // Example: /ip4/100.97.254.59/tcp/8080/ws/p2p/ID
-        // In a real app, this should be fetched from config or env.
-        const anchorAddr = process.env.NEXT_PUBLIC_ANCHOR_MULTIADDR || '/ip4/100.97.254.59/tcp/8080/ws/p2p/PEER_ID';
+        let anchorAddr = process.env.NEXT_PUBLIC_ANCHOR_MULTIADDR;
+        
+        // Safety: If no env provided, or it's the placeholder, skip dialing to prevent CID parse errors
+        if (!anchorAddr || anchorAddr.includes('PEER_ID')) {
+           console.warn("No valid NEXT_PUBLIC_ANCHOR_MULTIADDR provided. Skipping anchor dial.");
+           return;
+        }
         
         try {
           const ma = multiaddr(anchorAddr);

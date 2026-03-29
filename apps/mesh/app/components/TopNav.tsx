@@ -37,13 +37,25 @@ export function TopNav() {
                     </div>
                 </div>
 
-                <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded-[4px]">
+                <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-mesh-emerald/5 border border-mesh-emerald/20 rounded-[4px]">
                         <div className="w-1.5 h-1.5 rounded-full bg-mesh-emerald shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
-                        <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Node Active</span>
+                        <span className="text-[10px] font-bold text-mesh-emerald uppercase tracking-widest">Mesh Online</span>
                     </div>
-                    <div className="w-8 h-8 rounded-full border border-white/10 bg-white/5 flex items-center justify-center text-xs font-bold text-white">
-                        JD
+
+                    {/* Identity Header (Snag 13) */}
+                    <div className="flex items-center gap-3 pl-6 border-l border-white/10">
+                        <div className="flex flex-col items-end">
+                            <span className="text-[11px] font-bold text-white uppercase tracking-tight">Stephen O'Regan</span>
+                            <span className="text-[9px] text-slate-500 uppercase tracking-widest font-normal">ACC# 0XFD-99-C2</span>
+                        </div>
+                        <div className="w-9 h-9 rounded-full border border-white/10 bg-white/5 flex items-center justify-center overflow-hidden">
+                            <img 
+                                src="https://api.dicebear.com/7.x/avataaars/svg?seed=Stephen" 
+                                alt="avatar"
+                                className="w-full h-full object-cover"
+                            />
+                        </div>
                     </div>
                 </div>
             </div>

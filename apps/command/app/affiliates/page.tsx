@@ -31,9 +31,10 @@ export default function AffiliatesPage() {
         const fetchData = async () => {
             try {
                 // In a real setup, we'd fetch the current logged-in user's ID
+                const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://api.nodl.one';
                 const [accRes, treeRes] = await Promise.all([
-                    fetch(`http://process.env.NEXT_PUBLIC_API_URL || "https://api.nodl.one"/account/${MOCK_USER_ID}`),
-                    fetch(`http://process.env.NEXT_PUBLIC_API_URL || "https://api.nodl.one"/affiliates/tree/${MOCK_USER_ID}`)
+                    fetch(`${apiBase}/account/${MOCK_USER_ID}`),
+                    fetch(`${apiBase}/affiliates/tree/${MOCK_USER_ID}`)
                 ]);
 
                 if (accRes.ok) setAccount(await accRes.json());
@@ -52,14 +53,16 @@ export default function AffiliatesPage() {
         if (!transferModal || !newParentId) return;
         
         try {
-            const res = await fetch('http://process.env.NEXT_PUBLIC_API_URL || "https://api.nodl.one"/affiliates/transfer', {
+            const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://api.nodl.one';
+            const res = await fetch(`${apiBase}/affiliates/transfer`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ childId: transferModal.childId, newParentId })
             });
             if (res.ok) {
                 // Refresh tree
-                const treeRes = await fetch(`http://process.env.NEXT_PUBLIC_API_URL || "https://api.nodl.one"/affiliates/tree/${MOCK_USER_ID}`);
+                const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://api.nodl.one';
+                const treeRes = await fetch(`${apiBase}/affiliates/tree/${MOCK_USER_ID}`);
                 if (treeRes.ok) setTree(await treeRes.json());
                 setTransferModal(null);
                 setNewParentId("");

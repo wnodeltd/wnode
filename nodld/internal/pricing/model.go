@@ -7,11 +7,12 @@ import (
 type TierID string
 
 const (
-	TierTiny     TierID = "tiny"
-	TierStandard TierID = "standard"
-	TierBoost    TierID = "boost"
-	TierPro      TierID = "pro"
-	TierUltra    TierID = "ultra"
+	TierTiny      TierID = "tiny"
+	TierStandard  TierID = "standard"
+	TierHighRAM   TierID = "high-ram"
+	TierBoost     TierID = "boost"
+	TierUltra     TierID = "ultra"
+	TierDeccTee   TierID = "decc-tee"
 )
 
 type SourceID string
@@ -79,6 +80,11 @@ type HistoryPoint struct {
 type TierState struct {
 	ID            TierID         `json:"id"`
 	Name          string         `json:"name"`
+	RateTHSec     float64        `json:"rate_th_sec"` // USD per TeraHash-Second
+	CPUCores      int            `json:"cpu_cores"`
+	GPUModel      string         `json:"gpu_model"`
+	RAMGB         int            `json:"ram_gb"`
+	Description   string         `json:"description"`
 	LiveMarket    float64        `json:"liveMarket"` // Raw median after normalization
 	Mean          float64        `json:"mean"`
 	Volatility    float64        `json:"volatility"` // Standard deviation
