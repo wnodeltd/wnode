@@ -17,9 +17,10 @@ export default function ClientsPage() {
     const [isEditMode, setIsEditMode] = useState(false);
     const [editData, setEditData] = useState({ name: 'Enterprise Mesh', email: 'ops@enterprise.mesh', standing: 'High-Performance' });
 
-    const { data: pulseData } = useSWR('http://process.env.NEXT_PUBLIC_API_URL || "https://api.nodl.one"/api/system/pulse', fetcher, { refreshInterval: 5000 });
-    const { data: peersData } = useSWR('http://process.env.NEXT_PUBLIC_API_URL || "https://api.nodl.one"/peers', fetcher, { refreshInterval: 5000 });
-    const { data: globalImpact } = useSWR('http://process.env.NEXT_PUBLIC_API_URL || "https://api.nodl.one"/api/impact', fetcher, { refreshInterval: 5000 });
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://api.nodl.one';
+    const { data: pulseData } = useSWR(`${apiBase}/api/system/pulse`, fetcher, { refreshInterval: 5000 });
+    const { data: peersData } = useSWR(`${apiBase}/peers`, fetcher, { refreshInterval: 5000 });
+    const { data: globalImpact } = useSWR(`${apiBase}/api/impact`, fetcher, { refreshInterval: 5000 });
 
     const [activeTab, setActiveTab] = useState("all");
 
@@ -288,7 +289,8 @@ export default function ClientsPage() {
                                 {selectedClient.status !== 'Active' && (
                                     <button 
                                         onClick={async () => {
-                                            await fetch('http://process.env.NEXT_PUBLIC_API_URL || "https://api.nodl.one"/registry/release', {
+                                            const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://api.nodl.one';
+                                            await fetch(`${apiBase}/registry/release`, {
                                                 method: 'POST',
                                                 headers: { 'Content-Type': 'application/json' },
                                                 body: JSON.stringify({ hardwareDNA: selectedClient.dna })

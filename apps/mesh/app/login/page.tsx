@@ -1,110 +1,156 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Shield, ArrowRight, Layers, Loader2 } from 'lucide-react';
+import { Chrome, ArrowRight, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function LoginPage() {
+    const router = useRouter();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    const router = useRouter();
+    const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
+    const [isMounted, setIsMounted] = useState(false);
 
-    const handleLogin = async (e: React.FormEvent) => {
+    // Fix Hydration Error: Ensure component is mounted before rendering client-specific logic (not strictly needed for this layout but good practice)
+    useEffect(() => {
+        setIsMounted(true);
+    }, []);
+
+    const handleEmailAuth = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
 
-        // Bypass logic
+        // Seed account bypass
+        console.log("Attempting login for:", email);
         if (email === 'stephen@nodl.one' && password === 'command') {
+            console.log("Bypass matched. Setting auth keys.");
             localStorage.setItem('nodl_auth_bypass', 'true');
             localStorage.setItem('nodl_user_email', email);
+            // Set cookie for middleware
+            document.cookie = "nodl_session=true; path=/; max-age=3600";
+            console.log("Cookie set. Redirecting to /dashboard...");
             setTimeout(() => {
-                router.push('/');
-            }, 1000);
+                router.push('/dashboard');
+            }, 500);
             return;
         }
 
-        setIsLoading(false);
+        setTimeout(() => {
+            setIsLoading(false);
+            alert('Invalid credentials. Hint: use stephen@nodl.one / command');
+        }, 1000);
     };
 
+    if (!isMounted) return null;
+
     return (
-        <div className="min-h-screen bg-[#080808] flex flex-col items-center justify-center p-6 text-white overflow-hidden">
-             {/* Background Glows */}
-             <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-mesh-emerald/5 blur-[120px] -z-10" />
-             <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-amber-500/5 blur-[120px] -z-10" />
+        <div className="min-h-screen bg-black flex flex-col items-center justify-center p-6 relative overflow-hidden w-full">
+            {/* Background scanline effect (matches nodlr) */}
+            <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(transparent_0%,rgba(0,242,255,0.02)_50%,transparent_100%)] bg-[length:100%_4px] animate-scanline" />
 
-             <motion.div 
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="w-full max-w-sm z-10 space-y-8"
-             >
-                 {/* Logo */}
-                 <div className="flex flex-col items-center">
-                    <img 
-                        src="https://nodl.one/wp-content/uploads/2025/05/nodl-medium.webp" 
-                        alt="nodl logo" 
-                        className="h-12 w-auto mb-4"
+            <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="w-full max-w-md z-10"
+            >
+                {/* Logo Section */}
+                <div className="flex flex-col items-center mb-10">
+                    <img
+                        src="https://nodl.one/wp-content/uploads/2025/05/nodl-medium.webp"
+                        alt="Nodl"
+                        className="w-48 h-auto mb-2"
                     />
-                    <div className="bg-mesh-emerald/10 border border-mesh-emerald/20 px-3 py-1 rounded-[4px] text-[10px] font-bold text-mesh-emerald tracking-[0.3em]">
-                        MESH STOREFRONT
-                    </div>
-                 </div>
+                </div>
 
-                 <div className="surface-card p-8 space-y-6 relative overflow-hidden">
-                    {/* Gold accent corner */}
-                    <div className="absolute top-0 left-0 w-12 h-12 bg-amber-500/10 -translate-x-6 -translate-y-6 rotate-45 border border-amber-500/20" />
-                    
-                    <div className="text-center">
-                        <h2 className="text-2xl font-bold tracking-tight uppercase">nodl mesh</h2>
-                        <p className="text-small font-bold text-slate-500 uppercase tracking-widest mt-1">Global Compute Access</p>
+                {/* Dashboard Login Card (nodlr style) */}
+                <div className="bg-[#1a1a1b] border border-white/5 rounded-3xl p-10 shadow-2xl relative overflow-hidden">
+                    <div className="text-center mb-8">
+                        <h1 className="text-4xl font-bold text-white mb-2 tracking-tight">
+                            nodl dashboard
+                        </h1>
                     </div>
 
-                    <form onSubmit={handleLogin} className="space-y-4">
-                        <div className="space-y-2">
-                            <label className="text-small font-bold text-slate-500 tracking-wider block uppercase">Ident Key</label>
-                            <input 
-                                type="email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                required
-                                className="w-full bg-white/[0.02] border border-white/10 rounded-[4px] p-3.5 text-white text-sm focus:outline-none focus:border-mesh-emerald transition-all"
-                                placeholder="operator@nodl.ch"
-                            />
-                        </div>
-
-                        <div className="space-y-2">
-                            <label className="text-small font-bold text-slate-500 tracking-wider block uppercase">Security Phrase</label>
-                            <input 
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                required
-                                className="w-full bg-white/[0.02] border border-white/10 rounded-[4px] p-3.5 text-white text-sm focus:outline-none focus:border-mesh-emerald transition-all"
-                                placeholder="••••••••"
-                            />
-                        </div>
-
-                        <button 
-                            disabled={isLoading}
-                            className="w-full bg-mesh-emerald hover:bg-white text-black font-bold py-3.5 text-xs rounded-[4px] flex items-center justify-center gap-2 transition-all active:scale-[0.98] group"
+                    <div className="space-y-4">
+                        {/* google Login Button */}
+                        <button
+                            className="w-full bg-transparent border border-white/10 hover:bg-white/5 text-white font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-3 active:scale-[0.98]"
                         >
-                            {isLoading ? 'INITIATING...' : <>SYNC TO MESH <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" /></>}
+                            <Chrome className="w-5 h-5" />
+                            Continue with Google
                         </button>
-                    </form>
 
-                    <div className="pt-6 border-t border-white/5 flex flex-col items-center gap-4">
-                        <span className="text-[10px] text-slate-600 font-bold uppercase tracking-widest">Or Connect With</span>
-                        <button className="w-full bg-white/[0.01] border border-white/5 py-3 rounded-[4px] text-white text-[10px] font-bold hover:bg-white/5 transition-all">
-                             IDENTITY_PROVIDERS (OAUTH)
-                        </button>
+                        <div className="relative my-8">
+                            <div className="absolute inset-0 flex items-center">
+                                <div className="w-full border-t border-white/5"></div>
+                            </div>
+                            <div className="relative flex justify-center text-xs uppercase">
+                                <span className="bg-[#1a1a1b] px-4 text-slate-500 tracking-widest leading-none">or email</span>
+                            </div>
+                        </div>
+
+                        {/* Email Form */}
+                        <form onSubmit={handleEmailAuth} className="space-y-4">
+                            <div className="space-y-1.5 focus-within:ring-1 focus-within:ring-[#00f2ff]/30 rounded-xl transition-all">
+                                <input
+                                    type="email"
+                                    placeholder="Email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-4 text-white text-sm focus:outline-none focus:border-[#00f2ff]/50 transition-all border-b-2 font-normal"
+                                    required
+                                />
+                            </div>
+
+                            <div className="space-y-1.5 focus-within:ring-1 focus-within:ring-[#00f2ff]/30 rounded-xl transition-all">
+                                <input
+                                    type="password"
+                                    placeholder="Password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-4 text-white text-sm focus:outline-none focus:border-[#00f2ff]/50 transition-all border-b-2 font-normal"
+                                    required
+                                />
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={isLoading}
+                                className="w-full bg-transparent border border-white/10 hover:bg-white/5 text-white font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2 group active:scale-[0.98] mt-6"
+                            >
+                                {isLoading ? (
+                                    <Loader2 className="w-5 h-5 animate-spin text-[#00f2ff]" />
+                                ) : (
+                                    <>
+                                        <span className="tracking-tight">Sign In</span>
+                                        <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                    </>
+                                )}
+                            </button>
+                        </form>
+
+                        <div className="text-center mt-6">
+                            <button
+                                onClick={() => setAuthMode(authMode === 'signin' ? 'signup' : 'signin')}
+                                className="text-slate-500 text-xs hover:text-white transition-colors underline-offset-4 hover:underline"
+                            >
+                                {authMode === 'signin' ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
+                            </button>
+                        </div>
                     </div>
-                 </div>
+                </div>
 
-                 <p className="text-[10px] text-slate-700 tracking-widest font-bold text-center leading-relaxed px-4">
-                    SAFE_EXECUTION_POLICY: ALL TASKS ARE SANDBOXED VIA WAZEERO RUNTIME.
-                 </p>
-             </motion.div>
+                <div className="mt-12 text-center">
+                    <a
+                        href="https://nodl.one"
+                        target="_blank"
+                        className="text-white hover:text-slate-200 text-[10px] uppercase tracking-[0.4em] transition-colors font-bold"
+                    >
+                        go to nodl.one
+                    </a>
+                </div>
+            </motion.div>
         </div>
     );
 }

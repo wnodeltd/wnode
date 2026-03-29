@@ -11,7 +11,8 @@ import useSWR from 'swr';
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 export default function IntegrityReviewPage() {
-    const { data: registry, mutate } = useSWR('http://process.env.NEXT_PUBLIC_API_URL || "https://api.nodl.one"/registry', fetcher, { refreshInterval: 5000 });
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://api.nodl.one';
+    const { data: registry, mutate } = useSWR(`${apiBase}/registry`, fetcher, { refreshInterval: 5000 });
     const [searchQuery, setSearchQuery] = useState("");
 
     const sessions = registry ? Object.values(registry) : [];
@@ -34,7 +35,8 @@ export default function IntegrityReviewPage() {
     });
 
     const handleResolve = async (dna: string, action: 'clear' | 'shadow-bench') => {
-        await fetch('http://process.env.NEXT_PUBLIC_API_URL || "https://api.nodl.one"/api/admin/resolve-flag', {
+        const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://api.nodl.one';
+        await fetch(`${apiBase}/api/admin/resolve-flag`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ hardwareDNA: dna, action })

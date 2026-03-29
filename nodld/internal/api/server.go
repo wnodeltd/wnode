@@ -84,7 +84,7 @@ func New(dispatcher *jobs.Dispatcher, store *jobs.Store, pricingStore *pricing.S
 
 	app.Use(recover.New())
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "https://cmd.nodl.one, https://nodl.one, https://mesh.nodl.one, https://nodlr.nodl.one, http://localhost:3000",
+		AllowOrigins: "https://cmd.nodl.one, https://nodl.one, https://mesh.nodl.one, https://nodlr.nodl.one, http://localhost:3000, http://localhost:3001, http://localhost:3002, http://localhost:3003, http://localhost:3004",
 		AllowHeaders: "Origin, Content-Type, Accept",
 	}))
 	app.Use(logger.New())
@@ -143,6 +143,10 @@ func (s *Server) registerRoutes() {
 	s.app.Post("/affiliates/transfer", s.handleTransferAffiliate)
 	s.app.Post("/affiliates/genesis/swap", s.handleSwapGenesisSlot) // RBAC Lvl 4
 	
+	// Global Tier Controller (Master Directive)
+	s.app.Get("/v1/meta/tiers", s.handleGetMetaTiers)
+	s.app.Patch("/v1/admin/tiers/:id", s.handleUpdateAdminTier)
+
 	// Hardware Registry
 	s.app.Get("/registry", s.handleGetRegistry)
 	s.app.Post("/registry/register", s.handleRegisterHardware)
@@ -584,4 +588,66 @@ func (s *Server) handleResolveFlag(c *fiber.Ctx) error {
 
 	s.host.Registry().ResolveFlag(req.HardwareDNA, req.Action)
 	return c.SendStatus(fiber.StatusOK)
+}
+
+// handleGetMetaTiers returns all active compute tiers and their metadata.
+func (s *Server) handleGetMetaTiers(c *fiber.Ctx) error {
+	state := s.pricingStore.GetState()
+	var list []*pricing.TierState
+	
+	order := []pricing.TierID{
+		pricing.TierTiny, 
+		pricing.TierStandard, 
+		pricing.TierHighRAM, 
+		pricing.TierBoost, 
+		pricing.TierUltra, 
+		pricing.TierDeccTee,
+	}
+
+	for _, id := range order {
+		if t, ok := state.Tiers[id]; ok {
+			list = append(list, t)
+		}
+	}
+	return c.JSON(list)
+}
+
+// handleUpdateAdminTier allows CMD portal to update tier specs/pricing.
+func (s *Server) handleUpdateAdminTier(c *fiber.Ctx) error {
+	id := pricing.TierID(c.Params("id"))
+	
+	var req struct {
+		RateTHSec   *float64 `json:"rate_th_sec"`
+		CPUCores    *int     `json:"cpu_cores"`
+		GPUModel    *string  `json:"gpu_model"`
+		RAMGB       *int     `json:"ram_gb"`
+		Description *string  `json:"description"`
+	}
+
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	state := s.pricingStore.GetState()
+	tier, ok := state.Tiers[id]
+	if !ok {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "tier not found"})
+	}
+
+	if req.RateTHSec != nil { tier.RateTHSec = *req.RateTHSec }
+	if req.CPUCores != nil { tier.CPUCores = *req.CPUCores }
+	if req.GPUModel != nil { tier.GPUModel = *req.GPUModel }
+	if req.RAMGB != nil { tier.RAMGB = *req.RAMGB }
+	if req.Description != nil { tier.Description = *req.Description }
+
+	tier.LastUpdate = time.Now()
+	s.pricingStore.UpdateTierState(id, tier)
+
+	s.Broadcast(fiber.Map{
+		"event": "tier.updated",
+		"id":    id,
+		"rate":  tier.RateTHSec,
+	})
+
+	return c.JSON(tier)
 }

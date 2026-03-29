@@ -42,27 +42,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
     return (
         <html lang="en">
-            <head>
-                <style dangerouslySetInnerHTML={{ __html: `
-                    * { 
-                        font-family: 'Roboto', sans-serif !important; 
-                        font-weight: 400 !important; 
-                        text-transform: none !important; 
-                        letter-spacing: -0.01em !important; 
-                    }
-                    body { 
-                        background-color: #000000 !important; 
-                        margin: 0;
-                        padding: 0;
-                    }
-                    .card, .card-sovereign { 
-                        background: rgba(255, 255, 255, 0.08) !important; 
-                        border: 1px solid rgba(255, 255, 255, 0.25) !important; 
-                        border-radius: 5px !important; 
-                        backdrop-filter: blur(8px) !important;
-                    }
-                ` }} />
-            </head>
             <body data-portal="command" style={{ backgroundColor: 'black', color: 'white', '--command-portal-glow-color': '#22D3EE' } as any}>
                 <Libp2pProvider>
                     <React.Suspense fallback={<div className="h-screen w-screen bg-black" />}>

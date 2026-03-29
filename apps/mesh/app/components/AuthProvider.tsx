@@ -7,6 +7,7 @@ interface AuthContextType {
     user: any | null;
     session: any | null;
     profile: any | null;
+    updateProfile: (updates: any) => void;
     isLoading: boolean;
 }
 
@@ -15,10 +16,18 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [user, setUser] = useState<any | null>(null);
     const [session, setSession] = useState<any | null>(null);
-    const [profile, setProfile] = useState<any | null>(null);
+    const [profile, setProfile] = useState<any | null>({
+        full_name: 'Stephen O\'Regan',
+        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Stephen',
+        id: '0XFD-99-C2'
+    });
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
     const pathname = usePathname();
+
+    const updateProfile = (updates: any) => {
+        setProfile(prev => ({ ...prev, ...updates }));
+    };
 
     useEffect(() => {
         const checkBypass = () => {
@@ -32,7 +41,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
                 setUser(mockUser);
                 setSession({ user: mockUser } as any);
-                setProfile({ id: 'mock-mesh-buyer-01', role: 'buyer', full_name: 'MESH_BUYER_01' });
+                
+                // Only initialize profile if not already set or it's just mock data
+                setProfile(prev => prev?.id === '0XFD-99-C2' && prev?.avatar ? prev : { 
+                    id: '0XFD-99-C2', 
+                    role: 'buyer', 
+                    full_name: 'Stephen O\'Regan',
+                    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Stephen'
+                });
+                
                 setIsLoading(false);
                 return true;
             }
@@ -45,7 +62,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         };
 
         setData();
-    }, [pathname]);
+    }, []);
 
     useEffect(() => {
         if (!isLoading && !user && !pathname?.startsWith('/login')) {
@@ -57,6 +74,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         session,
         profile,
+        updateProfile,
         isLoading
     }), [user, session, profile, isLoading]);
 

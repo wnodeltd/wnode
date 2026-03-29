@@ -1,9 +1,11 @@
 import { createLibp2p } from 'libp2p'
-import { WebSockets } from '@libp2p/websockets'
+import { webSockets } from '@libp2p/websockets'
 import { webRTC } from '@libp2p/webrtc'
 import { noise } from '@chainsafe/libp2p-noise'
 import { mplex } from '@libp2p/mplex'
 import { multiaddr } from '@multiformats/multiaddr'
+import { base32 } from 'multiformats/bases/base32'
+import { base58btc } from 'multiformats/bases/base58'
 import { acquireTabLock } from './tab-lock'
 import { getHardwareDNA } from './fingerprint'
 import { runWasmBenchmark } from './benchmark'
@@ -30,12 +32,13 @@ export async function startNodlNode() {
       try {
         libp2p = await createLibp2p({
           transports: [
-            new WebSockets(),
+            webSockets() as any,
             webRTC() as any
           ],
           connectionEncryption: [noise()],
           streamMuxers: [mplex()],
-        });
+          bases: { base32, base58btc }
+        } as any);
 
         await libp2p.start();
         console.log('libp2p started. ID:', libp2p.peerId.toString());

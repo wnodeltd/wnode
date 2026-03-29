@@ -39,7 +39,8 @@ export default function GenesisManagerPage() {
     const fetchSlots = async () => {
         setLoading(true);
         try {
-            const res = await fetch('http://process.env.NEXT_PUBLIC_API_URL || "https://api.nodl.one"/api/v1/account/me'); // Redirecting to list soon
+            const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://api.nodl.one';
+            const res = await fetch(`${apiBase}/api/v1/account/me`); // Redirecting to list soon
             // Mocking for now since we need a list endpoint for founders
             const mockSlots: GenesisSlot[] = [
                 { index: 1, email: "stephen@nodl.one", stripeId: "acct_1test", accruedBalance: 0, isSystem: false, tree: [
@@ -69,7 +70,8 @@ export default function GenesisManagerPage() {
         setIsSwapping(true);
         setMessage(null);
         try {
-            const res = await fetch('http://process.env.NEXT_PUBLIC_API_URL || "https://api.nodl.one"/api/v1/affiliates/genesis/swap', {
+            const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://api.nodl.one';
+            const res = await fetch(`${apiBase}/api/v1/affiliates/genesis/swap`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

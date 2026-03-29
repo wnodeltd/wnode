@@ -14,8 +14,9 @@ export default function DashboardPage() {
     const [isHarvesting, setIsHarvesting] = useState(false);
     const [allocation, setAllocation] = useState({ cpu: 0, gpu: 0, ram: 12 });
     
-    const { data: impactData } = useSWR('http://process.env.NEXT_PUBLIC_API_URL || "https://api.nodl.one"/api/impact', fetcher, { refreshInterval: 5000 });
-    const { data: accountData } = useSWR('http://process.env.NEXT_PUBLIC_API_URL || "https://api.nodl.one"/api/v1/account/me', fetcher);
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://api.nodl.one';
+    const { data: impactData } = useSWR(`${apiBase}/api/impact`, fetcher, { refreshInterval: 5000 });
+    const { data: accountData } = useSWR(`${apiBase}/api/v1/account/me`, fetcher);
     const impact = impactData || { carbonSavedKg: 0, equivalentKmDriven: 0, treeDays: 0 };
     const isPayoutActive = accountData?.payoutStatus === 'active';
 
