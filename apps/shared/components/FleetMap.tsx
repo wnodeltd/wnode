@@ -15,7 +15,7 @@ export default function FleetMap({ nodes, loading = false, onNodeSelect }: MapPr
     const markersRef = useRef<any>(null);
     const [L, setL] = useState<any>(null);
 
-    const nodeList = Array.isArray(nodes) ? nodes : Object.values(nodes || {});
+    const nodeList = Array.isArray(nodes) ? nodes : (nodes && typeof nodes === 'object' ? Object.values(nodes) : []);
     const mappedNodes = nodeList.filter((n: any) => 
         n.lat !== undefined && n.lon !== undefined && 
         isFinite(Number(n.lat)) && isFinite(Number(n.lon))

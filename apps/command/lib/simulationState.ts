@@ -123,6 +123,8 @@ export const resetSimulation = () => {
             cpuCores: 16, 
             memoryGB: 64, 
             gpuModel: 'RTX 4090', 
+            lat: 51.5074, // TEMP: London
+            lon: -0.1278, // TEMP: London
             lastHeartbeat: new Date().toISOString(),
             protocolId: generateUniversalId(100001, '01', 'AA', 1000000)
         },
@@ -134,6 +136,8 @@ export const resetSimulation = () => {
             cpuCores: 4, 
             memoryGB: 16, 
             gpuModel: null, 
+            lat: 48.8566, // TEMP: Paris
+            lon: 2.3522,  // TEMP: Paris
             lastHeartbeat: new Date().toISOString(),
             protocolId: generateUniversalId(100001, '01', 'AA', 1000001)
         },
@@ -145,6 +149,8 @@ export const resetSimulation = () => {
             cpuCores: 4, 
             memoryGB: 8, 
             gpuModel: null, 
+            lat: 52.5200, // TEMP: Berlin
+            lon: 13.4050, // TEMP: Berlin
             lastHeartbeat: new Date().toISOString(),
             protocolId: generateUniversalId(100201, '01', 'AA', 1000000)
         }
