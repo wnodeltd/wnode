@@ -82,19 +82,6 @@ export default function Sidebar() {
                 </button>
             </nav>
 
-            <div className="p-4 border-t border-white/10">
-                <div className="px-4">
-                    <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-[10px] font-bold text-[#22D3EE]">
-                            {user?.email?.[0]?.toUpperCase() || 'A'}
-                        </div>
-                        <div className="flex flex-col overflow-hidden">
-                            <span className="text-[12px] font-normal text-white truncate">{user?.email || 'Admin'}</span>
-                            <span className="text-[10px] font-normal text-[#22D3EE] uppercase tracking-tighter">{role}</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </aside>
     );
 }

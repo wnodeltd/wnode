@@ -83,29 +83,29 @@ export default function IdentityHeader() {
     return (
         <div className="relative" ref={dropdownRef}>
             <div 
-                className="flex items-center gap-4 cursor-pointer group select-none"
+                className="ds-card flex items-center gap-4 px-4 py-2 cursor-pointer group select-none hover:bg-white/[0.05] transition-all"
                 onClick={() => setIsOpen(!isOpen)}
             >
                 <div className="text-right hidden md:flex flex-col items-end">
                     <div className="flex items-center gap-2">
                         <span className="text-[13px] font-bold text-white group-hover:text-[#22D3EE] transition-colors">
-                            {user.email} • {user.role?.toUpperCase() || 'USER'} • <span className="opacity-60 text-[10px] font-mono tracking-tighter">ID_{user.id?.slice(0, 8) || 'XXXX'}</span>
+                            {user.email} • <span className="uppercase">{user.role || 'USER'}</span> • <span className="ds-sub opacity-60">ID_{user.identityId?.slice(0, 8) || user.id?.slice(0, 8) || 'XXXX'}</span>
                         </span>
                     </div>
                 </div>
 
                 <div className="relative">
-                    <div className="w-9 h-9 rounded-full bg-white/[0.03] border border-white/10 flex items-center justify-center text-[#22D3EE] group-hover:bg-[#22D3EE] group-hover:text-black transition-all duration-300 shadow-inner overflow-hidden">
+                    <div className="w-8 h-8 rounded-full bg-white/[0.03] border border-white/10 flex items-center justify-center text-[#22D3EE] group-hover:bg-[#22D3EE] group-hover:text-black transition-all duration-300 shadow-inner overflow-hidden">
                         {user.avatar ? (
                             <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover" />
                         ) : (
-                            <User className="w-5 h-5" />
+                            <User className="w-4 h-4" />
                         )}
                     </div>
-                    <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-green-500 border-2 border-black shadow-[0_0_8px_rgba(34,197,94,0.5)]" />
+                    <div className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-green-500 border border-black shadow-[0_0_8px_rgba(34,197,94,0.5)]" />
                 </div>
                 
-                <ChevronDown className={`w-3.5 h-3.5 text-slate-600 group-hover:text-slate-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`w-3 h-3 text-slate-600 group-hover:text-slate-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
             </div>
 
             <AnimatePresence>

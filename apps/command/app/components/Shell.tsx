@@ -16,7 +16,9 @@ export default function Shell({ children }: ShellProps) {
 
             <div className="flex-1 lg:pl-64 flex flex-col relative h-screen overflow-hidden">
                 {/* Persistent Identity Header */}
-                <IdentityHeader />
+                <header className="h-16 flex items-center justify-end px-8 border-b border-white/5 bg-black/20 backdrop-blur-md shrink-0 relative z-50">
+                    <IdentityHeader />
+                </header>
 
                 {/* Content Area */}
                 <div className="flex-1 overflow-auto relative flex flex-col items-stretch w-full min-h-full">
