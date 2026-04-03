@@ -1,0 +1,256 @@
+diff --git a/apps/command/app/components/FleetMap.tsx b/apps/command/app/components/FleetMap.legacy.tsx
+similarity index 100%
+rename from apps/command/app/components/FleetMap.tsx
+rename to apps/command/app/components/FleetMap.legacy.tsx
+diff --git a/apps/command/app/components/IdentityHeader.tsx b/apps/command/app/components/IdentityHeader.legacy.tsx
+similarity index 100%
+rename from apps/command/app/components/IdentityHeader.tsx
+rename to apps/command/app/components/IdentityHeader.legacy.tsx
+diff --git a/apps/command/app/components/Shell.tsx b/apps/command/app/components/Shell.tsx
+index 7450003..c83f6d8 100644
+--- a/apps/command/app/components/Shell.tsx
++++ b/apps/command/app/components/Shell.tsx
+@@ -2,7 +2,7 @@
+ 
+ import React from "react";
+ import Sidebar from "./Sidebar";
+-import IdentityHeader from "./IdentityHeader";
++import IdentityHeader from "@shared/components/IdentityHeader";
+ 
+ interface ShellProps {
+     children: React.ReactNode;
+diff --git a/apps/command/app/page.tsx b/apps/command/app/page.tsx
+index 97eb440..3a21940 100644
+--- a/apps/command/app/page.tsx
++++ b/apps/command/app/page.tsx
+@@ -11,7 +11,7 @@ import {
+ import "leaflet/dist/leaflet.css";
+ 
+ import NodeInspector from "./components/NodeInspector";
+-import FleetMap from "./components/FleetMap";
++import FleetMap from "@shared/components/FleetMap";
+ import MetricCard from "@shared/components/MetricCard";
+ 
+ export default function CommandCentrePage() {
+diff --git a/apps/shared/components/FleetMap.tsx b/apps/shared/components/FleetMap.tsx
+index 008f73e..36168e3 100644
+--- a/apps/shared/components/FleetMap.tsx
++++ b/apps/shared/components/FleetMap.tsx
+@@ -16,7 +16,10 @@ export default function FleetMap({ nodes, loading = false, onNodeSelect }: MapPr
+     const [L, setL] = useState<any>(null);
+ 
+     const nodeList = Array.isArray(nodes) ? nodes : Object.values(nodes || {});
+-    const mappedNodes = nodeList.filter((n: any) => n.lat && n.lon);
++    const mappedNodes = nodeList.filter((n: any) => 
++        n.lat !== undefined && n.lon !== undefined && 
++        isFinite(Number(n.lat)) && isFinite(Number(n.lon))
++    );
+ 
+     useEffect(() => {
+         if (typeof window === "undefined") return;
+diff --git a/apps/shared/components/IdentityHeader.tsx b/apps/shared/components/IdentityHeader.tsx
+index e6bfc6f..fb86037 100644
+--- a/apps/shared/components/IdentityHeader.tsx
++++ b/apps/shared/components/IdentityHeader.tsx
+@@ -88,10 +88,10 @@ export default function IdentityHeader() {
+             >
+                 <div className="text-right hidden md:flex flex-col items-end">
+                     <div className="flex items-center gap-2">
+-                        <span className="text-[13px] font-bold text-white group-hover:text-[#22D3EE] transition-colors">{user.email}</span>
+-                        <span className="text-[8px] px-1.5 py-0.5 rounded-[2px] bg-[#22D3EE]/10 text-[#22D3EE] border border-[#22D3EE]/30 font-bold uppercase tracking-widest">{user.role || 'user'}</span>
++                        <span className="text-[13px] font-bold text-white group-hover:text-[#22D3EE] transition-colors">
++                            {user.email} • {user.role?.toUpperCase() || 'USER'} • <span className="opacity-60 text-[10px] font-mono tracking-tighter">ID_{user.id?.slice(0, 8) || 'XXXX'}</span>
++                        </span>
+                     </div>
+-                    <span className="text-[10px] text-slate-600 font-mono tracking-tighter uppercase mt-0.5">SEC_SESSION_ACTIVE</span>
+                 </div>
+ 
+                 <div className="relative">
+diff --git a/heartbeat.json b/heartbeat.json
+index f92ec4d..e08a7e6 100644
+--- a/heartbeat.json
++++ b/heartbeat.json
+@@ -1,152 +1,152 @@
+ [
+   {
+     "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 0 | BRIDGE_ID: 12D3KooWFh5HpP9feUzmvAw9NdoWrKnyRp8nv5XWm3mjjt62Te2P",
+-    "timestamp": "2026-04-03T05:28:12+02:00",
++    "timestamp": "2026-04-03T05:56:37+02:00",
+     "type": "success"
+   },
+   {
+     "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 0 | BRIDGE_ID: 12D3KooWFh5HpP9feUzmvAw9NdoWrKnyRp8nv5XWm3mjjt62Te2P",
+-    "timestamp": "2026-04-03T05:28:17+02:00",
++    "timestamp": "2026-04-03T05:56:42+02:00",
+     "type": "success"
+   },
+   {
+     "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 0 | BRIDGE_ID: 12D3KooWFh5HpP9feUzmvAw9NdoWrKnyRp8nv5XWm3mjjt62Te2P",
+-    "timestamp": "2026-04-03T05:28:22+02:00",
++    "timestamp": "2026-04-03T05:56:47+02:00",
+     "type": "success"
+   },
+   {
+     "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 0 | BRIDGE_ID: 12D3KooWFh5HpP9feUzmvAw9NdoWrKnyRp8nv5XWm3mjjt62Te2P",
+-    "timestamp": "2026-04-03T05:28:27+02:00",
++    "timestamp": "2026-04-03T05:56:52+02:00",
+     "type": "success"
+   },
+   {
+     "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 0 | BRIDGE_ID: 12D3KooWFh5HpP9feUzmvAw9NdoWrKnyRp8nv5XWm3mjjt62Te2P",
+-    "timestamp": "2026-04-03T05:28:32+02:00",
++    "timestamp": "2026-04-03T05:56:57+02:00",
+     "type": "success"
+   },
+   {
+     "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 0 | BRIDGE_ID: 12D3KooWFh5HpP9feUzmvAw9NdoWrKnyRp8nv5XWm3mjjt62Te2P",
+-    "timestamp": "2026-04-03T05:28:37+02:00",
++    "timestamp": "2026-04-03T05:57:02+02:00",
+     "type": "success"
+   },
+   {
+     "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 0 | BRIDGE_ID: 12D3KooWFh5HpP9feUzmvAw9NdoWrKnyRp8nv5XWm3mjjt62Te2P",
+-    "timestamp": "2026-04-03T05:28:42+02:00",
++    "timestamp": "2026-04-03T05:57:07+02:00",
+     "type": "success"
+   },
+   {
+     "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 0 | BRIDGE_ID: 12D3KooWFh5HpP9feUzmvAw9NdoWrKnyRp8nv5XWm3mjjt62Te2P",
+-    "timestamp": "2026-04-03T05:28:47+02:00",
++    "timestamp": "2026-04-03T05:57:12+02:00",
+     "type": "success"
+   },
+   {
+     "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 0 | BRIDGE_ID: 12D3KooWFh5HpP9feUzmvAw9NdoWrKnyRp8nv5XWm3mjjt62Te2P",
+-    "timestamp": "2026-04-03T05:28:52+02:00",
++    "timestamp": "2026-04-03T05:57:17+02:00",
+     "type": "success"
+   },
+   {
+     "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 0 | BRIDGE_ID: 12D3KooWFh5HpP9feUzmvAw9NdoWrKnyRp8nv5XWm3mjjt62Te2P",
+-    "timestamp": "2026-04-03T05:28:57+02:00",
++    "timestamp": "2026-04-03T05:57:22+02:00",
+     "type": "success"
+   },
+   {
+     "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 0 | BRIDGE_ID: 12D3KooWFh5HpP9feUzmvAw9NdoWrKnyRp8nv5XWm3mjjt62Te2P",
+-    "timestamp": "2026-04-03T05:29:02+02:00",
++    "timestamp": "2026-04-03T05:57:27+02:00",
+     "type": "success"
+   },
+   {
+     "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 0 | BRIDGE_ID: 12D3KooWFh5HpP9feUzmvAw9NdoWrKnyRp8nv5XWm3mjjt62Te2P",
+-    "timestamp": "2026-04-03T05:29:07+02:00",
++    "timestamp": "2026-04-03T05:57:32+02:00",
+     "type": "success"
+   },
+   {
+     "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 0 | BRIDGE_ID: 12D3KooWFh5HpP9feUzmvAw9NdoWrKnyRp8nv5XWm3mjjt62Te2P",
+-    "timestamp": "2026-04-03T05:29:12+02:00",
++    "timestamp": "2026-04-03T05:57:37+02:00",
+     "type": "success"
+   },
+   {
+     "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 0 | BRIDGE_ID: 12D3KooWFh5HpP9feUzmvAw9NdoWrKnyRp8nv5XWm3mjjt62Te2P",
+-    "timestamp": "2026-04-03T05:29:17+02:00",
++    "timestamp": "2026-04-03T05:57:42+02:00",
+     "type": "success"
+   },
+   {
+     "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 0 | BRIDGE_ID: 12D3KooWFh5HpP9feUzmvAw9NdoWrKnyRp8nv5XWm3mjjt62Te2P",
+-    "timestamp": "2026-04-03T05:29:22+02:00",
++    "timestamp": "2026-04-03T05:57:47+02:00",
+     "type": "success"
+   },
+   {
+     "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 0 | BRIDGE_ID: 12D3KooWFh5HpP9feUzmvAw9NdoWrKnyRp8nv5XWm3mjjt62Te2P",
+-    "timestamp": "2026-04-03T05:29:27+02:00",
++    "timestamp": "2026-04-03T05:57:52+02:00",
+     "type": "success"
+   },
+   {
+     "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 0 | BRIDGE_ID: 12D3KooWFh5HpP9feUzmvAw9NdoWrKnyRp8nv5XWm3mjjt62Te2P",
+-    "timestamp": "2026-04-03T05:29:32+02:00",
++    "timestamp": "2026-04-03T05:57:57+02:00",
+     "type": "success"
+   },
+   {
+     "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 0 | BRIDGE_ID: 12D3KooWFh5HpP9feUzmvAw9NdoWrKnyRp8nv5XWm3mjjt62Te2P",
+-    "timestamp": "2026-04-03T05:29:37+02:00",
++    "timestamp": "2026-04-03T05:58:02+02:00",
+     "type": "success"
+   },
+   {
+     "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 0 | BRIDGE_ID: 12D3KooWFh5HpP9feUzmvAw9NdoWrKnyRp8nv5XWm3mjjt62Te2P",
+-    "timestamp": "2026-04-03T05:29:42+02:00",
++    "timestamp": "2026-04-03T05:58:07+02:00",
+     "type": "success"
+   },
+   {
+     "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 0 | BRIDGE_ID: 12D3KooWFh5HpP9feUzmvAw9NdoWrKnyRp8nv5XWm3mjjt62Te2P",
+-    "timestamp": "2026-04-03T05:29:47+02:00",
++    "timestamp": "2026-04-03T05:58:12+02:00",
+     "type": "success"
+   },
+   {
+     "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 0 | BRIDGE_ID: 12D3KooWFh5HpP9feUzmvAw9NdoWrKnyRp8nv5XWm3mjjt62Te2P",
+-    "timestamp": "2026-04-03T05:29:52+02:00",
++    "timestamp": "2026-04-03T05:58:17+02:00",
+     "type": "success"
+   },
+   {
+     "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 0 | BRIDGE_ID: 12D3KooWFh5HpP9feUzmvAw9NdoWrKnyRp8nv5XWm3mjjt62Te2P",
+-    "timestamp": "2026-04-03T05:29:57+02:00",
++    "timestamp": "2026-04-03T05:58:22+02:00",
+     "type": "success"
+   },
+   {
+     "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 0 | BRIDGE_ID: 12D3KooWFh5HpP9feUzmvAw9NdoWrKnyRp8nv5XWm3mjjt62Te2P",
+-    "timestamp": "2026-04-03T05:30:02+02:00",
++    "timestamp": "2026-04-03T05:58:27+02:00",
+     "type": "success"
+   },
+   {
+     "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 0 | BRIDGE_ID: 12D3KooWFh5HpP9feUzmvAw9NdoWrKnyRp8nv5XWm3mjjt62Te2P",
+-    "timestamp": "2026-04-03T05:30:07+02:00",
++    "timestamp": "2026-04-03T05:58:32+02:00",
+     "type": "success"
+   },
+   {
+     "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 0 | BRIDGE_ID: 12D3KooWFh5HpP9feUzmvAw9NdoWrKnyRp8nv5XWm3mjjt62Te2P",
+-    "timestamp": "2026-04-03T05:30:12+02:00",
++    "timestamp": "2026-04-03T05:58:37+02:00",
+     "type": "success"
+   },
+   {
+     "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 0 | BRIDGE_ID: 12D3KooWFh5HpP9feUzmvAw9NdoWrKnyRp8nv5XWm3mjjt62Te2P",
+-    "timestamp": "2026-04-03T05:30:17+02:00",
++    "timestamp": "2026-04-03T05:58:42+02:00",
+     "type": "success"
+   },
+   {
+     "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 0 | BRIDGE_ID: 12D3KooWFh5HpP9feUzmvAw9NdoWrKnyRp8nv5XWm3mjjt62Te2P",
+-    "timestamp": "2026-04-03T05:30:22+02:00",
++    "timestamp": "2026-04-03T05:58:47+02:00",
+     "type": "success"
+   },
+   {
+     "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 0 | BRIDGE_ID: 12D3KooWFh5HpP9feUzmvAw9NdoWrKnyRp8nv5XWm3mjjt62Te2P",
+-    "timestamp": "2026-04-03T05:30:27+02:00",
++    "timestamp": "2026-04-03T05:58:52+02:00",
+     "type": "success"
+   },
+   {
+     "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 0 | BRIDGE_ID: 12D3KooWFh5HpP9feUzmvAw9NdoWrKnyRp8nv5XWm3mjjt62Te2P",
+-    "timestamp": "2026-04-03T05:30:32+02:00",
++    "timestamp": "2026-04-03T05:58:57+02:00",
+     "type": "success"
+   },
+   {
+     "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 0 | BRIDGE_ID: 12D3KooWFh5HpP9feUzmvAw9NdoWrKnyRp8nv5XWm3mjjt62Te2P",
+-    "timestamp": "2026-04-03T05:30:37+02:00",
++    "timestamp": "2026-04-03T05:59:02+02:00",
+     "type": "success"
+   }
+ ]
+\ No newline at end of file
