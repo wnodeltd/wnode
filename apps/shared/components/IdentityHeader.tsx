@@ -88,10 +88,10 @@ export default function IdentityHeader() {
             >
                 <div className="text-right hidden md:flex flex-col items-end">
                     <div className="flex items-center gap-2">
-                        <span className="text-[13px] font-bold text-white group-hover:text-[#22D3EE] transition-colors">{user.email}</span>
-                        <span className="text-[8px] px-1.5 py-0.5 rounded-[2px] bg-[#22D3EE]/10 text-[#22D3EE] border border-[#22D3EE]/30 font-bold uppercase tracking-widest">{user.role || 'user'}</span>
+                        <span className="text-[13px] font-bold text-white group-hover:text-[#22D3EE] transition-colors">
+                            {user.email} • {user.role?.toUpperCase() || 'USER'} • <span className="opacity-60 text-[10px] font-mono tracking-tighter">ID_{user.id?.slice(0, 8) || 'XXXX'}</span>
+                        </span>
                     </div>
-                    <span className="text-[10px] text-slate-600 font-mono tracking-tighter uppercase mt-0.5">SEC_SESSION_ACTIVE</span>
                 </div>
 
                 <div className="relative">

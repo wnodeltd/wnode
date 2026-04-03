@@ -2,7 +2,7 @@
 
 import React from "react";
 import Sidebar from "./Sidebar";
-import IdentityHeader from "./IdentityHeader";
+import IdentityHeader from "@shared/components/IdentityHeader";
 
 interface ShellProps {
     children: React.ReactNode;

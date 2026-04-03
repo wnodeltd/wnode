@@ -11,7 +11,7 @@ import {
 import "leaflet/dist/leaflet.css";
 
 import NodeInspector from "./components/NodeInspector";
-import FleetMap from "./components/FleetMap";
+import FleetMap from "@shared/components/FleetMap";
 import MetricCard from "@shared/components/MetricCard";
 
 export default function CommandCentrePage() {
