@@ -51,9 +51,8 @@ export default function NodlsPage() {
     return (
         <>
             <header className="w-full h-14 border-b border-white/10 flex items-center justify-between px-8 bg-black shrink-0 z-10">
-                    <div className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-[#22D3EE] shadow-[0_0_8px_#22D3EE]" />
-                        <span className="text-[10px] font-normal text-slate-400 tracking-[0.2em] uppercase">nodl Registry engagement</span>
+                    <div className="flex items-center gap-4">
+                        <h1 className="text-2xl font-bold tracking-tight text-white uppercase tracking-[0.2em]">Global nodl Registry</h1>
                     </div>
                     <div className="flex items-center gap-4">
                         <button 
@@ -68,7 +67,6 @@ export default function NodlsPage() {
                 <main className="flex-1 p-8 overflow-y-auto pb-24 relative">
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
                         <div>
-                            <h1 className="text-xl font-normal tracking-tight text-white mb-1">Global nodl Registry</h1>
                             <p className="text-[14px] text-slate-500 font-normal">Monitor and manage all compute hardware across the Nodl mesh.</p>
                         </div>
 
