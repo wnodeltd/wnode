@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 export default function IdentityHeader() {
     const [user, setUser] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const displayUserId = user?.protocolId || user?.protocol_id || user?.protocolID || user?.protocol || user?.id || 'unknown-id';
     const [error, setError] = useState(false);
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -89,7 +90,7 @@ export default function IdentityHeader() {
                 <div className="text-right hidden md:flex flex-col items-end">
                     <div className="flex items-center gap-2">
                         <span className="text-[13px] font-bold text-white group-hover:text-[#22D3EE] transition-colors">
-                            {user.email} • <span className="uppercase">{user.role || 'USER'}</span> • <span className="ds-sub opacity-60">ID_{user.identityId?.slice(0, 8) || user.id?.slice(0, 8) || 'XXXX'}</span>
+                            {user.email} • <span className="uppercase">{user.role || 'USER'}</span> • <div className="user-id">{displayUserId}</div>
                         </span>
                     </div>
                 </div>
