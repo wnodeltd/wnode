@@ -34,7 +34,7 @@ export default function PricingManager() {
 
     const fetchTiers = async () => {
         try {
-            const res = await fetch('http://localhost:8080/v1/meta/tiers');
+            const res = await fetch('http://127.0.0.1:8080/v1/meta/tiers');
             const data = await res.json();
             setTiers(data);
             setLoading(false);
@@ -49,7 +49,7 @@ export default function PricingManager() {
 
     const handleUpdate = async (tier: Tier) => {
         try {
-            const res = await fetch(`http://localhost:8080/v1/admin/tiers/${tier.id}`, {
+            const res = await fetch(`http://127.0.0.1:8080/v1/admin/tiers/${tier.id}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(tier)
@@ -68,7 +68,7 @@ export default function PricingManager() {
     if (loading) return <div className="h-screen bg-black flex items-center justify-center text-cyan-400 font-mono">LOADING_NETWORK_MATRIX...</div>;
 
     return (
-        <div className="min-h-screen bg-black text-white p-8 font-sans">
+        <div className="w-full flex flex-col items-start justify-start text-left space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
             {/* Header */}
             <div className="flex items-center justify-between mb-12">
                 <div>
@@ -109,7 +109,7 @@ export default function PricingManager() {
                             <th className="px-6 py-4 text-[11px] font-black uppercase tracking-widest text-slate-400">CPU</th>
                             <th className="px-6 py-4 text-[11px] font-black uppercase tracking-widest text-slate-400">GPU Model</th>
                             <th className="px-6 py-4 text-[11px] font-black uppercase tracking-widest text-slate-400">RAM</th>
-                            <th className="px-6 py-4 text-[11px] font-black uppercase tracking-widest text-slate-400 text-right">Actions</th>
+                            <th className="px-6 py-4 text-[11px] font-black uppercase tracking-widest text-slate-400 text-left">Actions</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-white/5">
@@ -138,7 +138,7 @@ export default function PricingManager() {
                                 <td className="px-6 py-6 font-bold text-slate-300 text-sm">
                                     {tier.ram_gb} GB
                                 </td>
-                                <td className="px-6 py-6 text-right">
+                                <td className="px-6 py-6 text-left">
                                     <button 
                                         onClick={() => setEditingTier(tier)}
                                         className="inline-flex items-center gap-2 px-6 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all hover:scale-105"

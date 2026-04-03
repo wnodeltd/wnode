@@ -16,6 +16,7 @@ interface Step {
 export default function OnboardingWizard() {
     const [currentStep, setCurrentStep] = useState(1);
     const [isConnecting, setIsConnecting] = useState(false);
+    const [showStripeHelp, setShowStripeHelp] = useState(false);
 
     const steps: Step[] = [
         { id: 1, title: "Profile Setup", description: "Identity and Preferences", icon: User },
@@ -131,9 +132,22 @@ export default function OnboardingWizard() {
                             <ArrowRight className={`w-5 h-5 ${isConnecting ? 'animate-pulse' : ''}`} />
                         </button>
 
-                        <div className="flex items-center gap-2 text-[12px] text-slate-500 justify-center group cursor-help">
-                            <AlertCircle className="w-4 h-4" />
-                            <span className="group-hover:text-white transition-colors">Why do I need a Stripe account?</span>
+                        <div className="space-y-4">
+                            <button 
+                                onClick={() => setShowStripeHelp(!showStripeHelp)}
+                                className="flex items-center gap-2 text-[12px] text-slate-500 justify-center w-full group hover:text-white transition-colors"
+                            >
+                                <AlertCircle className="w-4 h-4" />
+                                <span className="font-bold underline underline-offset-4 decoration-white/20 group-hover:decoration-white/40">Why Do I Need A Stripe Account?</span>
+                            </button>
+
+                            {showStripeHelp && (
+                                <div className="p-4 bg-white/5 border border-white/10 rounded-[5px] text-[12px] text-slate-400 leading-relaxed animate-in fade-in slide-in-from-top-2 duration-300">
+                                    Stripe Connect is the industry-standard gateway for automated payouts. By linking your account, you enable **Direct Daily Settlements** of your compute earnings without Nodl acting as a middleman. 
+                                    <br/><br/>
+                                    <span className="text-[#22D3EE]">● Security: Your bank details never touch our servers.</span>
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}

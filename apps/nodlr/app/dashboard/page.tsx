@@ -1,22 +1,29 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Zap, TrendingUp, Cpu, Server, Activity } from 'lucide-react';
+import { Zap, TrendingUp, Cpu, Server, Activity, Plus } from 'lucide-react';
 import { motion, AnimatePresence } from "framer-motion";
 import HealthAnnunciator from "../components/HealthAnnunciator";
 import ImpactCard from "../components/ImpactCard";
 import OnboardingWizard from "../components/OnboardingWizard";
+import AddMachineModal from "../components/AddMachineModal";
+import MachineList from "../components/MachineList";
 import useSWR from 'swr';
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 export default function DashboardPage() {
     const [isHarvesting, setIsHarvesting] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const [allocation, setAllocation] = useState({ cpu: 0, gpu: 0, ram: 12 });
     
     const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://api.nodl.one';
     const { data: impactData } = useSWR(`${apiBase}/api/impact`, fetcher, { refreshInterval: 5000 });
     const { data: accountData } = useSWR(`${apiBase}/api/v1/account/me`, fetcher);
+    const { data: nodes } = useSWR(`${apiBase}/api/nodes`, (url) => 
+        fetch(url, { headers: { 'Authorization': `Bearer ${localStorage.getItem('nodl_jwt')}` } }).then(res => res.json()),
+        { refreshInterval: 10000 }
+    );
     const impact = impactData || { carbonSavedKg: 0, equivalentKmDriven: 0, treeDays: 0 };
     const isPayoutActive = accountData?.payoutStatus === 'active';
 
@@ -241,55 +248,29 @@ export default function DashboardPage() {
 
 
 
-                    {/* Earnings Graph Placeholder */}
-                    <div className="surface-card p-8 h-[400px] flex flex-col relative overflow-hidden">
-
-                        <div className="flex justify-between items-center mb-8 pb-4 border-b border-white/10">
-                            <div>
-                                <h4 className="text-lg font-normal text-white">Earnings history</h4>
-                                <p className="text-sm text-slate-400 font-normal">Revenue generated across the mesh network</p>
-
-                            </div>
-
-                            <div className="flex gap-6">
-                                <div className="flex items-center gap-2">
-                                    <div className="w-4 h-4 bg-cyber-cyan" />
-                                    <span className="text-[10px] font-normal uppercase text-white">Work</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <div className="w-4 h-4 bg-[#FFD700]" />
-                                    <span className="text-[10px] font-normal uppercase text-white">Invites</span>
-                                </div>
-
-                            </div>
+                    {/* Machine List */}
+                    <div className="space-y-6">
+                        <div className="flex justify-between items-center">
+                            <h4 className="text-[10px] uppercase font-normal text-cyber-cyan tracking-[0.2em]">Active Infrastructure</h4>
+                            <motion.button 
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onClick={() => setIsModalOpen(true)}
+                                className="flex items-center gap-2 text-[10px] uppercase font-normal text-[#9333ea] border border-[#9333ea]/20 px-3 py-1.5 hover:bg-[#9333ea] hover:text-white transition-all shadow-lg"
+                            >
+                                <Plus className="w-3 h-3" />
+                                Add New Machine
+                            </motion.button>
                         </div>
-
-                        {/* The Graph Visual */}
-                        <div className="flex-1 relative border-l-4 border-b-4 border-white/10 mb-6 flex items-end gap-2 px-4 pb-4">
-                            {/* Bars */}
-                            {[40, 60, 35, 80, 50, 90, 45, 70, 85, 60, 95, 110, 80, 100, 120].map((h, i) => (
-                                <div key={i} className="flex-1 flex flex-col justify-end gap-2 group">
-                                    <motion.div
-                                        initial={{ height: 0 }}
-                                        animate={{ height: `${h * 0.2}%` }}
-                                        className="w-full bg-[#FFD700] group-hover:bg-white transition-colors border-t border-black"
-                                    />
-                                    <motion.div
-                                        initial={{ height: 0 }}
-                                        animate={{ height: `${h * 0.6}%` }}
-                                        className="w-full bg-cyber-cyan group-hover:bg-white transition-colors border-t border-black"
-                                    />
-                                </div>
-                            ))}
-
-                            {/* Grid Lines */}
-                            <div className="absolute inset-x-0 bottom-[25%] border-t-2 border-white/5" />
-                            <div className="absolute inset-x-0 bottom-[50%] border-t-2 border-white/5" />
-                            <div className="absolute inset-x-0 bottom-[75%] border-t-2 border-white/5" />
-                        </div>
+                        <MachineList nodes={nodes || []} />
                     </div>
-                </div>
 
+                    <AddMachineModal 
+                        isOpen={isModalOpen} 
+                        onClose={() => setIsModalOpen(false)} 
+                        apiBase={apiBase} 
+                    />
+                </div>
             </div>
         </div>
     );

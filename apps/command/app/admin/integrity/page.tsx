@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Sidebar from "../../components/Sidebar";
 import { 
     Search, Shield, AlertTriangle, Check, Ghost, 
     ArrowRightLeft, Cpu, Activity
@@ -45,9 +44,7 @@ export default function IntegrityReviewPage() {
     };
 
     return (
-        <div className="flex min-h-screen bg-black text-white font-sans overflow-hidden">
-            <Sidebar />
-            <div className="flex-1 lg:pl-64 flex flex-col relative h-screen overflow-hidden">
+        <>
                 <header className="h-14 border-b border-white/25 flex items-center justify-between px-8 bg-black shrink-0">
                     <span className="text-[12px] font-normal text-[#22D3EE] tracking-[0.2em] uppercase-none">Integrity Review / Administrative Queue</span>
                     <div className="flex items-center gap-2.5 bg-[#EF4444]/10 border border-[#EF4444]/30 px-3 py-1 rounded-[5px]">
@@ -130,7 +127,6 @@ export default function IntegrityReviewPage() {
                         )}
                     </div>
                 </main>
-            </div>
-        </div>
+        </>
     );
 }

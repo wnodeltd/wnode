@@ -1,10 +1,13 @@
 package p2p
 
 import (
+	"context"
+	"encoding/json"
 	"sync"
 	"time"
 
 	"github.com/obregan/nodl/nodld/internal/impact"
+	"github.com/redis/go-redis/v9"
 )
 
 type AccountStatus string
@@ -39,12 +42,14 @@ type SessionInfo struct {
 // Registry tracks active hardware sessions.
 type Registry struct {
 	mu       sync.RWMutex
+	rdb      *redis.Client
 	sessions map[string]*SessionInfo // map[Hardware_DNA]SessionInfo
 }
 
 // NewRegistry creates a new Hardware Registry.
-func NewRegistry() *Registry {
+func NewRegistry(rdb *redis.Client) *Registry {
 	return &Registry{
+		rdb:      rdb,
 		sessions: make(map[string]*SessionInfo),
 	}
 }
@@ -59,7 +64,7 @@ func (r *Registry) Register(hwDNA, sessionID string, isVM bool) bool {
 		isDuplicate = true
 	}
 
-	r.sessions[hwDNA] = &SessionInfo{
+	s := &SessionInfo{
 		ID:             sessionID,
 		LastSeen:       time.Now(),
 		Status:         StatusActive,
@@ -67,13 +72,20 @@ func (r *Registry) Register(hwDNA, sessionID string, isVM bool) bool {
 		IsDuplicate:    isDuplicate,
 		IntegrityScore: 1.0,
 		Health: HealthScore{
-			Score: 1.0, // Start with full health
+			Score: 1.0,
 		},
 	}
 
 	if isVM || isDuplicate {
-		r.sessions[hwDNA].IntegrityScore = 0
-		r.sessions[hwDNA].Status = StatusFlagged
+		s.IntegrityScore = 0
+		s.Status = StatusFlagged
+	}
+
+	r.sessions[hwDNA] = s
+	
+	if r.rdb != nil {
+		data, _ := json.Marshal(s)
+		r.rdb.HSet(context.Background(), "nodl:sessions", hwDNA, data)
 	}
 
 	return true
@@ -84,6 +96,9 @@ func (r *Registry) Unregister(hwDNA string) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	delete(r.sessions, hwDNA)
+	if r.rdb != nil {
+		r.rdb.HDel(context.Background(), "nodl:sessions", hwDNA)
+	}
 }
 
 // IsActive returns true if the hardware is currently registered.
@@ -104,10 +119,9 @@ func (r *Registry) UpdateHealth(hwDNA string, latency time.Duration, isUp bool) 
 		return
 	}
 
-	// Calculate incremental uptime since last seen
 	if isUp {
 		delta := time.Since(s.LastSeen)
-		if delta > 0 && delta < 1*time.Minute { // Sanity check for long gaps
+		if delta > 0 && delta < 1*time.Minute {
 			s.TotalUptime += delta
 		}
 	}
@@ -115,22 +129,24 @@ func (r *Registry) UpdateHealth(hwDNA string, latency time.Duration, isUp bool) 
 	s.Health.Latency = latency
 	s.LastSeen = time.Now()
 
+	if r.rdb != nil {
+		data, _ := json.Marshal(s)
+		r.rdb.HSet(context.Background(), "nodl:sessions", hwDNA, data)
+	}
+
 	if !isUp {
 		s.Health.FlapCount++
-		s.Health.Score -= 0.1 // Penalty for flap
+		s.Health.Score -= 0.1
 	} else {
-		// Gradually recover score if up
 		s.Health.Score += 0.01
 	}
 
-	// Clamp score
 	if s.Health.Score > 1.0 {
 		s.Health.Score = 1.0
 	} else if s.Health.Score < 0.0 {
 		s.Health.Score = 0.0
 	}
 
-	// Update Integrity Score
 	s.IntegrityScore = r.calculateIntegrityScore(s)
 	if s.IntegrityScore == 0 && s.Status == StatusActive {
 		s.Status = StatusFlagged
@@ -138,23 +154,19 @@ func (r *Registry) UpdateHealth(hwDNA string, latency time.Duration, isUp bool) 
 }
 
 func (r *Registry) calculateIntegrityScore(s *SessionInfo) float64 {
-	// Trust Penalty: 1M1N Rule
 	if s.IsVM || s.IsDuplicate {
 		return 0
 	}
 
-	// Base score from Uptime (Max 0.4)
-	uptimeScore := s.TotalUptime.Hours() / 1000.0 // 1000 hours for full uptime credit
+	uptimeScore := s.TotalUptime.Hours() / 1000.0
 	if uptimeScore > 0.4 {
 		uptimeScore = 0.4
 	}
 
-	// Health/Stability (Max 0.3)
 	healthScore := s.Health.Score * 0.3
 
-	// Green Contribution (Max 0.3)
 	impactMetrics := impact.CalculateSavings(s.TotalUptime)
-	greenScore := impactMetrics.CarbonSavedKg / 100.0 // 100kg for full green credit
+	greenScore := impactMetrics.CarbonSavedKg / 100.0
 	if greenScore > 0.3 {
 		greenScore = 0.3
 	}
@@ -175,6 +187,11 @@ func (r *Registry) Release(hwDNA string) {
 		s.IsVM = false
 		s.IsDuplicate = false
 		s.IntegrityScore = 1.0
+		
+		if r.rdb != nil {
+			data, _ := json.Marshal(s)
+			r.rdb.HSet(context.Background(), "nodl:sessions", hwDNA, data)
+		}
 	}
 }
 
@@ -198,6 +215,11 @@ func (r *Registry) ResolveFlag(hwDNA string, action string) {
 		s.Status = StatusShadowBenched
 		s.IntegrityScore = 0.05
 	}
+	
+	if r.rdb != nil {
+		data, _ := json.Marshal(s)
+		r.rdb.HSet(context.Background(), "nodl:sessions", hwDNA, data)
+	}
 }
 
 // GetStatus returns the current status of a hardware DNA.
@@ -216,7 +238,6 @@ func (r *Registry) List() map[string]*SessionInfo {
 	defer r.mu.RUnlock()
 	res := make(map[string]*SessionInfo, len(r.sessions))
 	for k, v := range r.sessions {
-		// Copy the session info
 		info := *v
 		res[k] = &info
 	}

@@ -21,7 +21,7 @@ services:
       context: ./apps/nodlr
       dockerfile: Dockerfile
     ports:
-      - "3001:3000"
+      - "3002:3000"
     env_file:
       - ./nodld/.env
     depends_on:
@@ -33,7 +33,7 @@ services:
       context: ./apps/command
       dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - "3001:3000"
     env_file:
       - ./nodld/.env
     depends_on:
@@ -45,7 +45,19 @@ services:
       context: ./apps/mesh
       dockerfile: Dockerfile
     ports:
-      - "3002:3000"
+      - "3003:3000"
+    env_file:
+      - ./nodld/.env
+    depends_on:
+      - nodld
+    restart: unless-stopped
+
+  web-ui:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    ports:
+      - "3004:3000"
     env_file:
       - ./nodld/.env
     depends_on:

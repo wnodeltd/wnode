@@ -29,8 +29,8 @@ export default function LandingPage() {
                 </div>
 
                 <div className="flex items-center gap-4">
-                    <Link href="http://127.0.0.1:3002" className="px-6 py-2.5 rounded-full border border-white/10 text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-white hover:text-obsidian transition-all">Enter Mesh</Link>
-                    <Link href="http://127.0.0.1:3001" className="button-primary px-6 py-2.5 rounded-full text-[10px]">Start Harvesting</Link>
+                    <Link href="http://127.0.0.1:3002" className="px-6 py-2.5 rounded-[5px] border border-white/10 text-[10px] font-bold uppercase tracking-[0.2em] hover:bg-white hover:text-obsidian transition-all">Enter Mesh</Link>
+                    <Link href="http://127.0.0.1:3001" className="button-primary px-6 py-2.5 rounded-[5px] text-[10px]">Start Harvesting</Link>
                 </div>
             </nav>
 
@@ -49,8 +49,8 @@ export default function LandingPage() {
                 </p>
 
                 <div className="flex flex-col md:flex-row gap-6 animate-in fade-in slide-in-from-bottom-12 duration-1000 delay-700">
-                    <Link href="http://127.0.0.1:3001" className="button-primary px-12 py-5 rounded-full text-sm">Download Harvester</Link>
-                    <Link href="http://127.0.0.1:3002" className="px-12 py-5 rounded-full border border-white/10 bg-white/5 text-[10px] font-bold uppercase tracking-[0.3em] hover:bg-white/10 transition-all flex items-center justify-center">Deploy Task</Link>
+                    <Link href="http://127.0.0.1:3001" className="button-primary px-12 py-5 rounded-[5px] text-sm">Download Harvester</Link>
+                    <Link href="http://127.0.0.1:3002" className="px-12 py-5 rounded-[5px] border border-white/10 bg-white/5 text-[10px] font-bold uppercase tracking-[0.3em] hover:bg-white/10 transition-all flex items-center justify-center">Deploy Task</Link>
                 </div>
 
                 {/* Floating Background Stats */}

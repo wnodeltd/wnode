@@ -7,12 +7,12 @@ import (
 type TierID string
 
 const (
-	TierTiny      TierID = "tiny"
 	TierStandard  TierID = "standard"
-	TierHighRAM   TierID = "high-ram"
 	TierBoost     TierID = "boost"
 	TierUltra     TierID = "ultra"
-	TierDeccTee   TierID = "decc-tee"
+	TierDecc      TierID = "decc"
+	TierGPUPro    TierID = "gpu-pro"
+	TierGPUMax    TierID = "gpu-max"
 )
 
 type SourceID string
@@ -21,6 +21,8 @@ const (
 	SourceLambda     SourceID = "lambda"
 	SourceAWS        SourceID = "aws"
 	SourceGCP        SourceID = "gcp"
+	SourceAkash      SourceID = "akash"
+	SourceRender     SourceID = "render"
 	SourceAzure      SourceID = "azure"
 	SourcePaperspace SourceID = "paperspace"
 )

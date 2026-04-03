@@ -3,15 +3,19 @@
 }
 
 nodlr.nodl.one {
-    reverse_proxy localhost:3001
-}
-
-mesh.nodl.one {
     reverse_proxy localhost:3002
 }
 
+mesh.nodl.one {
+    reverse_proxy localhost:3003
+}
+
+command.nodl.one {
+    reverse_proxy localhost:3001
+}
+
 api.nodl.one {
-    reverse_proxy localhost:4000 {
+    reverse_proxy localhost:8080 {
         header_up Upgrade {>Upgrade}
         header_up Connection {>Connection}
     }

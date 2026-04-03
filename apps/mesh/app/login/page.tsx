@@ -65,7 +65,7 @@ export default function LoginPage() {
                 </div>
 
                 {/* Dashboard Login Card (nodlr style) */}
-                <div className="bg-[#1a1a1b] border border-white/5 rounded-3xl p-10 shadow-2xl relative overflow-hidden">
+                <div className="bg-[#1a1a1b] border border-white/5 rounded-[5px] p-10 shadow-2xl relative overflow-hidden">
                     <div className="text-center mb-8">
                         <h1 className="text-4xl font-bold text-white mb-2 tracking-tight">
                             nodl dashboard
@@ -75,7 +75,7 @@ export default function LoginPage() {
                     <div className="space-y-4">
                         {/* google Login Button */}
                         <button
-                            className="w-full bg-transparent border border-white/10 hover:bg-white/5 text-white font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-3 active:scale-[0.98]"
+                            className="w-full bg-transparent border border-white/10 hover:bg-white/5 text-white font-bold py-4 rounded-[5px] transition-all flex items-center justify-center gap-3 active:scale-[0.98]"
                         >
                             <Chrome className="w-5 h-5" />
                             Continue with Google
@@ -92,24 +92,24 @@ export default function LoginPage() {
 
                         {/* Email Form */}
                         <form onSubmit={handleEmailAuth} className="space-y-4">
-                            <div className="space-y-1.5 focus-within:ring-1 focus-within:ring-[#00f2ff]/30 rounded-xl transition-all">
+                            <div className="space-y-1.5 focus-within:ring-1 focus-within:ring-[#00f2ff]/30 rounded-[5px] transition-all">
                                 <input
                                     type="email"
                                     placeholder="Email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-4 text-white text-sm focus:outline-none focus:border-[#00f2ff]/50 transition-all border-b-2 font-normal"
+                                    className="w-full bg-black/40 border border-white/10 rounded-[5px] px-4 py-4 text-white text-sm focus:outline-none focus:border-[#00f2ff]/50 transition-all border-b-2 font-normal"
                                     required
                                 />
                             </div>
 
-                            <div className="space-y-1.5 focus-within:ring-1 focus-within:ring-[#00f2ff]/30 rounded-xl transition-all">
+                            <div className="space-y-1.5 focus-within:ring-1 focus-within:ring-[#00f2ff]/30 rounded-[5px] transition-all">
                                 <input
                                     type="password"
                                     placeholder="Password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-4 text-white text-sm focus:outline-none focus:border-[#00f2ff]/50 transition-all border-b-2 font-normal"
+                                    className="w-full bg-black/40 border border-white/10 rounded-[5px] px-4 py-4 text-white text-sm focus:outline-none focus:border-[#00f2ff]/50 transition-all border-b-2 font-normal"
                                     required
                                 />
                             </div>
@@ -117,7 +117,7 @@ export default function LoginPage() {
                             <button
                                 type="submit"
                                 disabled={isLoading}
-                                className="w-full bg-transparent border border-white/10 hover:bg-white/5 text-white font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2 group active:scale-[0.98] mt-6"
+                                className="w-full bg-transparent border border-white/10 hover:bg-white/5 text-white font-bold py-4 rounded-[5px] transition-all flex items-center justify-center gap-2 group active:scale-[0.98] mt-6"
                             >
                                 {isLoading ? (
                                     <Loader2 className="w-5 h-5 animate-spin text-[#00f2ff]" />

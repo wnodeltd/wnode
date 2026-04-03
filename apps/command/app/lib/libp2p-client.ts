@@ -13,6 +13,9 @@ import { runWasmBenchmark } from './benchmark'
 let libp2p: any = null;
 
 export async function startNodlNode() {
+  // Prevent SSR execution
+  if (typeof window === "undefined") return;
+
   // 1. Tab Lock
   await acquireTabLock(
     async () => {

@@ -21,10 +21,22 @@ const (
 	PayoutStatusActive     PayoutStatus = "active"
 )
 
+// UserRole defines the permission level of a user.
+type UserRole string
+
+const (
+	RoleOwner           UserRole = "owner"
+	RoleManager         UserRole = "manager"
+	RoleCustomerService UserRole = "customer_service"
+	RoleVisitor         UserRole = "visitor"
+)
+
 // Nodlr represents a participant in the Nodl network.
 type Nodlr struct {
 	ID                    string          `json:"id"`
 	Email                 string          `json:"email"`
+	PasswordHash          string          `json:"password_hash"` // Persisted in Redis
+	Role                  UserRole        `json:"role"`
 	StripeConnectID       string          `json:"stripeConnectId"`
 	PayoutStatus          PayoutStatus    `json:"payoutStatus"`
 	IntegrityScore        int             `json:"integrityScore"`        // 0-1000
@@ -34,6 +46,24 @@ type Nodlr struct {
 	PayoutFrequency       PayoutFrequency `json:"payoutFrequency"`
 	ParentID              string          `json:"parentId,omitempty"`     // Direct sponsor
 	CreatedAt             time.Time       `json:"createdAt"`
+}
+
+// Public returns a version of the nodlr with sensitive fields removed.
+func (n *Nodlr) Public() map[string]interface{} {
+	return map[string]interface{}{
+		"id":                    n.ID,
+		"email":                 n.Email,
+		"role":                  n.Role,
+		"stripeConnectId":       n.StripeConnectID,
+		"payoutStatus":          n.PayoutStatus,
+		"integrityScore":        n.IntegrityScore,
+		"accruedFounderBalance": n.AccruedFounderBalance,
+		"isFounder":             n.IsFounder,
+		"founderIndex":          n.FounderIndex,
+		"payoutFrequency":       n.PayoutFrequency,
+		"parentId":              n.ParentID,
+		"createdAt":             n.CreatedAt,
+	}
 }
 
 // AffiliateRelation represents a link in the tree.

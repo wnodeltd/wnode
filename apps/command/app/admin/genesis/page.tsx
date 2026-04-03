@@ -98,9 +98,9 @@ export default function GenesisManagerPage() {
     };
 
     return (
-        <div className="max-w-6xl mx-auto space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="w-full space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700 flex flex-col items-start justify-start text-left">
             {/* Header */}
-            <div className="flex justify-between items-end border-b border-white/10 pb-6">
+            <div className="w-full flex justify-between items-end border-b border-white/10 pb-6">
                 <div>
                     <h2 className="text-3xl font-normal tracking-tight text-white mb-1.5 uppercase-none">Genesis Slot Manager</h2>
                     <p className="text-16px text-slate-400 font-normal uppercase-none">RBAC Level 4: Administrative override for 3% Founder lineage</p>
@@ -126,14 +126,14 @@ export default function GenesisManagerPage() {
                             }`}>
                                 <Zap className="w-6 h-6" />
                             </div>
-                            <div className="text-right">
+                            <div className="text-left">
                                 <span className="text-[10px] text-slate-500 uppercase tracking-widest block mb-1">Slot #{slot.index}</span>
                                 {slot.isSystem ? (
-                                    <span className="flex items-center gap-1.5 text-[11px] text-orange-500 font-bold justify-end tracking-wider">
+                                    <span className="flex items-center gap-1.5 text-[11px] text-orange-500 font-bold justify-start tracking-wider">
                                         <Lock className="w-3 h-3" /> Locked
                                     </span>
                                 ) : (
-                                    <span className="flex items-center gap-1.5 text-[11px] text-[#22D3EE] font-bold justify-end tracking-wider">
+                                    <span className="flex items-center gap-1.5 text-[11px] text-[#22D3EE] font-bold justify-start tracking-wider">
                                         <CheckCircle2 className="w-3 h-3" /> Active
                                     </span>
                                 )}

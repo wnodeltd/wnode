@@ -32,9 +32,8 @@ export default function StaffManagementPage() {
     );
 
     return (
-        <div className="flex min-h-screen bg-black text-white font-sans overflow-hidden">
-            <div className="flex-1 flex flex-col relative h-screen overflow-hidden">
-                <header className="h-14 border-b border-white/25 flex items-center justify-between px-8 bg-black shrink-0">
+        <>
+                <header className="w-full h-14 border-b border-white/25 flex items-center justify-between px-8 bg-black shrink-0">
                     <span className="text-[12px] font-normal text-slate-400 tracking-[0.2em] uppercase-none">Personnel Governance</span>
                     <div className="flex items-center gap-2.5 bg-[#22D3EE] px-3 py-1 rounded-[5px]">
                         <span className="text-[14px] text-black font-normal uppercase-none">Stephen_Nodlrs [Owner]</span>
@@ -77,7 +76,7 @@ export default function StaffManagementPage() {
                                         <th className="px-6 py-5 font-normal">Role / Designation</th>
                                         <th className="px-6 py-5 font-normal">Permissions Scope</th>
                                         <th className="px-6 py-5 font-normal">Status</th>
-                                        <th className="px-8 py-5 font-normal text-right">Actions</th>
+                                        <th className="px-8 py-5 font-normal text-left">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="text-[14px] text-slate-300 divide-y divide-white/5">
@@ -111,7 +110,7 @@ export default function StaffManagementPage() {
                                                         <span className="text-[14px] font-normal text-slate-500">{member.status}</span>
                                                     </div>
                                                 </td>
-                                                <td className="px-8 py-6 text-right">
+                                                <td className="px-8 py-6 text-left">
                                                     <button className="p-2 text-slate-700 hover:text-white hover:bg-white/5 rounded-[5px] transition-all">
                                                         <MoreVertical className="w-5 h-5" />
                                                     </button>
@@ -131,7 +130,6 @@ export default function StaffManagementPage() {
                         </div>
                     </div>
                 </main>
-            </div>
-        </div>
+        </>
     );
 }

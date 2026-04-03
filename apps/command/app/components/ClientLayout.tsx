@@ -51,7 +51,7 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
                         </div>
                     </header>
                     
-                    <main className="flex-1 p-10 overflow-y-auto pb-32 bg-black">
+                    <main className="flex-1 p-10 overflow-y-auto pb-32 bg-black flex flex-col items-start justify-start text-left w-full">
                         {children}
                     </main>
                 </div>

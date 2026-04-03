@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "next dev -H 0.0.0.0 -p 3001",
+    "dev": "next dev -H 127.0.0.1 -p 3001",
     "build": "NODE_OPTIONS=\"--max-old-space-size=4096\" next build",
     "start": "next start -H 0.0.0.0 -p 3001",
     "lint": "next lint"
@@ -12,21 +12,23 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-    "dependencies": {
+  "dependencies": {
+    "@chainsafe/libp2p-noise": "^15.0.0",
+    "@libp2p/mplex": "^10.0.0",
+    "@libp2p/webrtc": "^3.1.0",
+    "@libp2p/websockets": "^8.0.0",
+    "@multiformats/multiaddr": "^12.1.0",
+    "@types/leaflet": "^1.9.21",
     "framer-motion": "^12.38.0",
+    "leaflet": "^1.9.4",
+    "libp2p": "^1.2.0",
     "lucide-react": "^0.577.0",
     "next": "15.1.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "swr": "^2.3.0",
-    "libp2p": "^1.2.0",
-    "@libp2p/websockets": "^8.0.0",
-    "@libp2p/webrtc": "^3.1.0",
-    "@libp2p/mplex": "^10.0.0",
-    "@chainsafe/libp2p-noise": "^15.0.0",
-    "@multiformats/multiaddr": "^12.1.0"
+    "swr": "^2.3.0"
   },
-    "devDependencies": {
+  "devDependencies": {
     "@types/node": "^25.5.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",

@@ -22,11 +22,19 @@ func FetchAllMarketData() []MarketRate {
 	gcpRates, _ := fetchGCPSpot()
 	rates = append(rates, gcpRates...)
 	
-	// 4. Lambda Labs
+	// 4. Akash Network
+	akashRates, _ := fetchAkash()
+	rates = append(rates, akashRates...)
+
+	// 5. Render Network
+	renderRates, _ := fetchRender()
+	rates = append(rates, renderRates...)
+
+	// 6. Lambda Labs
 	lambdaRates, _ := fetchLambda()
 	rates = append(rates, lambdaRates...)
 
-	// 5. Paperspace
+	// 7. Paperspace
 	paperspaceRates, _ := fetchPaperspace()
 	rates = append(rates, paperspaceRates...)
 	
@@ -97,5 +105,24 @@ func fetchPaperspace() ([]MarketRate, error) {
 		{Source: SourcePaperspace, Price: 0.07, Timestamp: time.Now()}, // Standard CPU
 		{Source: SourcePaperspace, Price: 0.35, Timestamp: time.Now()}, // Mid GPU
 		{Source: SourcePaperspace, Price: 1.80, Timestamp: time.Now()}, // A100 Tier
+	}, nil
+}
+
+func fetchAkash() ([]MarketRate, error) {
+	// Simulated parse of Akash Network open-source pricing
+	return []MarketRate{
+		{Source: SourceAkash, Price: 0.008, Timestamp: time.Now()},
+		{Source: SourceAkash, Price: 0.045, Timestamp: time.Now()},
+		{Source: SourceAkash, Price: 0.280, Timestamp: time.Now()},
+		{Source: SourceAkash, Price: 1.100, Timestamp: time.Now()},
+	}, nil
+}
+
+func fetchRender() ([]MarketRate, error) {
+	// Simulated parse of Render Network compute rates
+	return []MarketRate{
+		{Source: SourceRender, Price: 0.095, Timestamp: time.Now()},
+		{Source: SourceRender, Price: 0.420, Timestamp: time.Now()},
+		{Source: SourceRender, Price: 2.100, Timestamp: time.Now()},
 	}, nil
 }

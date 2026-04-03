@@ -18,7 +18,7 @@ export default function Navbar() {
             </div>
 
             <div className="flex items-center gap-8">
-                <div className="text-right">
+                <div className="text-left">
                     <div className="text-[9px] text-slate-500 uppercase  tracking-widest mb-1">Total Network Payouts</div>
                     <div className="text-lg text-white font-black  tracking-tighter leading-none">$1,248,012.00</div>
                 </div>

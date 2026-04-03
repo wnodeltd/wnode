@@ -1,177 +1,303 @@
 "use client";
 
-import { useState } from "react";
-import { motion } from "framer-motion";
+import React, { useState, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
+
 import { 
-    Activity, Shield, Zap, Server, Globe, Terminal, ChevronUp, ChevronDown 
+    Activity, Shield, Server, Terminal, ChevronUp, ChevronDown,
+    Cpu as CpuIcon, ShieldCheck, DollarSign, Wifi, WifiOff, Database,
+    BarChart3, AlertTriangle, CheckCircle2
 } from "lucide-react";
-import Sidebar from "./components/Sidebar";
-import { useEffect } from "react";
+import "leaflet/dist/leaflet.css";
+
+import NodeInspector from "./components/NodeInspector";
+import FleetMap from "./components/FleetMap";
+import MetricCard from "./components/MetricCard";
 
 export default function CommandCentrePage() {
     const [isTelemetryOpen, setIsTelemetryOpen] = useState(false);
-    const [data, setData] = useState<any>(null);
+    const [nodes, setNodes] = useState<any[]>([]);
+    const [nodlrs, setNodlrs] = useState<any[]>([]);
+    const [stats, setStats] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [selectedNode, setSelectedNode] = useState<string | null>(null);
+    const [backendOnline, setBackendOnline] = useState(false);
+    const [apiLatencyMs, setApiLatencyMs] = useState<number | null>(null);
+    const router = useRouter();
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const res = await fetch('/api/stats');
-                if (res.ok) {
-                    const json = await res.json();
-                    setData(json);
-                }
-            } catch (err) {
-                console.error("Dashboard fetch failed:", err);
-            } finally {
-                setLoading(false);
+        if (typeof window === 'undefined') return;
+        const jwt = localStorage.getItem("nodl_jwt");
+        const userStr = localStorage.getItem("nodl_user");
+        
+        if (!jwt || !userStr) {
+            router.push("/auth/login");
+            return;
+        }
+
+        try {
+            const user = JSON.parse(userStr);
+            if (user.role === 'visitor') {
+                router.push("/auth/login");
             }
-        };
+        } catch (e) {
+            router.push("/auth/login");
+        }
+    }, [router]);
+
+    const fetchData = async () => {
+        try {
+            const t0 = performance.now();
+            const [nodesRes, nodlrsRes, statsRes] = await Promise.all([
+                fetch('/api/nodls/all'),
+                fetch('/api/nodlrs/all'),
+                fetch('/api/stats')
+            ]);
+            const latency = Math.round(performance.now() - t0);
+            setApiLatencyMs(latency);
+            
+            if (nodesRes.ok) setNodes(await nodesRes.json());
+            if (nodlrsRes.ok) setNodlrs(await nodlrsRes.json());
+            if (statsRes.ok) {
+                setStats(await statsRes.json());
+                setBackendOnline(true);
+            } else {
+                setBackendOnline(false);
+            }
+        } catch (err) {
+            console.error("Dashboard fetch failed:", err);
+            setError("Failed to synchronize with backend registry.");
+            setBackendOnline(false);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
         fetchData();
-        const interval = setInterval(fetchData, 5000);
+        const interval = setInterval(fetchData, 10000);
         return () => clearInterval(interval);
     }, []);
 
+    const handleNodeSelect = useCallback((id: string) => {
+        setSelectedNode(id);
+    }, []);
+
     const metrics = [
-        { label: 'Active nodes', value: data?.activeNodes || 0, unit: 'Nodes', icon: Server, color: 'text-white', status: 'online', delta: '+2' },
-        { label: 'Global load', value: data?.networkLoad || 0, unit: '%', icon: Activity, color: 'text-white', pulse: true },
-        { label: 'Network payouts', value: '412.8', unit: 'USD', icon: Zap, color: 'text-white', delta: '+12.4% (24h)' },
-        { label: 'System latency', value: '124.2', unit: 'ms', icon: Globe, color: 'text-white', sub: 'Optimized' },
+        { 
+            label: 'Network Compute', 
+            value: stats?.totalCores || 0, 
+            sub: 'vCPUs Distributed', 
+            icon: CpuIcon, 
+            color: 'text-white'
+        },
+        { 
+            label: 'Unified Memory', 
+            value: stats?.totalMemory || 0, 
+            sub: 'GB RAM Capacity', 
+            icon: Server, 
+            color: 'text-white'
+        },
+        { 
+            label: 'Global Stability', 
+            value: stats?.globalStability !== undefined ? stats.globalStability.toFixed(1) : 0, 
+            sub: 'Node Availability %', 
+            icon: ShieldCheck, 
+            color: 'text-white'
+        },
+        { 
+            label: 'Registry Liquidity', 
+            value: stats?.totalBalance !== undefined ? (stats.totalBalance / 100).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 }) : 0, 
+            sub: 'USD Accrued', 
+            icon: DollarSign, 
+            color: 'text-[#22D3EE]'
+        },
+    ];
+
+    const offlineNodes = (stats?.totalNodes || 0) - (stats?.activeNodes || 0);
+
+    const operational = [
+        {
+            label: 'Total Nodes',
+            value: stats?.totalNodes ?? '—',
+            icon: Server,
+            statusColor: 'text-white',
+        },
+        {
+            label: 'Active Nodes',
+            value: stats?.activeNodes ?? '—',
+            icon: CheckCircle2,
+            statusColor: 'text-green-400',
+        },
+        {
+            label: 'Offline Nodes',
+            value: offlineNodes,
+            icon: AlertTriangle,
+            statusColor: offlineNodes > 0 ? 'text-red-400' : 'text-green-400',
+        },
+        {
+            label: 'API Latency',
+            value: apiLatencyMs !== null ? `${apiLatencyMs}ms` : '—',
+            icon: BarChart3,
+            statusColor: (apiLatencyMs || 0) > 500 ? 'text-yellow-400' : 'text-green-400',
+        },
+        {
+            label: 'Backend Status',
+            value: backendOnline ? 'Online' : 'Offline',
+            icon: backendOnline ? Wifi : WifiOff,
+            statusColor: backendOnline ? 'text-green-400' : 'text-red-400',
+        },
+        {
+            label: 'Registry Sync',
+            value: stats ? 'Synced' : 'Syncing',
+            icon: Activity,
+            statusColor: stats ? 'text-green-400' : 'text-yellow-400',
+        },
+        {
+            label: 'Redis Status',
+            value: stats?.redisStatus === 'active' ? 'Active' : 'Fallback',
+            icon: Database,
+            statusColor: stats?.redisStatus === 'active' ? 'text-green-400' : 'text-yellow-400',
+        },
     ];
 
     const integrity = [
-        { name: 'API Server', status: 'Active', light: 'bg-green-500' },
-        { name: 'P2P Mesh Node', status: 'Online', light: 'bg-green-500' },
+        { name: 'Gateway', status: 'Active', light: 'bg-green-500' },
+        { name: 'P2P Mesh nodl', status: 'Online', light: 'bg-green-500' },
+        { name: 'Registry Layer', status: stats ? 'Synced' : 'Loading', light: stats ? 'bg-green-500' : 'bg-yellow-500' },
     ];
 
     return (
-        <div className="flex min-h-screen bg-black text-white font-sans overflow-hidden">
-            <Sidebar />
+        <>
+            <main className="flex-1 px-8 pt-6 pb-20 overflow-y-auto space-y-6 custom-scrollbar h-full relative">
+                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-cyan-400/5 rounded-full blur-[120px] pointer-events-none -z-10" />
 
-            {/* Main Content */}
-            <div className="flex-1 lg:pl-64 flex flex-col relative h-screen overflow-hidden">
-                {/* Identity Header */}
-                <header className="h-14 border-b border-white/10 flex items-center justify-between px-8 bg-black shrink-0">
-                    <div className="flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]" />
-                        <span className="text-[10px] font-normal text-slate-400 tracking-[0.2em] uppercase-none">Network operational</span>
+                {/* Page Header */}
+                <div className="pb-4 flex justify-between items-center border-b border-white/10">
+                    <div>
+                        <h2 className="text-lg font-normal tracking-tight text-white mb-0.5">Command Centre Operations</h2>
+                        <p className="ds-sub lowercase tracking-normal text-slate-500">Real-time infrastructure oversight and global node coordination.</p>
                     </div>
+                    <div className="flex items-center gap-6">
+                        {error && <span className="ds-sub text-red-500 font-bold">{error}</span>}
+                        {/* IdentityHeader is handled by Shell.tsx */}
+                    </div>
+                </div>
 
-                    <div className="flex items-center gap-8">
-                        <div className="text-right flex items-center gap-4">
-                            <div className="flex items-center gap-2.5 bg-[#22D3EE] px-3 py-1 rounded-[5px]">
-                                <span className="text-black font-normal leading-none tracking-tight uppercase-none">Stephen_Nodlrs</span>
-                                <span className="text-[10px] text-black/80 font-normal uppercase-none tracking-widest mt-0.5 whitespace-nowrap">[Owner]</span>
-                            </div>
-                            <div className="h-8 w-px bg-white/10" />
-                            <div className="flex flex-col items-start font-mono text-[#22D3EE]">
-                                <span className="text-[14px] font-normal tracking-tighter leading-none uppercase-none">ACC_#4492-X</span>
-                                <span className="text-[10px] text-slate-500 font-normal uppercase-none tracking-widest leading-none mt-1">Global Admin</span>
-                            </div>
+                {/* Row 1: Vitals */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+                    {metrics.map((m) => (
+                        <MetricCard
+                            key={m.label}
+                            label={m.label}
+                            value={loading ? '...' : m.value}
+                            icon={m.icon}
+                            statusColor={m.color}
+                            sub={m.sub}
+                            larger={true}
+                        />
+                    ))}
+                </div>
+
+                {/* Row 2: Operational Metrics */}
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+                    {operational.map((op) => (
+                        <MetricCard
+                            key={op.label}
+                            label={op.label}
+                            value={loading ? '...' : op.value}
+                            icon={op.icon}
+                            statusColor={op.statusColor}
+                            larger={false}
+                        />
+                    ))}
+                </div>
+
+                {/* Full-Width Map Panel */}
+                <FleetMap
+                    nodes={nodes}
+                    nodlrs={nodlrs}
+                    loading={loading}
+                    onNodeSelect={handleNodeSelect}
+                />
+
+                {/* Protocol + Summary */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div className="bg-white/[0.02] border border-white/10 p-6 rounded-[5px] flex flex-col h-[380px] shadow-sm transition-all hover:bg-white/[0.04] backdrop-blur-sm">
+                        <div className="flex items-center gap-3 mb-5 pb-3 border-b border-white/5">
+                            <Shield className="w-4 h-4 text-[#22D3EE] opacity-70" />
+                            <span className="ds-sub font-bold text-white tracking-[0.2em]">Protocol Integrity Trace</span>
                         </div>
-                    </div>
-                </header>
-
-                <main className="flex-1 p-[26px] overflow-y-auto pb-24 space-y-[26px]">
-                    {/* Header Section */}
-                    <div className="pb-2">
-                        <h2 className="text-[16px] font-normal tracking-tight text-white mb-1 uppercase-none">Command centre</h2>
-                        <p className="text-[14px] text-slate-400 font-normal uppercase-none">Real-time infrastructure oversight and node coordination.</p>
-                    </div>
-
-                    {/* Row 1: Vitals */}
-                    <div className="grid grid-cols-4 gap-4">
-                        {metrics.map((m) => (
-                            <div key={m.label} className="card-sovereign p-4 flex flex-col justify-between h-32 relative overflow-hidden group hover:border-white/30 transition-all">
-                                <div className="flex items-center justify-between z-10">
-                                    <span className="text-[12px] font-normal text-slate-400 uppercase-none">{m.label}</span>
-                                    {m.label === 'Active nodes' && <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />}
-                                    {m.label === 'System latency' && <span className="text-[10px] px-2 py-0.5 bg-[#1E40AF]/20 border border-[#1E40AF]/40 text-[#22D3EE] rounded-full uppercase-none">Optimized</span>}
-                                </div>
-                                <div className="flex flex-col z-10 mt-1">
-                                    <div className="flex items-baseline gap-2">
-                                        <span className={`text-2xl font-normal tracking-tighter uppercase-none ${m.pulse ? 'text-[#22D3EE]' : 'text-white'}`}>{m.value}</span>
-                                        <span className="text-[11px] font-normal text-slate-500 tracking-wider font-mono uppercase-none">{m.unit}</span>
-                                    </div>
-                                    {m.label === 'Global load' && (
-                                        <div className="mt-3 w-full bg-white/5 h-1 rounded-full overflow-hidden">
-                                            <motion.div 
-                                                initial={{ width: 0 }} 
-                                                animate={{ width: `${m.value}%` }} 
-                                                transition={{ duration: 1.5, ease: "easeOut" }}
-                                                className="h-full bg-[#22D3EE] shadow-[0_0_8px_rgba(34,211,238,0.5)]" 
-                                            />
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="z-10 mt-1 flex items-center gap-2 min-h-[14px]">
-                                    {m.delta && <span className="text-[11px] text-green-400 font-mono tracking-tighter uppercase-none">{m.delta}</span>}
-                                </div>
-                                <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-[#22D3EE]/2 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                            </div>
-                        ))}
-                    </div>
-
-                    {/* Row 2: Protocol */}
-                    <div className="card-sovereign p-4 h-[350px] relative overflow-hidden flex flex-col group shadow-sm">
-                        <div className="flex items-center gap-3 mb-4 pb-2 border-b border-white/5">
-                            <Globe className="w-4 h-4 text-[#22D3EE] opacity-50" />
-                            <span className="text-[16px] font-normal text-white uppercase-none">Global distribution protocol</span>
-                        </div>
-                        <div className="flex-1 flex items-center justify-center bg-black/40 rounded-[3px] border border-white/5 relative">
-                             <div className="absolute inset-0 bg-[#1E40AF]/5 rounded-[3px] blur-3xl animate-pulse" />
-                             <div className="z-10 flex flex-col items-center gap-5">
-                                <div className="relative">
-                                    <div className="w-16 h-16 rounded-full border border-[#1E40AF]/20 flex items-center justify-center animate-[spin_10s_linear_infinite]" />
-                                    <div className="absolute inset-0 flex items-center justify-center">
-                                         <div className="w-2 h-2 rounded-full bg-[#22D3EE] shadow-[0_0_15px_#22D3EE]" />
-                                    </div>
-                                </div>
-                                <span className="text-[11px] font-mono font-normal tracking-[0.4em] text-slate-400 animate-pulse uppercase-none">Scanning network...</span>
-                             </div>
-                        </div>
-                    </div>
-
-                    {/* Row 3: Integrity */}
-                    <div className="card-sovereign p-8 flex flex-col">
-                        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/10">
-                            <Shield className="w-4 h-4 text-[#22D3EE]" />
-                            <span className="text-[16px] font-normal text-white uppercase-none">System integrity</span>
-                        </div>
-                        <div className="space-y-px">
+                        <div className="space-y-3 flex-1 overflow-y-auto custom-scrollbar pr-2">
                             {integrity.map((item) => (
-                                <div key={item.name} className="flex items-center justify-between py-2.5 px-3 hover:bg-white/[0.04] transition-colors rounded-[3px] group border-b border-white/5 last:border-0 uppercase-none">
-                                    <span className="text-[14px] font-normal text-slate-400 group-hover:text-white transition-colors uppercase-none">{item.name}</span>
-                                    <div className="flex items-center gap-5">
-                                        <span className="text-[11px] font-mono text-slate-500 tracking-tighter uppercase-none">{item.status}</span>
-                                        <div className={`w-1.5 h-1.5 rounded-full ${item.light === 'bg-green-500' ? 'bg-[#22D3EE]' : 'bg-slate-700'}`} />
+                                <div key={item.name} className="flex items-center justify-between py-3 px-4 rounded-[5px] group border border-white/5 bg-white/[0.01] hover:bg-white/[0.03] transition-colors">
+                                    <span className="ds-sub font-bold group-hover:text-white transition-colors">{item.name}</span>
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-[10px] font-mono text-slate-500 tracking-tighter uppercase font-bold">{item.status}</span>
+                                        <div className={`w-1.5 h-1.5 rounded-full ${item.light === 'bg-green-500' ? 'bg-[#22D3EE] shadow-[0_0_8px_#22D3EE]' : 'bg-yellow-500'}`} />
                                     </div>
                                 </div>
                             ))}
                         </div>
-                    </div>
-                </main>
-
-                {/* Telemetry Feed */}
-                <div className={`fixed bottom-0 right-0 left-64 bg-black border-t border-white/10 z-[60] transition-all duration-300 ${isTelemetryOpen ? 'h-64' : 'h-10'}`}>
-                    <button 
-                        onClick={() => setIsTelemetryOpen(!isTelemetryOpen)}
-                        className="w-full h-10 flex items-center justify-between px-10 hover:bg-white/[0.04] transition-colors group"
-                    >
-                        <div className="flex items-center gap-3">
-                            <Terminal className="w-4 h-4 text-[#22D3EE]" />
-                            <span className="text-[12px] font-normal text-slate-400 group-hover:text-white transition-colors uppercase-none">Live telemetry feed</span>
+                        <div className="mt-5">
+                            <div className="p-4 bg-black/40 border border-white/5 rounded-[5px] flex flex-col gap-3 relative overflow-hidden">
+                                <span className="ds-sub font-bold opacity-60">Network Summary</span>
+                                <div className="space-y-2">
+                                    <div className="flex justify-between items-baseline">
+                                        <span className="ds-sub font-bold">Registry Sync</span>
+                                        <span className={`text-[10px] font-mono font-bold ${stats ? 'text-green-400' : 'text-yellow-400'}`}>{stats ? 'STABLE' : 'SYNCING'}</span>
+                                    </div>
+                                    <div className="flex justify-between items-baseline">
+                                        <span className="ds-sub font-bold">Fleet Coverage</span>
+                                        <span className="text-[10px] font-mono font-bold text-white">{stats?.totalNodes || 0} Peers</span>
+                                    </div>
+                                    <div className="flex justify-between items-baseline">
+                                        <span className="ds-sub font-bold">Total Compute</span>
+                                        <span className="text-[10px] font-mono font-bold text-[#22D3EE]">{stats?.totalCores || 0} Cores</span>
+                                    </div>
+                                    <div className="flex justify-between items-baseline">
+                                        <span className="ds-sub font-bold">Data Store</span>
+                                        <span className={`text-[10px] font-mono font-bold ${stats?.redisStatus === 'active' ? 'text-green-400' : 'text-yellow-400'}`}>
+                                            {stats?.redisStatus === 'active' ? 'REDIS' : 'IN-MEMORY'}
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className="absolute top-0 right-0 w-20 h-20 bg-[#22D3EE]/5 rounded-full blur-2xl" />
+                            </div>
                         </div>
-                        {isTelemetryOpen ? <ChevronDown className="w-4 h-4 text-slate-600" /> : <ChevronUp className="w-4 h-4 text-slate-600" />}
-                    </button>
-                    <div className="p-6 font-mono text-[11px] text-[#22D3EE]/70 overflow-y-auto h-52 space-y-1 bg-black/50">
-                        <p className="opacity-50 tracking-tighter uppercase-none">[{new Date().toISOString()}] INITIALIZING CORE MODULES...</p>
-                        <p className="tracking-tighter uppercase-none text-slate-500">[OK] SECURITY PROTOCOLS ACTIVE</p>
-                        <p className="tracking-tighter text-[#22D3EE] uppercase-none">[NET] DHT REFRESH IN PROGRESS</p>
-                        <p className="tracking-tighter uppercase-none text-white/50">[SYS] TELEMETRY PULSE NOMINAL - L: 124.2ms</p>
                     </div>
                 </div>
+            </main>
+
+            {/* Telemetry Feed */}
+            <div className={`fixed bottom-0 right-0 lg:left-64 bg-neutral-950 border-t border-neutral-800 z-[60] transition-all duration-300 ${isTelemetryOpen ? 'h-64' : 'h-10'}`}>
+                <button 
+                    onClick={() => setIsTelemetryOpen(!isTelemetryOpen)}
+                    className="w-full h-10 flex items-center justify-between px-8 hover:bg-neutral-900 transition-colors group"
+                >
+                    <div className="flex items-center gap-3">
+                        <Terminal className="w-4 h-4 text-cyan-400" />
+                        <span className="text-xs font-semibold text-neutral-400 group-hover:text-neutral-200 transition-colors uppercase tracking-widest">Live telemetry feed</span>
+                    </div>
+                    {isTelemetryOpen ? <ChevronDown className="w-4 h-4 text-neutral-500" /> : <ChevronUp className="w-4 h-4 text-neutral-500" />}
+                </button>
+                <div className="p-6 font-mono text-[11px] text-cyan-400/70 overflow-y-auto h-52 space-y-1 custom-scrollbar font-bold">
+                    <p className="opacity-50 tracking-widest uppercase">[{new Date().toISOString()}] INITIALIZING CORE MODULES...</p>
+                    <p className="tracking-widest text-neutral-500">[OK] SECURITY PROTOCOLS ACTIVE</p>
+                    <p className="tracking-widest text-cyan-400">[NET] DHT REFRESH IN PROGRESS</p>
+                    <p className="tracking-widest text-neutral-600">[SYS] TELEMETRY PULSE NOMINAL - UP: ONLINE</p>
+                    {stats && <p className="tracking-widest text-green-400/50">[DATA] SYNC COMPLETE - {stats.totalNodes} NODES MAPPED</p>}
+                    {apiLatencyMs !== null && <p className="tracking-widest text-neutral-500">[PERF] API LATENCY: {apiLatencyMs}ms</p>}
+                    {!backendOnline && <p className="tracking-widest text-red-500">[WARN] BACKEND UNREACHABLE — USING CACHED DATA</p>}
+                    <p className="tracking-widest text-yellow-500/50">[STORE] REDIS OFFLINE — RUNNING IN-MEMORY FALLBACK</p>
+                </div>
             </div>
-        </div>
+
+            <NodeInspector 
+                nodeId={selectedNode} 
+                onClose={() => setSelectedNode(null)} 
+            />
+        </>
     );
 }

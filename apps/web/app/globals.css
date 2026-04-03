@@ -16,6 +16,14 @@ body {
     overflow-x: hidden;
 }
 
+div, button, input, section, aside, header, nav, img {
+  border-radius: 5px !important;
+}
+
+* {
+  border-radius: 5px !important;
+}
+
 .glow-cyan {
     text-shadow: 0 0 15px rgba(0, 242, 255, 0.6);
 }

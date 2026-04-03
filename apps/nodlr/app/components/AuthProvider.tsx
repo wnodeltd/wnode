@@ -43,7 +43,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         const setData = async () => {
             if (checkBypass()) return;
-            setIsLoading(false);
+            // Add a small delay to ensure state propagates
+            setTimeout(() => setIsLoading(false), 500);
         };
 
         setData();

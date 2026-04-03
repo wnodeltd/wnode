@@ -4,6 +4,7 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -35,6 +36,7 @@ type Server struct {
 	accountStore *account.Store
 	log          *zap.Logger
 	startTime    time.Time
+	regTokens    sync.Map // map[token]userID
 }
 
 // wsHub manages active WebSocket connections and broadcasts events.
@@ -85,7 +87,7 @@ func New(dispatcher *jobs.Dispatcher, store *jobs.Store, pricingStore *pricing.S
 	app.Use(recover.New())
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: "https://cmd.nodl.one, https://nodl.one, https://mesh.nodl.one, https://nodlr.nodl.one, http://localhost:3000, http://localhost:3001, http://localhost:3002, http://localhost:3003, http://localhost:3004",
-		AllowHeaders: "Origin, Content-Type, Accept",
+		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
 	}))
 	app.Use(logger.New())
 
@@ -155,8 +157,39 @@ func (s *Server) registerRoutes() {
 	s.app.Get("/api/system/pulse", s.handleGetSystemPulse)
 	s.app.Get("/api/impact", s.handleGetImpact)
 
+        // Phase 3 cockpit compatibility
+        s.app.Get("/api/nodls/all", s.handleGetRegistry)
+        s.app.Get("/api/nodlrs/all", s.handleListNodlrs)
+        s.app.Get("/api/stats", s.handleStats)
+
+
 	// Real-time event stream
 	s.app.Get("/ws", websocket.New(s.handleWebSocket))
+
+	// Auth
+	s.app.Post("/api/auth/login", s.handleLogin)
+
+	// Node Management (Connect Machine Flow)
+	nodes := s.app.Group("/api/nodes")
+	nodes.Post("/register", s.handleRegisterNode)
+	nodes.Post("/heartbeat", s.handleHeartbeat)
+	nodes.Get("/registration-token", s.AuthMiddleware(), s.handleGetRegistrationToken)
+	nodes.Get("", s.AuthMiddleware(), s.handleListNodes)
+	nodes.Get("/all", s.AuthMiddleware(), s.RequireRole(account.RoleManager, account.RoleCustomerService), s.handleListAllNodes)
+
+	// Command Admin Panel (CDM)
+	admin := s.app.Group("/api/admin", s.AuthMiddleware())
+	admin.Get("/stats/global", s.RequireRole(account.RoleCustomerService, account.RoleManager), s.handleGetGlobalStats)
+	admin.Get("/ledger", s.RequireRole(account.RoleCustomerService, account.RoleManager), s.handleGetLedger)
+	admin.Post("/pricing/update", s.RequireRole(account.RoleManager), s.handleUpdatePricing)
+	admin.Get("/system/status", s.RequireRole(account.RoleOwner), s.handleGetSystemStatus)
+	admin.Post("/system/flush", s.RequireRole(account.RoleOwner), func(c *fiber.Ctx) error {
+		if s.accountStore.Redis() != nil {
+			s.accountStore.Redis().FlushAll(context.Background())
+			return c.SendStatus(fiber.StatusOK)
+		}
+		return c.Status(fiber.StatusServiceUnavailable).JSON(fiber.Map{"error": "Redis not available"})
+	})
 }
 
 // Listen starts the HTTP server on the given port.
@@ -596,12 +629,12 @@ func (s *Server) handleGetMetaTiers(c *fiber.Ctx) error {
 	var list []*pricing.TierState
 	
 	order := []pricing.TierID{
-		pricing.TierTiny, 
 		pricing.TierStandard, 
-		pricing.TierHighRAM, 
 		pricing.TierBoost, 
 		pricing.TierUltra, 
-		pricing.TierDeccTee,
+		pricing.TierDecc, 
+		pricing.TierGPUPro, 
+		pricing.TierGPUMax,
 	}
 
 	for _, id := range order {
@@ -650,4 +683,8 @@ func (s *Server) handleUpdateAdminTier(c *fiber.Ctx) error {
 	})
 
 	return c.JSON(tier)
+}
+func (s *Server) handleListNodlrs(c *fiber.Ctx) error {
+    nodlrs := s.accountStore.ListNodlrs()
+    return c.JSON(nodlrs)
 }

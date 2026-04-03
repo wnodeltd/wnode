@@ -1,0 +1,8 @@
+packages:
+  - "apps/*"
+  - "cmd/*"
+  - "internal/*"
+  - "scripts/*"
+allowBuilds:
+  node-datachannel: true
+  sharp: true

@@ -13,8 +13,10 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
 
+	"github.com/obregan/nodl/nodld/internal/account"
 	"github.com/obregan/nodl/nodld/internal/api"
 	"github.com/obregan/nodl/nodld/internal/config"
 	"github.com/obregan/nodl/nodld/internal/jobs"
@@ -22,7 +24,6 @@ import (
 	"github.com/obregan/nodl/nodld/internal/pricing"
 	stripeService "github.com/obregan/nodl/nodld/internal/stripe"
 	"github.com/obregan/nodl/nodld/internal/wasm"
-	"github.com/obregan/nodl/nodld/internal/account"
 )
 
 func main() {
@@ -52,6 +53,22 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	// ── Redis Client ─────────────────────────────────────────────────────────
+	var rdb *redis.Client
+	opts, err := redis.ParseURL(cfg.RedisURL)
+	if err != nil {
+		log.Warn("invalid Redis URL, falling back to in-memory only", zap.Error(err))
+	} else {
+		rdb = redis.NewClient(opts)
+		// Check connection
+		if err := rdb.Ping(ctx).Err(); err != nil {
+			log.Warn("Redis not available, falling back to in-memory only", zap.Error(err))
+			rdb = nil
+		} else {
+			log.Info("connected to Redis", zap.String("url", cfg.RedisURL))
+		}
+	}
+
 	// ── P2P Identity ─────────────────────────────────────────────────────────
 	priv, err := p2p.LoadOrCreateIdentity("peer.key")
 	if err != nil {
@@ -59,7 +76,7 @@ func main() {
 	}
 
 	// ── P2P Host ──────────────────────────────────────────────────────────────
-	p2pHost, err := p2p.New(ctx, cfg.P2PPort, priv, cfg.P2PBootstrapPeers, log)
+	p2pHost, err := p2p.New(ctx, cfg.P2PPort, priv, cfg.P2PBootstrapPeers, rdb, log)
 	if err != nil {
 		log.Fatal("p2p host failed to start", zap.Error(err))
 	}
@@ -67,7 +84,7 @@ func main() {
 	log.Info("libp2p host online", zap.String("peerID", p2pHost.ID()))
 
 	// ── Account & Affiliate Store ─────────────────────────────────────────────
-	accountStore := account.NewStore()
+	accountStore := account.NewStore(rdb)
 
 	// ── Job Store + Dispatcher ────────────────────────────────────────────────
 	store := jobs.NewStore()
@@ -94,7 +111,7 @@ func main() {
 	}
 
 	// ── Pricing Engine ────────────────────────────────────────────────────────
-	pricingStore := pricing.NewStore()
+	pricingStore := pricing.NewStore(rdb)
 	pricingEngine := pricing.NewEngine(pricingStore, log)
 	go pricingEngine.Run(ctx)
 
@@ -104,9 +121,13 @@ func main() {
 	// Seed Data for Testing
 	ownerID := "0xFD-OWNER-SYSTEM"
 	accountStore.SetFounder(1, ownerID)
+	
+	ownerHash, _ := api.HashPassword("command")
 	owner := &account.Nodlr{
 		ID:              ownerID,
 		Email:           "stephen@nodl.one",
+		PasswordHash:    ownerHash,
+		Role:            account.RoleOwner,
 		PayoutFrequency: account.PayoutDaily,
 		PayoutStatus:    account.PayoutStatusActive,
 		StripeConnectID: "acct_1test",
@@ -114,13 +135,20 @@ func main() {
 		FounderIndex:    1,
 		CreatedAt:       time.Now(),
 	}
-	accountStore.AddNodlr(owner) // I need to add this method or use a workaround
+	accountStore.AddNodlr(owner)
 
-	// Create a small tree
+	// Create a small tree with Manager/CS roles
 	for i := 1; i <= 3; i++ {
 		l1, _ := accountStore.CreateNodlr(fmt.Sprintf("l1_%d@example.com", i), ownerID)
+		l1.Role = account.RoleManager
+		l1.PasswordHash, _ = api.HashPassword("manager")
+		accountStore.AddNodlr(l1)
+
 		for j := 1; j <= 2; j++ {
-			accountStore.CreateNodlr(fmt.Sprintf("l1_%d_l2_%d@example.com", i, j), l1.ID)
+			l2, _ := accountStore.CreateNodlr(fmt.Sprintf("l1_%d_l2_%d@example.com", i, j), l1.ID)
+			l2.Role = account.RoleCustomerService
+			l2.PasswordHash, _ = api.HashPassword("assistant")
+			accountStore.AddNodlr(l2)
 		}
 	}
 

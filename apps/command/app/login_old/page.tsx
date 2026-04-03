@@ -17,18 +17,36 @@ export default function LoginPage() {
         setIsLoading(true);
         setError('');
 
-        // Specific Owner account bypass
-        if (email === 'stephen@nodl.one' && password === 'command') {
-            localStorage.setItem('nodl_auth_session', 'true');
-            localStorage.setItem('nodl_user_email', email);
+        try {
+            const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8080';
+            const response = await fetch(`${apiBase}/api/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email, password }),
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Invalid credentials');
+            }
+
+            // Check if user has admin/owner/manager role
+            const role = data.user.role;
+            if (role !== 'owner' && role !== 'manager' && role !== 'customer_service') {
+                throw new Error('Access denied: Unauthorized role');
+            }
+
+            localStorage.setItem('nodl_jwt', data.token);
+            localStorage.setItem('nodl_user', JSON.stringify(data.user));
+            
             setTimeout(() => {
                 router.push('/');
             }, 800);
-            return;
+        } catch (err: any) {
+            setError(err.message);
+            setIsLoading(false);
         }
-
-        setError('Invalid credentials. Owner check failed.');
-        setIsLoading(false);
     };
 
     return (
@@ -123,7 +141,7 @@ export default function LoginPage() {
                         <div className="w-1.5 h-1.5 rounded-full bg-[#22D3EE] animate-pulse" />
                         <span className="text-13px font-normal text-slate-600">Secure link established</span>
                     </div>
-                    <div className="flex items-center gap-2 text-right">
+                    <div className="flex items-center gap-2 text-left">
                         <span className="text-13px font-normal text-slate-600 tracking-tight">Node_OS: 0xFD-99-C2</span>
                     </div>
                 </div>

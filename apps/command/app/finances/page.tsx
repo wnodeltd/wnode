@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Sidebar from "../components/Sidebar";
 import { X, ExternalLink, CreditCard, Clock, CheckCircle2, AlertCircle, Info } from "lucide-react";
 
 interface AccountInfo {
@@ -74,9 +73,7 @@ export default function FinancesPage() {
     ];
 
     return (
-        <div className="flex min-h-screen bg-black text-white font-sans overflow-hidden">
-            <Sidebar />
-            <div className="flex-1 lg:pl-64 flex flex-col relative h-screen overflow-hidden">
+        <>
                 <header className="h-14 border-b border-white/25 flex items-center justify-between px-8 bg-black shrink-0">
                     <span className="text-[12px] font-normal text-slate-400 tracking-[0.2em] uppercase-none font-mono">Financial Oversight</span>
                     <div className="flex items-center gap-2.5 bg-[#22D3EE] px-3 py-1 rounded-[5px]">
@@ -85,14 +82,14 @@ export default function FinancesPage() {
                 </header>
 
                 <main className="flex-1 p-10 overflow-y-auto pb-24 space-y-10">
-                    <div className="flex justify-between items-end">
+                    <div className="flex justify-between items-start">
                         <div className="pb-2">
                             <h2 className="text-[20px] font-normal tracking-tight text-white mb-1 uppercase-none italic">Revenue distribution</h2>
                             <p className="text-[14px] text-slate-400 font-normal uppercase-none">Platform earnings and automated payout management.</p>
                         </div>
                         
                         <div className="flex items-center gap-6">
-                            <div className="flex flex-col items-end gap-1">
+                            <div className="flex flex-col items-start gap-1">
                                 <span className="text-[10px] text-slate-500 uppercase-none tracking-widest">Payout Schedule</span>
                                 <div 
                                     onClick={toggleFrequency}
@@ -103,7 +100,7 @@ export default function FinancesPage() {
                                 </div>
                             </div>
 
-                            <div className="flex flex-col items-end gap-1">
+                            <div className="flex flex-col items-start gap-1">
                                 <span className="text-[10px] text-slate-500 uppercase-none tracking-widest uppercase-none">Stripe Connect</span>
                                 {account?.stripeConnectId ? (
                                     <div className="flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-[5px] text-emerald-400">
@@ -207,7 +204,6 @@ export default function FinancesPage() {
                          </div>
                     )}
                 </div>
-            </div>
-        </div>
+        </>
     );
 }

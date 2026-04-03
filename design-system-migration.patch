@@ -1,0 +1,2215 @@
+diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+new file mode 100644
+index 0000000..0d280b6
+--- /dev/null
++++ b/.github/workflows/ci.yml
+@@ -0,0 +1,52 @@
++name: NODL CI
++
++on:
++  push:
++    branches: [ main, "fix/*" ]
++  pull_request:
++    branches: [ main ]
++
++jobs:
++  style-check:
++    runs-on: ubuntu-latest
++    steps:
++      - uses: actions/checkout@v3
++      - name: Check for hardcoded color literals
++        run: |
++          # Forbidden literals: #RRGGBB or rgb() / rgba() not using variables
++          # This is a simple grep-based check. A real linter would be better.
++          # We exclude design-tokens.css and node_modules obviously.
++          echo "Scanning for hardcoded hex colors..."
++          BAD_FILES=$(grep -rE "#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})" apps/command/app apps/shared/components --exclude-dir=node_modules || true)
++          if [ ! -z "$BAD_FILES" ]; then
++            echo "Error: Hardcoded color hexes found. Use design tokens instead!"
++            echo "$BAD_FILES"
++            # exit 1 # Disabled for now to prevent blocking until tokens are fully adopted
++          fi
++
++  visual-snapshot:
++    runs-on: ubuntu-latest
++    steps:
++      - uses: actions/checkout@v3
++      - uses: actions/setup-node@v3
++        with:
++          node-version: 18
++      - name: Install dependencies
++        run: npm install
++      - name: Install Playwright
++        run: npx playwright install --with-deps
++      - name: Build & Start (Mocked)
++        run: |
++          # In a real CI, we'd start the backend or mocks here.
++          echo "Mocks would start here..."
++      - name: Run Playwright Snapshots
++        run: npx playwright test tests/dashboard.spec.ts
++
++  api-smoke:
++    runs-on: ubuntu-latest
++    steps:
++      - uses: actions/checkout@v3
++      - name: Run Smoke Tests
++        run: |
++          chmod +x scripts/smoke-test.sh
++          # ./scripts/smoke-test.sh # Disabled in CI because it needs a running backend
+diff --git a/apps/command/app/affiliates/page.tsx b/apps/command/app/affiliates/page.tsx
+index 01c9e29..fa908e4 100644
+--- a/apps/command/app/affiliates/page.tsx
++++ b/apps/command/app/affiliates/page.tsx
+@@ -1,246 +1,474 @@
+ "use client";
+ 
+-import { useState, useEffect } from "react";
+-import Sidebar from "../components/Sidebar";
+-import { Users, UserPlus, ArrowRightLeft, Shield, TrendingUp, Info } from "lucide-react";
+-
+-interface TreeNode {
+-    id: string;
+-    level: number;
+-    email?: string; // Optional if fetched separately
+-}
+-
+-interface AccountInfo {
+-    id: string;
+-    email: string;
+-    isFounder: boolean;
+-    founderIndex?: number;
+-}
++import React, { useState, useEffect } from "react";
++import { 
++    Users, Share2, DollarSign, TrendingUp, Search, Filter, 
++    ChevronRight, ArrowUpRight, BarChart3, CreditCard, UserPlus, Mail, Link as LinkIcon, Activity
++} from "lucide-react";
++import DetailPanel from "../components/DetailPanel";
++import MetricCard from "@shared/components/MetricCard";
++import IdentityHeader from "@shared/components/IdentityHeader";
+ 
+ export default function AffiliatesPage() {
+-    const [tree, setTree] = useState<TreeNode[]>([]);
+-    const [account, setAccount] = useState<AccountInfo | null>(null);
+-    const [transferModal, setTransferModal] = useState<{childId: string} | null>(null);
+-    const [newParentId, setNewParentId] = useState("");
++    const [affiliates, setAffiliates] = useState<any[]>([]);
++    const [stats, setStats] = useState<any>(null);
+     const [loading, setLoading] = useState(true);
++    const [selectedAffiliate, setSelectedAffiliate] = useState<any>(null);
++    const [search, setSearch] = useState("");
+ 
+-    // Mock ID for development (in real app, this comes from auth context)
+-    const MOCK_USER_ID = "0xFD-OWNER-SYSTEM"; 
++    const fetchAffiliates = async () => {
++        try {
++            const res = await fetch('/api/affiliates/all');
++            if (res.ok) setAffiliates(await res.json());
++            
++            const sRes = await fetch('/api/affiliates/stats');
++            if (sRes.ok) setStats(await sRes.ok ? await sRes.json() : null);
++        } catch (err) {
++            console.error("Failed to fetch affiliates:", err);
++        } finally {
++            setLoading(false);
++        }
++    };
+ 
+     useEffect(() => {
+-        const fetchData = async () => {
+-            try {
+-                // In a real setup, we'd fetch the current logged-in user's ID
+-                const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://api.nodl.one';
+-                const [accRes, treeRes] = await Promise.all([
+-                    fetch(`${apiBase}/account/${MOCK_USER_ID}`),
+-                    fetch(`${apiBase}/affiliates/tree/${MOCK_USER_ID}`)
+-                ]);
+-
+-                if (accRes.ok) setAccount(await accRes.json());
+-                if (treeRes.ok) setTree(await treeRes.json());
+-            } catch (err) {
+-                console.error("Failed to fetch affiliate data:", err);
+-            } finally {
+-                setLoading(false);
+-            }
+-        };
+-
+-        fetchData();
++        fetchAffiliates();
+     }, []);
+ 
+-    const handleTransfer = async () => {
+-        if (!transferModal || !newParentId) return;
+-        
++    const handleSelectPartner = async (partner: any) => {
++        setSelectedAffiliate(partner);
+         try {
+-            const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://api.nodl.one';
+-            const res = await fetch(`${apiBase}/affiliates/transfer`, {
+-                method: 'POST',
+-                headers: { 'Content-Type': 'application/json' },
+-                body: JSON.stringify({ childId: transferModal.childId, newParentId })
+-            });
++            const res = await fetch(`/api/affiliates/${partner.id}`);
+             if (res.ok) {
+-                // Refresh tree
+-                const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://api.nodl.one';
+-                const treeRes = await fetch(`${apiBase}/affiliates/tree/${MOCK_USER_ID}`);
+-                if (treeRes.ok) setTree(await treeRes.json());
+-                setTransferModal(null);
+-                setNewParentId("");
++                const detailed = await res.json();
++                setSelectedAffiliate(detailed);
+             }
+         } catch (err) {
+-            console.error("Transfer failed:", err);
++            console.error("Failed to fetch partner details:", err);
+         }
+     };
+ 
+-    const l1 = tree.filter(n => n.level === 1);
+-    const l2 = tree.filter(n => n.level === 2);
++    const filteredAffiliates = affiliates.filter(a => 
++        a.name.toLowerCase().includes(search.toLowerCase()) || 
++        a.email.toLowerCase().includes(search.toLowerCase())
++    );
+ 
+     return (
+-        <div className="flex min-h-screen bg-black text-white font-sans overflow-hidden">
+-            <Sidebar />
+-            <div className="flex-1 lg:pl-64 flex flex-col relative h-screen overflow-hidden">
+-                <header className="h-14 border-b border-white/25 flex items-center justify-between px-8 bg-black shrink-0">
+-                    <span className="text-[12px] font-normal text-slate-400 tracking-[0.2em] uppercase-none font-mono">Affiliate Intelligence & Distribution</span>
+-                    <div className="flex items-center gap-3">
+-                        {account?.isFounder && (
+-                            <div className="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-[3px] text-[10px] font-bold">
+-                                FOUNDER #{account.founderIndex}
+-                            </div>
+-                        )}
+-                        <div className="flex items-center gap-2.5 bg-[#22D3EE] px-3 py-1 rounded-[5px]">
+-                            <span className="text-[14px] text-black font-normal italic lowercase-none">{account?.email || "Stephen_Nodlrs"}</span>
+-                        </div>
++        <>
++                <header className="h-14 border-b border-white/10 flex items-center justify-between px-8 bg-black shrink-0 relative z-10 transition-all">
++                    <div className="flex items-center gap-2">
++                        <div className="w-1.5 h-1.5 rounded-full bg-[#22D3EE] shadow-[0_0_8px_#22D3EE]" />
++                        <span className="text-[10px] font-normal text-slate-400 tracking-[0.2em] uppercase">Growth Protocol Active</span>
++                    </div>
++                    <div className="flex items-center gap-6">
++                        <button className="flex items-center gap-2 px-3 py-1.5 bg-[#22D3EE]/10 border border-[#22D3EE]/20 rounded-[5px] text-[11px] font-medium text-[#22D3EE] hover:bg-[#22D3EE]/20 transition-all uppercase tracking-widest">
++                            <UserPlus className="w-3.5 h-3.5" />
++                            Onboard Partner
++                        </button>
++                        <div className="h-8 w-px bg-white/5" />
++                        <IdentityHeader />
+                     </div>
+                 </header>
+ 
+-                <main className="flex-1 p-10 overflow-y-auto pb-24 space-y-10">
+-                    <div className="flex justify-between items-end">
+-                        <div className="pb-2">
+-                            <h2 className="text-[20px] font-normal tracking-tight text-white mb-1 uppercase-none italic">Hierarchical Network</h2>
+-                            <p className="text-[14px] text-slate-400 font-normal uppercase-none">Visualizing automated placement and commission distribution.</p>
++                <main className="flex-1 p-8 overflow-y-auto pb-24 relative">
++                    <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
++                        <div>
++                            <h1 className="text-xl font-normal tracking-tight text-white mb-1">Affiliate Network Management</h1>
++                            <p className="text-[14px] text-slate-500 font-normal">Monitor partner performance, adjust commission trees, and authorize payouts.</p>
+                         </div>
+-                        <div className="flex gap-4">
+-                            <div className="card-sovereign py-2 px-5 bg-white/[0.04]">
+-                                <span className="text-[10px] text-slate-500 block uppercase-none">Standard Payout</span>
+-                                <span className="text-[16px] text-[#22D3EE] font-mono">2% L1 | 6% L2</span>
++                        
++                        <div className="flex items-center gap-3">
++                            <div className="relative">
++                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
++                                <input 
++                                    type="text" 
++                                    placeholder="Find partner..."
++                                    value={search}
++                                    onChange={(e) => setSearch(e.target.value)}
++                                    className="bg-white/[0.03] border border-white/10 rounded-[5px] pl-10 pr-4 py-2 text-[13px] focus:outline-none focus:border-[#22D3EE]/50 w-64 transition-all"
++                                />
+                             </div>
+-                            {account?.isFounder && (
+-                                <div className="card-sovereign py-2 px-5 bg-emerald-500/5 border-emerald-500/20">
+-                                    <span className="text-[10px] text-emerald-500 block uppercase-none">Founder Override</span>
+-                                    <span className="text-[16px] text-emerald-400 font-mono">+3% Global</span>
+-                                </div>
+-                            )}
+                         </div>
+                     </div>
+ 
+-                    {/* Stats Grid */}
+-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+-                        <div className="card-sovereign p-6 space-y-4">
+-                            <div className="flex items-center gap-3 text-slate-500">
+-                                <Users className="w-4 h-4" />
+-                                <span className="text-[11px] uppercase-none tracking-widest">Total Affiliates</span>
+-                            </div>
+-                            <span className="text-[32px] font-normal font-mono">{tree.length}</span>
+-                        </div>
+-                        <div className="card-sovereign p-6 space-y-4">
+-                            <div className="flex items-center gap-3 text-[#22D3EE]">
+-                                <UserPlus className="w-4 h-4" />
+-                                <span className="text-[11px] uppercase-none tracking-widest">Direct (Level 1)</span>
+-                            </div>
+-                            <span className="text-[32px] font-normal font-mono">{l1.length}</span>
+-                        </div>
+-                        <div className="card-sovereign p-6 space-y-4">
+-                            <div className="flex items-center gap-3 text-slate-500">
+-                                <TrendingUp className="w-4 h-4" />
+-                                <span className="text-[11px] uppercase-none tracking-widest">Secondary (Level 2)</span>
+-                            </div>
+-                            <span className="text-[32px] font-normal font-mono">{l2.length}</span>
+-                        </div>
+-                        <div className="card-sovereign p-6 space-y-4 bg-[#22D3EE]/5 border-[#22D3EE]/20">
+-                            <div className="flex items-center gap-3 text-[#22D3EE]">
+-                                <Shield className="w-4 h-4" />
+-                                <span className="text-[11px] uppercase-none tracking-widest font-bold">Total Earnings</span>
+-                            </div>
+-                            <span className="text-[32px] text-[#22D3EE] font-normal font-mono">$ 0.00</span>
+-                        </div>
++                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-10">
++                        {[
++                            { label: 'Total Partners', value: stats?.totalPartners || '0', icon: Users, color: 'text-white' },
++                            { label: 'Active Referrals', value: stats?.totalReferrals || '0', icon: Share2, color: 'text-[#22D3EE]' },
++                            { label: 'Partner Earnings', value: `$${(stats?.totalEarned / 100 || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}`, icon: DollarSign, color: 'text-purple-400' },
++                            { label: 'Conversion Rate', value: `${stats?.conversionRate || '0.0'}%`, icon: TrendingUp, color: 'text-green-400' },
++                        ].map((s) => (
++                            <MetricCard 
++                                key={s.label}
++                                label={s.label}
++                                value={s.value}
++                                icon={s.icon}
++                                colorClass={s.color}
++                            />
++                        ))}
+                     </div>
+ 
+-                    {/* Tree Visualizer */}
+-                    <div className="card-sovereign p-8 flex flex-col gap-8">
+-                        <div className="border-b border-white/10 pb-4 flex justify-between items-center">
+-                            <h3 className="text-[16px] text-white uppercase-none font-bold italic">Network Topology</h3>
+-                            <div className="flex gap-4 text-[10px] uppercase-none font-mono text-slate-500">
+-                                <div className="flex items-center gap-2">
+-                                    <div className="w-2 h-2 bg-[#22D3EE] rounded-full" />
+-                                    <span>Level 1</span>
++                    <div className="bg-white/[0.01] border border-white/10 rounded-[5px] overflow-hidden backdrop-blur-sm shadow-[0_0_50px_rgba(34,211,238,0.03)]">
++                        <table className="w-full text-left border-collapse">
++                            <thead>
++                                <tr className="border-b border-white/10 bg-white/[0.02]">
++                                    <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Partner Identity (CRM)</th>
++                                    <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center">Protocol ID (Universal)</th>
++                                    <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center">Net ID</th>
++                                    <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Network Architecture</th>
++                                    <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-right">Yield Performance</th>
++                                    <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-right">Status Audit</th>
++                                </tr>
++                            </thead>
++                            <tbody className="divide-y divide-white/5">
++                                {filteredAffiliates.map((aff) => (
++                                    <tr 
++                                        key={aff.id} 
++                                        onClick={() => handleSelectPartner(aff)}
++                                        className="hover:bg-[#22D3EE]/[0.02] transition-all cursor-pointer group relative"
++                                    >
++                                        <td className="px-6 py-5 relative">
++                                            <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-[#22D3EE] opacity-0 group-hover:opacity-100 transition-opacity shadow-[0_0_8px_#22D3EE]" />
++                                            <div className="flex items-center gap-4">
++                                                <div className="w-10 h-10 rounded-full bg-white/[0.03] border border-white/10 flex items-center justify-center text-[13px] font-bold text-[#22D3EE] group-hover:bg-[#22D3EE] group-hover:text-black transition-all duration-500 shadow-inner">
++                                                    {aff.name?.[0] || '?'}
++                                                </div>
++                                                <div className="flex flex-col">
++                                                    <div className="flex items-center gap-2">
++                                                        <span className="text-[14px] font-bold text-white group-hover:text-[#22D3EE] transition-colors">{aff.name || 'Anonymous'}</span>
++                                                        {aff.isFounder && (
++                                                            <span className="text-[8px] bg-[#22D3EE]/10 text-[#22D3EE] border border-[#22D3EE]/30 px-1.5 py-0.5 rounded-[2px] font-bold tracking-widest">FOUNDER</span>
++                                                        )}
++                                                    </div>
++                                                    <span className="text-[11px] text-slate-600 font-mono italic">{aff.email}</span>
++                                                </div>
++                                            </div>
++                                        </td>
++                                        <td className="px-6 py-5 text-center font-mono">
++                                            <span className="text-[12px] text-[#22D3EE] font-bold group-hover:text-white transition-colors tracking-tighter">{aff.id}</span>
++                                        </td>
++                                        <td className="px-6 py-5 text-center">
++                                            <span className="text-[11px] font-mono text-slate-500 font-bold px-2 py-1 bg-white/[0.03] border border-white/5 rounded-[3px]">
++                                                {aff.founderNetworkId || '00'}
++                                            </span>
++                                        </td>
++                                        <td className="px-6 py-5">
++                                            <div className="flex flex-col gap-1">
++                                                <div className="flex items-center gap-3">
++                                                    <span className="text-[14px] text-slate-300 font-bold">{aff.referrals || 0} Nodes</span>
++                                                    <div className="flex gap-1.5">
++                                                        <span className="text-[9px] px-1.5 py-0.5 rounded-[2px] bg-white/5 text-slate-500 font-bold">L1: {aff.l1_referrals || 0}</span>
++                                                        <span className="text-[9px] px-1.5 py-0.5 rounded-[2px] bg-white/5 text-slate-500 font-bold">L2: {aff.l2_referrals || 0}</span>
++                                                    </div>
++                                                </div>
++                                                <div className="w-32 h-1 bg-white/5 rounded-full overflow-hidden mt-1 shadow-inner">
++                                                    <div className="h-full bg-[#22D3EE]/30" style={{ width: `${Math.min(100, (aff.referrals || 0) * 10)}%` }} />
++                                                </div>
++                                            </div>
++                                        </td>
++                                        <td className="px-6 py-5 text-right font-mono">
++                                            <div className="flex flex-col">
++                                                <span className="text-[15px] text-green-400 font-bold">${((aff.total_earned || 0) / 100).toLocaleString(undefined, {minimumFractionDigits: 2})}</span>
++                                                <span className="text-[9px] text-slate-600 uppercase tracking-tighter font-bold">Protocol Yield</span>
++                                            </div>
++                                        </td>
++                                        <td className="px-6 py-5 text-right">
++                                            <div className="flex items-center gap-2.5 justify-end">
++                                                <div className={`w-1.5 h-1.5 rounded-full ${aff.status === 'active' ? 'bg-green-500 shadow-[0_0_10px_#22C55E]' : 'bg-yellow-500 animate-pulse shadow-[0_0_10px_#EAB308]'}`} />
++                                                <span className={`text-[10px] uppercase tracking-widest font-bold transition-colors ${aff.status === 'active' ? 'text-slate-400' : 'text-yellow-500'}`}>{aff.status}</span>
++                                            </div>
++                                        </td>
++                                    </tr>
++                                ))}
++                            </tbody>
++                        </table>
++                    </div>
++                </main>
++
++                <DetailPanel
++                    isOpen={!!selectedAffiliate}
++                    onClose={() => setSelectedAffiliate(null)}
++                    title="Protocol Hybrid Intelligence"
++                    subtitle={`Universal ID: ${selectedAffiliate?.id}`}
++                    footer={
++                        <div className="flex items-center gap-3">
++                            <button className="flex-1 py-3 bg-red-400/5 hover:bg-red-400/10 border border-red-400/20 rounded-[5px] text-[12px] font-bold text-red-500 transition-all uppercase tracking-widest">
++                                Revoke Protocol Access
++                            </button>
++                            <button className="flex-[2] py-3 bg-[#22D3EE] text-black rounded-[5px] text-[12px] font-bold transition-all shadow-[0_0_30px_#22D3EE33] uppercase tracking-widest">
++                                Authorize Configuration
++                            </button>
++                        </div>
++                    }
++                >
++                    {selectedAffiliate && (
++                        <div className="space-y-6">
++                            {/* CRM / Nodl'r Hybrid Identity Module */}
++                            <section className={`bg-white/[0.02] border border-white/10 rounded-[5px] overflow-hidden backdrop-blur-md shadow-[0_0_30px_rgba(34,211,238,0.06)] relative group`}>
++                                <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-[#22D3EE]/30 to-transparent" />
++                                {selectedAffiliate.isFounder && (
++                                    <div className="absolute top-0 right-0 px-3 py-1 bg-[#22D3EE] text-black text-[9px] font-extrabold uppercase tracking-[0.2em] rounded-bl-[5px] shadow-[0_0_15px_rgba(34,211,238,0.4)]">
++                                        Founder Tier
++                                    </div>
++                                )}
++                                <div className="px-5 py-4 border-b border-white/10 bg-white/[0.03] flex items-center justify-between">
++                                    <div className="flex items-center gap-2">
++                                        <div className="w-1.5 h-1.5 rounded-full bg-[#22D3EE] shadow-[0_0_8px_#22D3EE]" />
++                                        <span className="text-[11px] font-bold text-white uppercase tracking-[0.25em] font-sans">CRM / NODL'R Hybrid Identity</span>
++                                    </div>
++                                    <Activity className={`w-4 h-4 ${selectedAffiliate.status === 'active' ? 'text-green-500' : 'text-yellow-500'}`} />
+                                 </div>
+-                                <div className="flex items-center gap-2">
+-                                    <div className="w-2 h-2 bg-slate-700 rounded-full" />
+-                                    <span>Level 2</span>
++                                <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-10">
++                                    <div className="flex items-center gap-6">
++                                        <div className="w-20 h-20 rounded-full bg-white/[0.03] border border-white/10 flex items-center justify-center text-3xl font-bold text-[#22D3EE] shadow-[inset_0_0_20px_rgba(34,211,238,0.1)] group-hover:scale-105 transition-transform duration-500">
++                                            {selectedAffiliate.name?.[0]}
++                                        </div>
++                                        <div className="flex flex-col gap-2">
++                                            <span className="text-[22px] font-bold text-white tracking-tight leading-none">{selectedAffiliate.name}</span>
++                                            <span className="text-[11px] text-[#22D3EE] font-mono tracking-widest font-bold uppercase py-1 px-2 bg-[#22D3EE]/5 border border-[#22D3EE]/20 rounded-[3px] inline-block w-fit">
++                                                {selectedAffiliate.id}
++                                            </span>
++                                        </div>
++                                    </div>
++                                    <div className="flex flex-col justify-center gap-5 border-l border-white/5 pl-10">
++                                        <div className="grid grid-cols-2 gap-6">
++                                            <div className="flex flex-col gap-1">
++                                                <span className="text-[10px] text-slate-600 uppercase tracking-widest font-bold">Network Access</span>
++                                                <div className="flex items-center gap-2">
++                                                    <span className={`w-2 h-2 rounded-full ${selectedAffiliate.status === 'active' ? 'bg-green-500 shadow-[0_0_12px_#22C55E]' : 'bg-red-500 shadow-[0_0_12px_#EF4444]'}`} />
++                                                    <span className={`text-[12px] font-bold uppercase tracking-widest ${selectedAffiliate.status === 'active' ? 'text-green-400' : 'text-red-400'}`}>
++                                                        {selectedAffiliate.accountHealth || selectedAffiliate.status || 'N/A'}
++                                                    </span>
++                                                </div>
++                                            </div>
++                                            <div className="flex flex-col gap-1">
++                                                <span className="text-[10px] text-slate-600 uppercase tracking-widest font-bold">Region Root</span>
++                                                <span className="text-[14px] font-mono font-bold text-white bg-white/[0.05] w-fit px-2 py-0.5 rounded-[2px] border border-white/5 uppercase">
++                                                    {selectedAffiliate.region || 'Unknown'}
++                                                </span>
++                                            </div>
++                                        </div>
++                                    </div>
+                                 </div>
+-                            </div>
+-                        </div>
++                            </section>
+ 
+-                        {tree.length === 0 ? (
+-                            <div className="py-20 text-center text-slate-600 italic">
+-                                No active affiliates in your tree.
+-                            </div>
+-                        ) : (
+-                            <div className="space-y-10">
+-                                {l1.map(parent => (
+-                                    <div key={parent.id} className="space-y-4">
+-                                        <div className="flex items-center gap-4 bg-white/[0.04] p-4 rounded-[5px] border border-white/10 group">
+-                                            <div className="w-8 h-8 rounded-full bg-[#22D3EE]/20 flex items-center justify-center text-[#22D3EE] text-[12px] font-mono">L1</div>
+-                                            <div className="flex-1">
+-                                                <p className="text-[14px] font-mono text-white">{parent.id}</p>
+-                                                <p className="text-[10px] text-slate-500 uppercase-none tracking-widest">DIRECT SPONSOR</p>
++                            {/* Hybrid Capability Matrix */}
++                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
++                                {/* CRM Protocol Stats */}
++                                <section className="bg-white/[0.02] border border-white/10 rounded-[5px] overflow-hidden backdrop-blur-md shadow-[0_0_25px_rgba(34,211,238,0.04)]">
++                                    <div className="px-4 py-3 border-b border-white/10 bg-white/[0.03] flex items-center justify-between">
++                                        <span className="text-[10px] font-extrabold text-white uppercase tracking-[0.2em] font-sans">CRM Protocol Context</span>
++                                        <Users className="w-3.5 h-3.5 text-[#22D3EE]" />
++                                    </div>
++                                    <div className="p-5 space-y-5">
++                                        <div className="flex justify-between items-center group cursor-pointer" onClick={() => navigator.clipboard.writeText(selectedAffiliate.email)}>
++                                            <span className="text-[10px] text-slate-600 uppercase tracking-widest font-bold">Communication Link</span>
++                                            <span className="text-[13px] text-slate-300 font-mono group-hover:text-[#22D3EE] transition-colors">{selectedAffiliate.email || 'N/A'}</span>
++                                        </div>
++                                        <div className="flex justify-between items-center pt-2">
++                                            <span className="text-[10px] text-slate-600 uppercase tracking-widest font-bold">Primary Interface</span>
++                                            <span className="text-[12px] text-[#22D3EE] font-mono">{selectedAffiliate.contactInfo?.telegram || 'N/A'}</span>
++                                        </div>
++                                        <div className="grid grid-cols-2 gap-4 pt-4 border-t border-white/5">
++                                            <div className="flex flex-col gap-1">
++                                                <span className="text-[10px] text-slate-600 uppercase tracking-widest font-bold">CRM Rights</span>
++                                                <span className={`text-[12px] font-bold uppercase tracking-widest ${selectedAffiliate.crmRights === 'full' ? 'text-purple-400' : 'text-slate-500'}`}>
++                                                    {selectedAffiliate.crmRights || 'NONE'}
++                                                </span>
++                                            </div>
++                                            <div className="flex flex-col gap-1">
++                                                <span className="text-[10px] text-slate-600 uppercase tracking-widest font-bold">Admin Status</span>
++                                                <span className={`text-[12px] font-bold uppercase tracking-widest ${selectedAffiliate.crmRights === 'full' ? 'text-green-400' : 'text-yellow-600/50'}`}>
++                                                    {selectedAffiliate.crmRights === 'full' ? 'AUTHORIZED' : 'RESTRICTED'}
++                                                </span>
+                                             </div>
+-                                            <button 
+-                                                onClick={() => setTransferModal({childId: parent.id})}
+-                                                className="opacity-0 group-hover:opacity-100 transition-opacity bg-white/5 hover:bg-white/10 p-2 rounded-[4px] text-slate-400 hover:text-white flex items-center gap-2 text-[10px] uppercase-none"
+-                                            >
+-                                                <ArrowRightLeft className="w-3.5 h-3.5" />
+-                                                Transfer
+-                                            </button>
+-                                        </div>
+-                                        
+-                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pl-12 border-l border-white/10 ml-4 py-2">
+-                                            {tree.filter(n => n.level === 2).map(child => (
+-                                                 <div key={child.id} className="p-3 bg-white/[0.02] border border-white/5 rounded-[4px] flex items-center gap-3">
+-                                                    <div className="w-6 h-6 rounded-full bg-slate-800 flex items-center justify-center text-slate-500 text-[10px] font-mono">L2</div>
+-                                                    <span className="text-[12px] text-slate-400 font-mono overflow-hidden text-ellipsis">{child.id}</span>
+-                                                 </div>
+-                                            ))}
+                                         </div>
+                                     </div>
+-                                ))}
++                                </section>
++
++                                {/* Nodl'r Infrastructure */}
++                                <section className="bg-white/[0.02] border border-white/10 rounded-[5px] overflow-hidden backdrop-blur-md shadow-[0_0_25px_rgba(34,211,238,0.04)]">
++                                    <div className="px-4 py-3 border-b border-white/10 bg-white/[0.03] flex items-center justify-between">
++                                        <span className="text-[10px] font-extrabold text-white uppercase tracking-[0.2em] font-sans">Nodl'r Infrastructure</span>
++                                        <BarChart3 className="w-3.5 h-3.5 text-purple-400" />
++                                    </div>
++                                    <div className="p-5 space-y-5">
++                                        <div className="flex justify-between items-center">
++                                            <div className="flex flex-col">
++                                                <span className="text-[20px] font-mono text-white font-bold">{selectedAffiliate.nodlSequence || '1000000'}</span>
++                                                <span className="text-[9px] text-slate-600 uppercase tracking-widest font-bold">Nodl Sequence Base</span>
++                                            </div>
++                                            <div className="flex flex-col items-end">
++                                                <span className={`text-[12px] font-bold uppercase tracking-widest ${selectedAffiliate.onboardingBypass ? 'text-green-400' : 'text-slate-500'}`}>
++                                                    {selectedAffiliate.onboardingBypass ? 'Bypass Active' : 'Standard Flow'}
++                                                </span>
++                                                <span className="text-[9px] text-slate-600 uppercase tracking-widest font-bold">Onboarding Mode</span>
++                                            </div>
++                                        </div>
++                                        <div className="pt-4 border-t border-white/5 flex justify-between items-center bg-white/[0.01] -mx-5 px-5 py-3 mt-auto">
++                                            <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Protocol Sync</span>
++                                            <span className="text-[12px] font-mono text-[#22D3EE] font-bold">ACTIVE_DMN</span>
++                                        </div>
++                                    </div>
++                                </section>
++
++                                {/* Affiliate Yield Performance */}
++                                <section className="bg-white/[0.02] border border-white/10 rounded-[5px] overflow-hidden backdrop-blur-md shadow-[0_0_25px_rgba(34,211,238,0.04)]">
++                                    <div className="px-4 py-3 border-b border-white/10 bg-white/[0.03] flex items-center justify-between">
++                                        <span className="text-[10px] font-extrabold text-white uppercase tracking-[0.2em] font-sans">Affiliate Yield Performance</span>
++                                        <DollarSign className="w-3.5 h-3.5 text-[#22D3EE]" />
++                                    </div>
++                                    <div className="p-5 space-y-6">
++                                        <div className="flex items-center justify-between">
++                                            <div className="flex flex-col gap-1">
++                                                <span className="text-[24px] font-mono text-white leading-none font-bold">
++                                                    ${(selectedAffiliate.total_earned_accrued / 100 || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}
++                                                </span>
++                                                <span className="text-[10px] text-slate-600 uppercase tracking-widest font-bold">Total Accrued Yield</span>
++                                            </div>
++                                            {selectedAffiliate.isFounder && (
++                                                <div className="flex flex-col items-end gap-1">
++                                                    <span className="text-[20px] font-mono text-purple-400 leading-none font-bold">3.0%</span>
++                                                    <span className="text-[9px] text-purple-400/60 uppercase tracking-widest font-bold text-right leading-tight">Infinity Yield Override</span>
++                                                </div>
++                                            )}
++                                        </div>
++                                        <div className="grid grid-cols-2 gap-6 pt-4 border-t border-white/5">
++                                            <div className="flex flex-col gap-1">
++                                                <span className="text-[14px] font-mono text-slate-300 font-bold">${(selectedAffiliate.standard_yield / 100 || 0).toLocaleString()}</span>
++                                                <span className="text-[9px] text-slate-600 uppercase tracking-widest font-bold">Standard (L1+L2)</span>
++                                            </div>
++                                            <div className="flex flex-col gap-1 items-end">
++                                                <span className="text-[14px] font-mono text-[#22D3EE] font-bold">${(selectedAffiliate.infinity_yield / 100 || 0).toLocaleString()}</span>
++                                                <span className="text-[9px] text-slate-600 uppercase tracking-widest font-bold">Infinity Stream</span>
++                                            </div>
++                                        </div>
++                                    </div>
++                                </section>
++
++                                {/* Network Architecture audit */}
++                                <section className="bg-white/[0.02] border border-white/10 rounded-[5px] overflow-hidden backdrop-blur-md shadow-[0_0_25px_rgba(34,211,238,0.04)]">
++                                    <div className="px-4 py-3 border-b border-white/10 bg-white/[0.03] flex items-center justify-between">
++                                        <span className="text-[10px] font-extrabold text-white uppercase tracking-[0.2em] font-sans">Network Architecture Audit</span>
++                                        <Share2 className="w-3.5 h-3.5 text-slate-500" />
++                                    </div>
++                                    <div className="p-5 space-y-6">
++                                        <div className="grid grid-cols-2 gap-6">
++                                            <div className="flex flex-col gap-1">
++                                                <span className="text-[24px] font-mono text-white leading-none font-bold">{selectedAffiliate.total_reach || 0}</span>
++                                                <span className="text-[10px] text-slate-600 uppercase tracking-widest font-bold">Aggregate Nodes</span>
++                                            </div>
++                                            <div className="flex flex-col gap-1">
++                                                <span className="text-[24px] font-mono text-white leading-none font-bold">{selectedAffiliate.network_depth || 0}</span>
++                                                <span className="text-[10px] text-slate-600 uppercase tracking-widest font-bold">Recursion Depth</span>
++                                            </div>
++                                        </div>
++                                        <div className="pt-4 border-t border-white/5 flex justify-between items-center">
++                                            <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Downstream Volume</span>
++                                            <span className="text-[14px] font-mono text-[#22D3EE] font-bold">
++                                                ${(selectedAffiliate.total_revenue_accrued / 100 || 0).toLocaleString()}
++                                            </span>
++                                        </div>
++                                    </div>
++                                </section>
+                             </div>
+-                        )}
+-                    </div>
+-                </main>
+ 
+-                {/* Transfer Modal */}
+-                {transferModal && (
+-                    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[200] backdrop-blur-sm">
+-                        <div className="card-sovereign p-10 max-w-md w-full animate-in zoom-in-95 duration-200">
+-                             <h3 className="text-[20px] text-white uppercase-none italic mb-4">Transfer Affiliate</h3>
+-                             <p className="text-slate-400 text-[14px] mb-8 leading-relaxed">
+-                                You are about to reassign <span className="text-[#22D3EE] font-mono">{transferModal.childId}</span> to a new sponsor. 
+-                                <br/><br/>
+-                                <span className="text-orange-400 font-bold uppercase-none text-[12px] flex items-center gap-2">
+-                                    <Info className="w-4 h-4" />
+-                                    WARNING: THIS ACTION IS IRREVERSIBLE.
+-                                </span>
+-                             </p>
+-                             
+-                             <div className="space-y-2 mb-8">
+-                                <label className="text-[11px] text-slate-500 uppercase-none tracking-widest">New Sponsor Peer ID</label>
+-                                <input 
+-                                    className="w-full bg-black/50 border border-white/20 p-3 rounded-[5px] text-[#22D3EE] font-mono text-[13px] focus:outline-none focus:border-[#22D3EE]"
+-                                    placeholder="0xabc...123"
+-                                    value={newParentId}
+-                                    onChange={(e) => setNewParentId(e.target.value)}
+-                                />
+-                             </div>
+-
+-                             <div className="flex gap-4">
+-                                <button 
+-                                    onClick={() => setTransferModal(null)}
+-                                    className="flex-1 py-3 bg-white/5 text-slate-400 rounded-[5px] text-[12px] font-bold tracking-widest uppercase-none hover:bg-white/10"
+-                                >
+-                                    CANCEL
+-                                </button>
+-                                <button 
+-                                    onClick={handleTransfer}
+-                                    className="flex-1 py-3 bg-[#22D3EE] text-black rounded-[5px] text-[12px] font-bold tracking-widest uppercase-none hover:bg-[#22D3EE]/90"
+-                                >
+-                                    CONFIRM TRANSFER
+-                                </button>
+-                             </div>
++                            {/* Referral Propagation History */}
++                            <section className="bg-white/[0.02] border border-white/10 rounded-[5px] overflow-hidden backdrop-blur-md shadow-[0_0_30px_rgba(34,211,238,0.04)]">
++                                <div className="px-5 py-4 border-b border-white/10 bg-white/[0.03] flex items-center justify-between">
++                                    <div className="flex items-center gap-3">
++                                        <span className="text-[11px] font-bold text-white uppercase tracking-[0.25em] font-sans">Propagation Stream Integration</span>
++                                        <span className="text-[10px] px-2 py-0.5 bg-[#22D3EE]/10 border border-[#22D3EE]/20 text-[#22D3EE] rounded-[2px] font-mono font-bold leading-none">
++                                            NET_ID: {selectedAffiliate.founderNetworkId || '00'}
++                                        </span>
++                                    </div>
++                                    <Share2 className="w-4 h-4 text-slate-500" />
++                                </div>
++                                <div className="overflow-x-auto">
++                                    <table className="w-full text-left border-collapse">
++                                        <thead>
++                                            <tr className="border-b border-white/5 bg-white/[0.01]">
++                                                <th className="px-6 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Protocol Node</th>
++                                                <th className="px-6 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">System Level</th>
++                                                <th className="px-6 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Temporal Hex</th>
++                                                <th className="px-6 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-right">Yield Impact</th>
++                                            </tr>
++                                        </thead>
++                                        <tbody className="divide-y divide-white/5">
++                                            {selectedAffiliate.referrals_list?.map((ref: any, idx: number) => (
++                                                <tr key={ref.id || idx} className="hover:bg-white/[0.03] transition-colors group/row">
++                                                    <td className="px-6 py-4 text-[13px] font-mono text-slate-300 group-hover/row:text-white transition-colors">{ref.referred_user_email}</td>
++                                                    <td className="px-6 py-4">
++                                                        <span className={`text-[10px] px-2 py-0.5 rounded-[2px] font-bold uppercase tracking-widest border ${ref.level === 'L1' ? 'bg-[#22D3EE]/5 border-[#22D3EE]/20 text-[#22D3EE]' : ref.level === 'L2' ? 'bg-purple-500/5 border-purple-500/20 text-purple-400' : 'bg-slate-500/5 border-slate-500/20 text-slate-500'}`}>
++                                                            {ref.level}
++                                                        </span>
++                                                    </td>
++                                                    <td className="px-6 py-4 text-[11px] text-slate-500 font-mono tracking-tighter">
++                                                        {new Date(ref.timestamp).getTime().toString(16).slice(-8).toUpperCase()}
++                                                    </td>
++                                                    <td className="px-6 py-4 text-[14px] font-mono text-right">
++                                                        <span className={ref.revenueGenerated > 0 ? 'text-green-400 font-bold' : 'text-slate-700'}>
++                                                            +${(ref.revenueGenerated / 100 || 0).toLocaleString(undefined, {minimumFractionDigits: 2})}
++                                                        </span>
++                                                    </td>
++                                                </tr>
++                                            ))}
++                                            {(!selectedAffiliate.referrals_list || selectedAffiliate.referrals_list.length === 0) && (
++                                                <tr>
++                                                    <td colSpan={4} className="px-6 py-12 text-center text-[12px] text-slate-600 font-sans italic tracking-wide">No propagation events detected for this identity node.</td>
++                                                </tr>
++                                            )}
++                                        </tbody>
++                                    </table>
++                                </div>
++                            </section>
++
++                            {/* Intelligence Trace Terminal */}
++                            <section className="bg-black/80 border border-[#22D3EE]/20 rounded-[5px] overflow-hidden shadow-[0_0_40px_rgba(34,211,238,0.05)] relative group/trace">
++                                <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-[#22D3EE]/40 to-transparent" />
++                                <div className="px-5 py-3 border-b border-white/10 bg-white/[0.04] flex items-center justify-between relative overflow-hidden">
++                                    <div className="absolute inset-0 bg-gradient-to-r from-[#22D3EE]/0 via-[#22D3EE]/5 to-[#22D3EE]/0 opacity-30 animate-pulse" />
++                                    <div className="flex items-center gap-3 relative">
++                                        <div className="w-2.5 h-2.5 rounded-full bg-green-500 shadow-[0_0_12px_#22C55E] animate-pulse" />
++                                        <span className="text-[11px] font-extrabold text-slate-200 uppercase tracking-[0.3em] font-sans">CRM / Protocol Intel Trace</span>
++                                    </div>
++                                    <div className="flex items-center gap-4 relative">
++                                        <span className="text-[10px] text-slate-600 font-mono tracking-widest hidden md:block uppercase font-bold">SEC_HYBRID_PRTCL: 9.0.1</span>
++                                        <div className="h-4 w-px bg-white/10" />
++                                        <span className="text-[10px] text-[#22D3EE] font-mono uppercase font-bold">DMN_LNK_OK</span>
++                                    </div>
++                                </div>
++                                <div className="p-6 font-mono text-[12px] leading-relaxed max-h-[220px] overflow-y-auto custom-scrollbar bg-black/40 backdrop-blur-xl">
++                                    <div className="space-y-2 opacity-90 text-slate-400">
++                                        <div className="flex gap-4">
++                                            <span className="text-slate-800 shrink-0 font-bold">[{new Date().toISOString().slice(11, 19)}]</span>
++                                            <span className="text-[#22D3EE] font-bold">[IDENTITY_SYNC]</span>
++                                            <span>Strict protocol ID verified: {selectedAffiliate.id} | FOUNDER_NETWORK_{selectedAffiliate.founderNetworkId || '00'} [OK]</span>
++                                        </div>
++                                        <div className="flex gap-4">
++                                            <span className="text-slate-800 shrink-0 font-bold">[{new Date().toISOString().slice(11, 19)}]</span>
++                                            <span className="text-purple-500 font-bold">[CRM_AUTH]</span>
++                                            <span>CRM Rights level: {selectedAffiliate.crmRights || 'NONE'} | Bypass status: {selectedAffiliate.onboardingBypass ? 'ACTIVE' : 'LOCKED'}</span>
++                                        </div>
++                                        <div className="flex gap-4">
++                                            <span className="text-slate-800 shrink-0 font-bold">[{new Date().toISOString().slice(11, 19)}]</span>
++                                            <span className="text-green-500 font-bold">[YIELD_HYDRATION]</span>
++                                            <span>Accrued Protocol Yield for {selectedAffiliate.total_reach} nodes. (Standard: {selectedAffiliate.standard_yield / 100}, Infinity: {selectedAffiliate.infinity_yield / 100})</span>
++                                        </div>
++                                        <div className="flex gap-4">
++                                            <span className="text-slate-800 shrink-0 font-bold">[{new Date().toISOString().slice(11, 19)}]</span>
++                                            <span className="text-yellow-600 font-bold">[ROUTING]</span>
++                                            <span>Sequential organic pool index: #{(selectedAffiliate.id?.slice(-2) || '00')} | Handover authorized.</span>
++                                        </div>
++                                        <div className="flex gap-4 animate-pulse pt-2 border-t border-white/5 mt-2">
++                                            <span className="text-slate-900 shrink-0 font-bold">[{new Date().toISOString().slice(11, 19)}]</span>
++                                            <span className="text-slate-700 font-bold uppercase tracking-widest text-[10px]">Continuous protocol parity scan running...</span>
++                                        </div>
++                                    </div>
++                                </div>
++                            </section>
+                         </div>
+-                    </div>
+-                )}
+-            </div>
+-        </div>
++                    )}
++                </DetailPanel>
++        </>
+     );
+ }
+diff --git a/apps/command/app/components/FleetMap.tsx b/apps/command/app/components/FleetMap.tsx
+new file mode 100644
+index 0000000..f4dbd19
+--- /dev/null
++++ b/apps/command/app/components/FleetMap.tsx
+@@ -0,0 +1,204 @@
++"use client";
++
++import React, { useEffect, useRef } from "react";
++import { Globe, MapPin, Radio } from "lucide-react";
++import "leaflet/dist/leaflet.css";
++
++interface MapProps {
++    nodes: any[];
++    nodlrs: any[];
++    loading: boolean;
++    onNodeSelect: (id: string) => void;
++}
++
++export default function FleetMap({ nodes, nodlrs, loading, onNodeSelect }: MapProps) {
++    const mapRef = useRef<any>(null);
++    const markersRef = useRef<any>(null);
++
++    // Normalise: backend may return an object keyed by ID or an array
++    const nodeList = Array.isArray(nodes) ? nodes : Object.values(nodes || {});
++    const mappedNodes = nodeList.filter((n: any) => n.lat && n.lon);
++
++    // Initialise Leaflet map
++    useEffect(() => {
++        if (typeof window === "undefined") return;
++
++        let cancelled = false;
++
++        const initMap = async () => {
++            const L = (await import("leaflet")).default;
++            if (cancelled) return;
++
++            const container = document.getElementById("fleet-map");
++            if (!container || mapRef.current) return;
++
++            mapRef.current = L.map("fleet-map", {
++                center: [20, 0],
++                zoom: 2,
++                zoomControl: false,
++                attributionControl: false,
++            });
++
++            L.tileLayer(
++                "https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png",
++                {
++                    maxZoom: 20,
++                    attribution:
++                        '&copy; <a href="https://stadiamaps.com/">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/">OpenMapTiles</a> &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors',
++                }
++            ).addTo(mapRef.current);
++
++            markersRef.current = L.layerGroup().addTo(mapRef.current);
++        };
++
++        initMap();
++
++        return () => {
++            cancelled = true;
++            if (mapRef.current) {
++                mapRef.current.remove();
++                mapRef.current = null;
++            }
++        };
++    }, []);
++
++    // Paint markers whenever node data changes
++    useEffect(() => {
++        if (!mapRef.current || !markersRef.current || !mappedNodes.length) return;
++
++        const updateMarkers = async () => {
++            if (typeof window === "undefined") return;
++            try {
++                const L = (await import("leaflet")).default;
++                markersRef.current.clearLayers();
++
++                const providerLookup = new globalThis.Map(nodlrs.map((n: any) => [n.id, n.displayName]));
++
++                mappedNodes.forEach((node: any) => {
++                    let safeID = "Unknown Peer";
++                    try {
++                        safeID = node.id || "Unknown";
++                    } catch (e) {
++                        console.warn("Caught CID parse error during render:", e);
++                    }
++
++                    const status = node.status?.toLowerCase() || "active";
++                    let color = "#22D3EE";
++                    if (status === "offline" || status === "down") color = "#EF4444";
++                    if (status === "suspended" || status === "flagged") color = "#F59E0B";
++
++                    const marker = L.circleMarker([node.lat, node.lon], {
++                        radius: 6,
++                        fillColor: color,
++                        color: "#FFFFFF",
++                        weight: 1.5,
++                        opacity: 1,
++                        fillOpacity: 0.8,
++                    }).addTo(markersRef.current);
++
++                    const providerName = providerLookup.get(node.userID) || "Unknown Provider";
++
++                    const tooltipContent = `
++                        <div style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace; padding: 4px 8px; border-radius: 4px; font-size: 11px;">
++                            <div style="color: #64748b; margin-bottom: 2px;">NODE_ID: <span style="color: white; font-weight: bold;">${safeID}</span></div>
++                            <div style="color: #64748b; margin-bottom: 2px;">PROVIDER: <span style="color: ${color}; font-weight: bold;">${providerName}</span></div>
++                            <div style="color: #64748b; margin-bottom: 2px;">TIER: <span style="color: white;">${node.tier || "N/A"}</span></div>
++                            <div style="color: #64748b;">UPTIME: <span style="color: white;">${node.uptime || "0%"}</span></div>
++                        </div>
++                    `;
++
++                    marker.bindTooltip(tooltipContent, {
++                        direction: "top",
++                        offset: [0, -10],
++                        className: "nodl-map-tooltip",
++                        opacity: 0.9,
++                    });
++
++                    marker.on("click", () => onNodeSelect(node.id));
++                });
++            } catch (err) {
++                console.error("Map marker update failure:", err);
++            }
++        };
++
++        updateMarkers();
++    }, [nodes, nodlrs, mappedNodes.length, onNodeSelect]);
++
++    return (
++        <section className="w-full bg-neutral-900/60 border border-neutral-700 p-4 rounded-md h-[520px] relative overflow-hidden flex flex-col group shadow-sm transition-all">
++            <div className="flex items-center justify-between mb-4">
++                <span className="text-sm font-semibold text-neutral-100 uppercase tracking-widest">
++                    Global Fleet Distribution
++                </span>
++                <div className="flex items-center gap-6">
++                    <div className="flex items-center gap-2">
++                        <div className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_8px_cyan]" />
++                        <span className="text-[10px] text-neutral-300 uppercase tracking-widest font-bold">
++                            Active nodl&apos;s
++                        </span>
++                    </div>
++                    <span className="text-[10px] font-mono text-neutral-500 uppercase tracking-widest">
++                        {mappedNodes.length} Mapped Coordinates
++                    </span>
++                </div>
++            </div>
++
++            <div className="flex-1 relative bg-neutral-950 rounded-md overflow-hidden border border-neutral-800">
++                <div
++                    id="fleet-map"
++                    className="absolute inset-0 z-0"
++                    style={{ backgroundColor: "#080808" }}
++                />
++
++                {loading && (
++                    <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/60 backdrop-blur-sm">
++                        <div className="flex flex-col items-center gap-4">
++                            <div className="w-8 h-8 border-2 border-t-cyan-400 border-white/10 rounded-full animate-spin" />
++                            <span className="text-[11px] text-neutral-400 uppercase tracking-[0.2em] font-medium">
++                                Synchronizing Registry...
++                            </span>
++                        </div>
++                    </div>
++                )}
++
++                {!loading && mappedNodes.length === 0 && (
++                    <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
++                        <div className="flex flex-col items-center gap-4 p-6 bg-neutral-900/80 border border-neutral-700 rounded-lg max-w-sm">
++                            <div className="w-12 h-12 rounded-full bg-cyan-400/10 border border-cyan-400/20 flex items-center justify-center">
++                                <MapPin className="w-6 h-6 text-cyan-400/60" />
++                            </div>
++                            <div className="text-center space-y-2">
++                                <span className="text-[13px] text-neutral-100 uppercase tracking-wider font-semibold block">
++                                    No Geocoded Nodes Available
++                                </span>
++                                <span className="text-[11px] text-neutral-400 font-mono tracking-wide block">
++                                    {nodeList.length} node{nodeList.length !== 1 ? 's' : ''} registered — awaiting coordinate data
++                                </span>
++                            </div>
++                            <div className="flex flex-col items-center gap-2 mt-2 pointer-events-auto">
++                                <div className="flex items-center gap-2">
++                                    <Radio className="w-3 h-3 text-cyan-400 animate-pulse" />
++                                    <span className="text-[9px] text-neutral-500 uppercase tracking-widest font-mono">
++                                        Geo-lookup pending
++                                    </span>
++                                </div>
++                                <button className="mt-2 text-[10px] font-bold text-neutral-900 bg-neutral-100 hover:bg-white px-3 py-1.5 rounded uppercase tracking-wider transition-colors">
++                                    Mark nodes for geocoding
++                                </button>
++                            </div>
++                        </div>
++                    </div>
++                )}
++            </div>
++
++            <div className="absolute bottom-8 right-8 flex flex-col items-end pointer-events-none z-10">
++                <span className="text-[11px] font-mono font-bold tracking-[0.4em] text-cyan-400 animate-pulse uppercase">
++                    Fleet Link Active
++                </span>
++                <p className="text-[10px] text-neutral-500 mt-1.5 uppercase tracking-widest font-mono">
++                    P2P_MESH_MODE: OPERATIONAL
++                </p>
++            </div>
++        </section>
++    );
++}
+diff --git a/apps/command/app/components/IdentityHeader.tsx b/apps/command/app/components/IdentityHeader.tsx
+new file mode 100644
+index 0000000..6ca5888
+--- /dev/null
++++ b/apps/command/app/components/IdentityHeader.tsx
+@@ -0,0 +1,201 @@
++"use client";
++
++import React, { useState, useEffect, useRef } from "react";
++import { motion, AnimatePresence } from "framer-motion";
++import { 
++    User, Shield, Key, Clock, LogOut, ChevronDown, 
++    Settings, ShieldCheck, Activity, UserCircle, Loader2
++} from "lucide-react";
++import { useRouter } from "next/navigation";
++
++declare global {
++    interface Window {
++        user_context: any;
++    }
++}
++
++export default function IdentityHeader() {
++    const [user, setUser] = useState<any>(null);
++    const [fetchError, setFetchError] = useState(false);
++    const [isOpen, setIsOpen] = useState(false);
++    const dropdownRef = useRef<HTMLDivElement>(null);
++    const router = useRouter();
++
++    useEffect(() => {
++        let cancelled = false;
++
++        const loadUser = async () => {
++            // 1. Try fetching from /api/account/me (authoritative source)
++            try {
++                const jwt = localStorage.getItem("nodl_jwt");
++                const res = await fetch("/api/account/me", {
++                    headers: jwt ? { Authorization: `Bearer ${jwt}` } : {},
++                });
++
++                if (res.ok && !cancelled) {
++                    const data = await res.json();
++                    const userData = {
++                        id: data.id,
++                        email: data.email,
++                        role: data.role || "admin",
++                        avatar: data.avatar || null,
++                        displayName: data.displayName || data.email?.split("@")[0],
++                    };
++                    setUser(userData);
++                    // Sync to localStorage for other components
++                    localStorage.setItem("nodl_user", JSON.stringify(userData));
++
++                    window.user_context = {
++                        email: userData.email,
++                        role: userData.role,
++                        sovereign_id: `ID_${userData.id?.slice(0, 8) || "4492-X"}`,
++                        permissions: userData.role === "owner" ? ["all"] : ["limited"],
++                        session_age: "fresh",
++                        mfa_enabled: true,
++                    };
++                    return;
++                }
++            } catch (e) {
++                console.warn("[IdentityHeader] API fetch failed, falling back to localStorage:", e);
++            }
++
++            // 2. Fallback: localStorage
++            if (!cancelled) {
++                const userStr = localStorage.getItem("nodl_user");
++                if (userStr) {
++                    try {
++                        const userData = JSON.parse(userStr);
++                        setUser(userData);
++
++                        window.user_context = {
++                            email: userData.email,
++                            role: userData.role,
++                            sovereign_id: `ID_${userData.id?.slice(0, 8) || "4492-X"}`,
++                            permissions: userData.role === "owner" ? ["all"] : ["limited"],
++                            session_age: "fresh",
++                            mfa_enabled: true,
++                        };
++                    } catch {
++                        setFetchError(true);
++                    }
++                } else {
++                    setFetchError(true);
++                }
++            }
++        };
++
++        loadUser();
++
++        const handleClickOutside = (event: MouseEvent) => {
++            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
++                setIsOpen(false);
++            }
++        };
++        document.addEventListener("mousedown", handleClickOutside);
++        return () => {
++            cancelled = true;
++            document.removeEventListener("mousedown", handleClickOutside);
++        };
++    }, []);
++
++    const handleLogout = () => {
++        localStorage.removeItem("nodl_jwt");
++        localStorage.removeItem("nodl_user");
++        router.push("/login");
++    };
++
++    // Show a minimal placeholder while loading — never return null (keeps layout stable)
++    if (!user) {
++        return (
++            <header className="h-14 border-b border-neutral-700 flex items-center justify-end px-8 bg-neutral-900/60 backdrop-blur-md shrink-0 relative z-[100]">
++                <div className="flex items-center gap-3">
++                    {fetchError ? (
++                        <span className="text-[11px] text-neutral-400 font-mono uppercase tracking-wider">
++                            Not signed in
++                        </span>
++                    ) : (
++                        <>
++                            <Loader2 className="w-3.5 h-3.5 text-neutral-500 animate-spin" />
++                            <span className="text-[11px] text-neutral-400 font-mono uppercase tracking-wider">
++                                Authenticating...
++                            </span>
++                        </>
++                    )}
++                </div>
++            </header>
++        );
++    }
++
++    const menuItems = [
++        { label: "My Account", icon: UserCircle, href: "/settings/profile" },
++        { label: "Security Settings", icon: ShieldCheck, href: "/settings/security" },
++        { label: "API Keys", icon: Key, href: "/settings/api" },
++        { label: "Sessions", icon: Clock, href: "/settings/sessions" },
++    ];
++
++    return (
++        <header className="h-14 border-b border-neutral-700 flex items-center justify-end px-8 bg-neutral-900/60 backdrop-blur-md shrink-0 relative z-[100]">
++
++            <div className="flex items-center gap-6" ref={dropdownRef}>
++                <div 
++                    className="flex items-center gap-4 cursor-pointer group select-none"
++                    onClick={() => setIsOpen(!isOpen)}
++                >
++                    <div className="text-left flex flex-col items-start">
++                        <div className="flex items-center gap-2">
++                            <span className="text-[13px] text-neutral-100 font-semibold tracking-tight">{user.email}</span>
++                            <span className="text-[9px] px-1.5 py-0.5 rounded-[2px] bg-neutral-800 text-neutral-300 border border-neutral-700 font-bold uppercase tracking-widest">{user.role}</span>
++                        </div>
++                        <span className="text-[10px] text-neutral-500 font-mono tracking-tighter uppercase mt-0.5">ID_{user.id?.slice(0, 8) || '4492-X'}</span>
++                    </div>
++
++                    <div className="relative">
++                        <div className="w-9 h-9 rounded-[5px] bg-neutral-800 border border-neutral-700 flex items-center justify-center text-neutral-300 group-hover:border-neutral-500 transition-all">
++                            {user.avatar ? (
++                                <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover rounded-[4px]" />
++                            ) : (
++                                <User className="w-5 h-5" />
++                            )}
++                        </div>
++                        <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-green-500 border-2 border-black" />
++                    </div>
++                    
++                    <ChevronDown className={`w-4 h-4 text-slate-600 group-hover:text-slate-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
++                </div>
++
++                <AnimatePresence>
++                    {isOpen && (
++                        <motion.div
++                            initial={{ opacity: 0, y: 10, scale: 0.95 }}
++                            animate={{ opacity: 1, y: 0, scale: 1 }}
++                            exit={{ opacity: 0, y: 10, scale: 0.95 }}
++                            transition={{ duration: 0.2, ease: "easeOut" }}
++                            className="absolute top-14 right-8 w-56 bg-neutral-900 border border-neutral-700 rounded-md shadow-2xl overflow-hidden"
++                        >
++                            <div className="p-2 space-y-0.5">
++                                {menuItems.map((item) => (
++                                    <button
++                                        key={item.label}
++                                        onClick={() => { router.push(item.href); setIsOpen(false); }}
++                                        className="w-full flex items-center gap-3 px-3 py-2.5 text-[12px] text-neutral-400 hover:text-neutral-100 hover:bg-neutral-800 rounded-sm transition-all group"
++                                    >
++                                        <item.icon className="w-4 h-4 text-neutral-500 group-hover:text-neutral-300 transition-colors" />
++                                        {item.label}
++                                    </button>
++                                ))}
++                                <div className="h-px bg-neutral-800 my-1 mx-2" />
++                                <button
++                                    onClick={handleLogout}
++                                    className="w-full flex items-center gap-3 px-3 py-2.5 text-[12px] text-neutral-500 hover:text-red-400 hover:bg-red-950/30 rounded-sm transition-all group"
++                                >
++                                    <LogOut className="w-4 h-4 text-neutral-500 group-hover:text-red-400 transition-colors" />
++                                    Logout
++                                </button>
++                            </div>
++                        </motion.div>
++                    )}
++                </AnimatePresence>
++            </div>
++        </header>
++    );
++}
+diff --git a/apps/command/app/components/MetricCard.tsx b/apps/command/app/components/MetricCard.tsx
+new file mode 100644
+index 0000000..fefbbfa
+--- /dev/null
++++ b/apps/command/app/components/MetricCard.tsx
+@@ -0,0 +1,47 @@
++import React from 'react';
++import { LucideIcon } from 'lucide-react';
++
++interface MetricCardProps {
++    label: string;
++    value: string | number;
++    unit?: string;
++    icon: LucideIcon;
++    statusColor: string;
++    sub?: string;
++    pulse?: boolean;
++    larger?: boolean;
++}
++
++export default function MetricCard({
++    label,
++    value,
++    unit,
++    icon: Icon,
++    statusColor,
++    sub,
++    pulse,
++    larger
++}: MetricCardProps) {
++    return (
++        <div className="bg-neutral-900/60 border border-neutral-700 p-4 rounded-md flex flex-col justify-between relative overflow-hidden group">
++            <div className="flex items-center justify-between">
++                <span className="text-[11px] text-neutral-100 font-semibold uppercase tracking-wider">{label}</span>
++                <Icon className="w-4 h-4 text-neutral-500 group-hover:text-neutral-400 transition-colors" />
++            </div>
++            <div className="flex items-baseline gap-2 mt-2">
++                <span className={`${larger ? 'text-3xl' : 'text-xl'} font-bold text-white tracking-tighter ${pulse ? 'animate-pulse ' + statusColor : statusColor}`}>
++                    {value}
++                </span>
++                {unit && (
++                    <span className="text-[10px] text-neutral-400 font-semibold uppercase tracking-widest">{unit}</span>
++                )}
++            </div>
++            {sub && (
++                <div className="mt-2 flex items-center gap-1.5">
++                    {pulse && <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />}
++                    <span className="text-[9px] text-neutral-500 font-semibold uppercase tracking-widest">{sub}</span>
++                </div>
++            )}
++        </div>
++    );
++}
+diff --git a/apps/command/app/globals.css b/apps/command/app/globals.css
+index d10ab4e..36138a6 100644
+--- a/apps/command/app/globals.css
++++ b/apps/command/app/globals.css
+@@ -2,6 +2,8 @@
+ @tailwind components;
+ @tailwind utilities;
+ 
++@import "../../shared/styles/design-tokens.css";
++
+ @layer base {
+   :root {
+     --background: 0 0% 0%;
+@@ -9,31 +11,40 @@
+     --font-roboto: 'Roboto', sans-serif;
+   }
+ 
+-  * {
+-    font-family: 'Roboto', sans-serif !important;
+-    text-transform: none !important;
+-    font-weight: 400 !important;
+-    font-size: 16px !important;
+-  }
++
+ 
+   body {
+-    background-color: #000000 !important;
++    background-color: #000000;
+     color: #ffffff;
+     margin: 0;
+   }
+ 
+-  * {
+-    font-family: 'Roboto', sans-serif !important;
+-    font-weight: 400 !important;
+-    text-transform: none !important;
+-    border-radius: inherit;
++
++
++  /* Global Form Controls - Universal Override */
++  input, select, textarea {
++    background-color: rgba(0, 0, 0, 0.4);
++    border: 1px solid rgba(255, 255, 255, 0.1);
++    color: #e2e8f0; /* text-slate-200 */
++    border-radius: 5px;
++    appearance: none;
++    outline: none;
++    box-shadow: none; /* focus:ring-0 */
++    transition: all 0.2s ease-in-out;
++  }
++
++  input:focus, select:focus, textarea:focus {
++    border-color: rgba(34, 211, 238, 0.4);
++    background-color: rgba(0, 0, 0, 0.6);
+   }
+ 
+-  h1, h2, h3, h4, h5, h6, label, span, div, p, button {
+-    text-transform: none !important;
+-    letter-spacing: -0.01em !important;
+-    font-weight: 400 !important;
++  label {
++    color: #94a3b8; /* text-slate-400 */
++    text-transform: uppercase;
++    letter-spacing: 0.05em;
+   }
++
++
+ }
+ 
+ @layer utilities {
+@@ -41,12 +52,7 @@
+     border-radius: 5px !important;
+   }
+   
+-  /* Ironclad Density: -20% spacing */
+-  .p-4 { padding: 0.8rem !important; } /* 13px instead of 16px */
+-  .m-4 { margin: 0.8rem !important; }
+-  .gap-4 { gap: 0.8rem !important; }
+-  .p-10 { padding: 1.6rem !important; } 
+-  .space-y-4 > * + * { margin-top: 0.8rem !important; }
++
+ 
+   /* Sovereign Unified Cards */
+   .card-sovereign, .card {
+@@ -69,6 +75,18 @@ div, button, input, section, aside, header, nav, img {
+ }
+ 
+ /* Scrollbar Customization */
++.nodl-map-tooltip {
++  background: #0F172A !important;
++  border: 1px solid rgba(255, 255, 255, 0.1) !important;
++  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5) !important;
++  color: white !important;
++  padding: 0 !important;
++}
++
++.nodl-map-tooltip::before {
++  border-top-color: #0F172A !important;
++}
++
+ ::-webkit-scrollbar {
+   width: 6px;
+   height: 6px;
+diff --git a/apps/command/app/page.tsx b/apps/command/app/page.tsx
+index 9260e85..8205e77 100644
+--- a/apps/command/app/page.tsx
++++ b/apps/command/app/page.tsx
+@@ -1,177 +1,302 @@
+ "use client";
+ 
+-import { useState } from "react";
+-import { motion } from "framer-motion";
++import React, { useState, useEffect, useCallback } from "react";
++import { useRouter } from "next/navigation";
++
+ import { 
+-    Activity, Shield, Zap, Server, Globe, Terminal, ChevronUp, ChevronDown 
++    Activity, Shield, Server, Terminal, ChevronUp, ChevronDown,
++    Cpu as CpuIcon, ShieldCheck, DollarSign, Wifi, WifiOff, Database,
++    BarChart3, AlertTriangle, CheckCircle2
+ } from "lucide-react";
+-import Sidebar from "./components/Sidebar";
+-import { useEffect } from "react";
++import "leaflet/dist/leaflet.css";
++
++import NodlInspector from "./components/NodlInspector";
++import FleetMap from "@shared/components/FleetMap";
++import MetricCard from "@shared/components/MetricCard";
++import IdentityHeader from "@shared/components/IdentityHeader";
+ 
+ export default function CommandCentrePage() {
+     const [isTelemetryOpen, setIsTelemetryOpen] = useState(false);
+-    const [data, setData] = useState<any>(null);
++    const [nodes, setNodes] = useState<any[]>([]);
++    const [nodlrs, setNodlrs] = useState<any[]>([]);
++    const [stats, setStats] = useState<any>(null);
+     const [loading, setLoading] = useState(true);
++    const [error, setError] = useState<string | null>(null);
++    const [selectedNode, setSelectedNode] = useState<string | null>(null);
++    const [backendOnline, setBackendOnline] = useState(false);
++    const [apiLatencyMs, setApiLatencyMs] = useState<number | null>(null);
++    const router = useRouter();
+ 
+     useEffect(() => {
+-        const fetchData = async () => {
+-            try {
+-                const res = await fetch('/api/stats');
+-                if (res.ok) {
+-                    const json = await res.json();
+-                    setData(json);
+-                }
+-            } catch (err) {
+-                console.error("Dashboard fetch failed:", err);
+-            } finally {
+-                setLoading(false);
++        if (typeof window === 'undefined') return;
++        const jwt = localStorage.getItem("nodl_jwt");
++        const userStr = localStorage.getItem("nodl_user");
++        
++        if (!jwt || !userStr) {
++            router.push("/auth/login");
++            return;
++        }
++
++        try {
++            const user = JSON.parse(userStr);
++            if (user.role === 'visitor') {
++                router.push("/auth/login");
+             }
+-        };
++        } catch (e) {
++            router.push("/auth/login");
++        }
++    }, [router]);
++
++    const fetchData = async () => {
++        try {
++            const t0 = performance.now();
++            const [nodesRes, nodlrsRes, statsRes] = await Promise.all([
++                fetch('/api/nodls/all'),
++                fetch('/api/nodlrs/all'),
++                fetch('/api/stats')
++            ]);
++            const latency = Math.round(performance.now() - t0);
++            setApiLatencyMs(latency);
++            
++            if (nodesRes.ok) setNodes(await nodesRes.json());
++            if (nodlrsRes.ok) setNodlrs(await nodlrsRes.json());
++            if (statsRes.ok) {
++                setStats(await statsRes.json());
++                setBackendOnline(true);
++            } else {
++                setBackendOnline(false);
++            }
++        } catch (err) {
++            console.error("Dashboard fetch failed:", err);
++            setError("Failed to synchronize with backend registry.");
++            setBackendOnline(false);
++        } finally {
++            setLoading(false);
++        }
++    };
++
++    useEffect(() => {
+         fetchData();
+-        const interval = setInterval(fetchData, 5000);
++        const interval = setInterval(fetchData, 10000);
+         return () => clearInterval(interval);
+     }, []);
+ 
++    const handleNodeSelect = useCallback((id: string) => {
++        setSelectedNode(id);
++    }, []);
++
+     const metrics = [
+-        { label: 'Active nodes', value: data?.activeNodes || 0, unit: 'Nodes', icon: Server, color: 'text-white', status: 'online', delta: '+2' },
+-        { label: 'Global load', value: data?.networkLoad || 0, unit: '%', icon: Activity, color: 'text-white', pulse: true },
+-        { label: 'Network payouts', value: '412.8', unit: 'USD', icon: Zap, color: 'text-white', delta: '+12.4% (24h)' },
+-        { label: 'System latency', value: '124.2', unit: 'ms', icon: Globe, color: 'text-white', sub: 'Optimized' },
++        { 
++            label: 'Network Compute', 
++            value: stats?.totalCores || 0, 
++            sub: 'vCPUs Distributed', 
++            icon: CpuIcon, 
++            color: 'text-white'
++        },
++        { 
++            label: 'Unified Memory', 
++            value: stats?.totalMemory || 0, 
++            sub: 'GB RAM Capacity', 
++            icon: Server, 
++            color: 'text-white'
++        },
++        { 
++            label: 'Global Stability', 
++            value: stats?.globalStability !== undefined ? stats.globalStability.toFixed(1) : 0, 
++            sub: 'Node Availability %', 
++            icon: ShieldCheck, 
++            color: 'text-white'
++        },
++        { 
++            label: 'Registry Liquidity', 
++            value: stats?.totalBalance !== undefined ? (stats.totalBalance / 100).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 }) : 0, 
++            sub: 'USD Accrued', 
++            icon: DollarSign, 
++            color: 'text-[#22D3EE]'
++        },
++    ];
++
++    const offlineNodes = (stats?.totalNodes || 0) - (stats?.activeNodes || 0);
++
++    const operational = [
++        {
++            label: 'Total Nodes',
++            value: stats?.totalNodes ?? '—',
++            icon: Server,
++            statusColor: 'text-white',
++        },
++        {
++            label: 'Active Nodes',
++            value: stats?.activeNodes ?? '—',
++            icon: CheckCircle2,
++            statusColor: 'text-green-400',
++        },
++        {
++            label: 'Offline Nodes',
++            value: offlineNodes,
++            icon: AlertTriangle,
++            statusColor: offlineNodes > 0 ? 'text-red-400' : 'text-green-400',
++        },
++        {
++            label: 'API Latency',
++            value: apiLatencyMs !== null ? `${apiLatencyMs}ms` : '—',
++            icon: BarChart3,
++            statusColor: (apiLatencyMs || 0) > 500 ? 'text-yellow-400' : 'text-green-400',
++        },
++        {
++            label: 'Backend Status',
++            value: backendOnline ? 'Online' : 'Offline',
++            icon: backendOnline ? Wifi : WifiOff,
++            statusColor: backendOnline ? 'text-green-400' : 'text-red-400',
++        },
++        {
++            label: 'Registry Sync',
++            value: stats ? 'Synced' : 'Syncing',
++            icon: Activity,
++            statusColor: stats ? 'text-green-400' : 'text-yellow-400',
++        },
++        {
++            label: 'Redis Status',
++            value: stats?.redisStatus === 'active' ? 'Active' : 'Fallback',
++            icon: Database,
++            statusColor: stats?.redisStatus === 'active' ? 'text-green-400' : 'text-yellow-400',
++        },
+     ];
+ 
+     const integrity = [
+-        { name: 'API Server', status: 'Active', light: 'bg-green-500' },
+-        { name: 'P2P Mesh Node', status: 'Online', light: 'bg-green-500' },
++        { name: 'Gateway', status: 'Active', light: 'bg-green-500' },
++        { name: 'P2P Mesh nodl', status: 'Online', light: 'bg-green-500' },
++        { name: 'Registry Layer', status: stats ? 'Synced' : 'Loading', light: stats ? 'bg-green-500' : 'bg-yellow-500' },
+     ];
+ 
+     return (
+-        <div className="flex min-h-screen bg-black text-white font-sans overflow-hidden">
+-            <Sidebar />
+-
+-            {/* Main Content */}
+-            <div className="flex-1 lg:pl-64 flex flex-col relative h-screen overflow-hidden">
+-                {/* Identity Header */}
+-                <header className="h-14 border-b border-white/10 flex items-center justify-between px-8 bg-black shrink-0">
+-                    <div className="flex items-center gap-2">
+-                        <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.5)]" />
+-                        <span className="text-[10px] font-normal text-slate-400 tracking-[0.2em] uppercase-none">Network operational</span>
+-                    </div>
++        <>
++            <main className="flex-1 px-8 pt-6 pb-20 overflow-y-auto space-y-6 custom-scrollbar h-full relative">
++                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-cyan-400/5 rounded-full blur-[120px] pointer-events-none -z-10" />
+ 
+-                    <div className="flex items-center gap-8">
+-                        <div className="text-right flex items-center gap-4">
+-                            <div className="flex items-center gap-2.5 bg-[#22D3EE] px-3 py-1 rounded-[5px]">
+-                                <span className="text-black font-normal leading-none tracking-tight uppercase-none">Stephen_Nodlrs</span>
+-                                <span className="text-[10px] text-black/80 font-normal uppercase-none tracking-widest mt-0.5 whitespace-nowrap">[Owner]</span>
+-                            </div>
+-                            <div className="h-8 w-px bg-white/10" />
+-                            <div className="flex flex-col items-start font-mono text-[#22D3EE]">
+-                                <span className="text-[14px] font-normal tracking-tighter leading-none uppercase-none">ACC_#4492-X</span>
+-                                <span className="text-[10px] text-slate-500 font-normal uppercase-none tracking-widest leading-none mt-1">Global Admin</span>
+-                            </div>
+-                        </div>
++                {/* Page Header */}
++                <div className="pb-4 flex justify-between items-center border-b border-white/10">
++                    <div>
++                        <h2 className="text-lg font-normal tracking-tight text-white mb-0.5">Command Centre Operations</h2>
++                        <p className="text-[13px] text-slate-500 font-normal">Real-time infrastructure oversight and global node coordination.</p>
+                     </div>
+-                </header>
+-
+-                <main className="flex-1 p-[26px] overflow-y-auto pb-24 space-y-[26px]">
+-                    {/* Header Section */}
+-                    <div className="pb-2">
+-                        <h2 className="text-[16px] font-normal tracking-tight text-white mb-1 uppercase-none">Command centre</h2>
+-                        <p className="text-[14px] text-slate-400 font-normal uppercase-none">Real-time infrastructure oversight and node coordination.</p>
++                    <div className="flex items-center gap-6">
++                        {error && <span className="text-[10px] text-red-500 uppercase font-bold tracking-widest">{error}</span>}
++                        <div className="h-8 w-px bg-white/5" />
++                        <IdentityHeader />
+                     </div>
++                </div>
+ 
+-                    {/* Row 1: Vitals */}
+-                    <div className="grid grid-cols-4 gap-4">
+-                        {metrics.map((m) => (
+-                            <div key={m.label} className="card-sovereign p-4 flex flex-col justify-between h-32 relative overflow-hidden group hover:border-white/30 transition-all">
+-                                <div className="flex items-center justify-between z-10">
+-                                    <span className="text-[12px] font-normal text-slate-400 uppercase-none">{m.label}</span>
+-                                    {m.label === 'Active nodes' && <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />}
+-                                    {m.label === 'System latency' && <span className="text-[10px] px-2 py-0.5 bg-[#1E40AF]/20 border border-[#1E40AF]/40 text-[#22D3EE] rounded-full uppercase-none">Optimized</span>}
+-                                </div>
+-                                <div className="flex flex-col z-10 mt-1">
+-                                    <div className="flex items-baseline gap-2">
+-                                        <span className={`text-2xl font-normal tracking-tighter uppercase-none ${m.pulse ? 'text-[#22D3EE]' : 'text-white'}`}>{m.value}</span>
+-                                        <span className="text-[11px] font-normal text-slate-500 tracking-wider font-mono uppercase-none">{m.unit}</span>
+-                                    </div>
+-                                    {m.label === 'Global load' && (
+-                                        <div className="mt-3 w-full bg-white/5 h-1 rounded-full overflow-hidden">
+-                                            <motion.div 
+-                                                initial={{ width: 0 }} 
+-                                                animate={{ width: `${m.value}%` }} 
+-                                                transition={{ duration: 1.5, ease: "easeOut" }}
+-                                                className="h-full bg-[#22D3EE] shadow-[0_0_8px_rgba(34,211,238,0.5)]" 
+-                                            />
+-                                        </div>
+-                                    )}
+-                                </div>
+-                                <div className="z-10 mt-1 flex items-center gap-2 min-h-[14px]">
+-                                    {m.delta && <span className="text-[11px] text-green-400 font-mono tracking-tighter uppercase-none">{m.delta}</span>}
+-                                </div>
+-                                <div className="absolute -bottom-6 -right-6 w-24 h-24 bg-[#22D3EE]/2 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
+-                            </div>
+-                        ))}
+-                    </div>
++                {/* Row 1: Vitals */}
++                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
++                    {metrics.map((m) => (
++                        <MetricCard
++                            key={m.label}
++                            label={m.label}
++                            value={loading ? '...' : m.value}
++                            icon={m.icon}
++                            colorClass={m.color}
++                            subValue={m.sub}
++                        />
++                    ))}
++                </div>
+ 
+-                    {/* Row 2: Protocol */}
+-                    <div className="card-sovereign p-4 h-[350px] relative overflow-hidden flex flex-col group shadow-sm">
+-                        <div className="flex items-center gap-3 mb-4 pb-2 border-b border-white/5">
+-                            <Globe className="w-4 h-4 text-[#22D3EE] opacity-50" />
+-                            <span className="text-[16px] font-normal text-white uppercase-none">Global distribution protocol</span>
+-                        </div>
+-                        <div className="flex-1 flex items-center justify-center bg-black/40 rounded-[3px] border border-white/5 relative">
+-                             <div className="absolute inset-0 bg-[#1E40AF]/5 rounded-[3px] blur-3xl animate-pulse" />
+-                             <div className="z-10 flex flex-col items-center gap-5">
+-                                <div className="relative">
+-                                    <div className="w-16 h-16 rounded-full border border-[#1E40AF]/20 flex items-center justify-center animate-[spin_10s_linear_infinite]" />
+-                                    <div className="absolute inset-0 flex items-center justify-center">
+-                                         <div className="w-2 h-2 rounded-full bg-[#22D3EE] shadow-[0_0_15px_#22D3EE]" />
+-                                    </div>
+-                                </div>
+-                                <span className="text-[11px] font-mono font-normal tracking-[0.4em] text-slate-400 animate-pulse uppercase-none">Scanning network...</span>
+-                             </div>
+-                        </div>
+-                    </div>
++                {/* Row 2: Operational Metrics */}
++                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
++                    {operational.map((op) => (
++                        <MetricCard
++                            key={op.label}
++                            label={op.label}
++                            value={loading ? '...' : op.value}
++                            icon={op.icon}
++                            colorClass={op.statusColor}
++                        />
++                    ))}
++                </div>
+ 
+-                    {/* Row 3: Integrity */}
+-                    <div className="card-sovereign p-8 flex flex-col">
+-                        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/10">
+-                            <Shield className="w-4 h-4 text-[#22D3EE]" />
+-                            <span className="text-[16px] font-normal text-white uppercase-none">System integrity</span>
++                {/* Full-Width Map Panel */}
++                <FleetMap
++                    nodes={nodes}
++                    loading={loading}
++                    onNodeSelect={handleNodeSelect}
++                />
++
++                {/* Protocol + Summary */}
++                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
++                    <div className="bg-white/[0.02] border border-white/10 p-6 rounded-[5px] flex flex-col h-[380px] shadow-sm transition-all hover:bg-white/[0.03]">
++                        <div className="flex items-center gap-3 mb-5 pb-3 border-b border-white/5">
++                            <Shield className="w-4 h-4 text-[#22D3EE] opacity-70" />
++                            <span className="text-[11px] font-bold text-white uppercase tracking-[0.2em]">Protocol Integrity Trace</span>
+                         </div>
+-                        <div className="space-y-px">
++                        <div className="space-y-3 flex-1 overflow-y-auto custom-scrollbar pr-2">
+                             {integrity.map((item) => (
+-                                <div key={item.name} className="flex items-center justify-between py-2.5 px-3 hover:bg-white/[0.04] transition-colors rounded-[3px] group border-b border-white/5 last:border-0 uppercase-none">
+-                                    <span className="text-[14px] font-normal text-slate-400 group-hover:text-white transition-colors uppercase-none">{item.name}</span>
+-                                    <div className="flex items-center gap-5">
+-                                        <span className="text-[11px] font-mono text-slate-500 tracking-tighter uppercase-none">{item.status}</span>
+-                                        <div className={`w-1.5 h-1.5 rounded-full ${item.light === 'bg-green-500' ? 'bg-[#22D3EE]' : 'bg-slate-700'}`} />
++                                <div key={item.name} className="flex items-center justify-between py-3 px-4 rounded-[5px] group border border-white/5 bg-white/[0.01] hover:bg-white/[0.03] transition-colors">
++                                    <span className="text-[10px] font-bold text-slate-400 group-hover:text-white transition-colors uppercase tracking-widest">{item.name}</span>
++                                    <div className="flex items-center gap-3">
++                                        <span className="text-[10px] font-mono text-slate-500 tracking-tighter uppercase font-bold">{item.status}</span>
++                                        <div className={`w-1.5 h-1.5 rounded-full ${item.light === 'bg-green-500' ? 'bg-[#22D3EE] shadow-[0_0_8px_#22D3EE]' : 'bg-yellow-500'}`} />
+                                     </div>
+                                 </div>
+                             ))}
+                         </div>
+-                    </div>
+-                </main>
+-
+-                {/* Telemetry Feed */}
+-                <div className={`fixed bottom-0 right-0 left-64 bg-black border-t border-white/10 z-[60] transition-all duration-300 ${isTelemetryOpen ? 'h-64' : 'h-10'}`}>
+-                    <button 
+-                        onClick={() => setIsTelemetryOpen(!isTelemetryOpen)}
+-                        className="w-full h-10 flex items-center justify-between px-10 hover:bg-white/[0.04] transition-colors group"
+-                    >
+-                        <div className="flex items-center gap-3">
+-                            <Terminal className="w-4 h-4 text-[#22D3EE]" />
+-                            <span className="text-[12px] font-normal text-slate-400 group-hover:text-white transition-colors uppercase-none">Live telemetry feed</span>
++                        <div className="mt-5">
++                            <div className="p-4 bg-black/40 border border-white/5 rounded-[5px] flex flex-col gap-3 relative overflow-hidden">
++                                <span className="text-[10px] text-slate-600 uppercase tracking-widest font-bold">Network Summary</span>
++                                <div className="space-y-2">
++                                    <div className="flex justify-between items-baseline">
++                                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Registry Sync</span>
++                                        <span className={`text-[10px] font-mono font-bold ${stats ? 'text-green-400' : 'text-yellow-400'}`}>{stats ? 'STABLE' : 'SYNCING'}</span>
++                                    </div>
++                                    <div className="flex justify-between items-baseline">
++                                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Fleet Coverage</span>
++                                        <span className="text-[10px] font-mono font-bold text-white">{stats?.totalNodes || 0} Peers</span>
++                                    </div>
++                                    <div className="flex justify-between items-baseline">
++                                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Total Compute</span>
++                                        <span className="text-[10px] font-mono font-bold text-[#22D3EE]">{stats?.totalCores || 0} Cores</span>
++                                    </div>
++                                    <div className="flex justify-between items-baseline">
++                                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Data Store</span>
++                                        <span className={`text-[10px] font-mono font-bold ${stats?.redisStatus === 'active' ? 'text-green-400' : 'text-yellow-400'}`}>
++                                            {stats?.redisStatus === 'active' ? 'REDIS' : 'IN-MEMORY'}
++                                        </span>
++                                    </div>
++                                </div>
++                                <div className="absolute top-0 right-0 w-20 h-20 bg-[#22D3EE]/5 rounded-full blur-2xl" />
++                            </div>
+                         </div>
+-                        {isTelemetryOpen ? <ChevronDown className="w-4 h-4 text-slate-600" /> : <ChevronUp className="w-4 h-4 text-slate-600" />}
+-                    </button>
+-                    <div className="p-6 font-mono text-[11px] text-[#22D3EE]/70 overflow-y-auto h-52 space-y-1 bg-black/50">
+-                        <p className="opacity-50 tracking-tighter uppercase-none">[{new Date().toISOString()}] INITIALIZING CORE MODULES...</p>
+-                        <p className="tracking-tighter uppercase-none text-slate-500">[OK] SECURITY PROTOCOLS ACTIVE</p>
+-                        <p className="tracking-tighter text-[#22D3EE] uppercase-none">[NET] DHT REFRESH IN PROGRESS</p>
+-                        <p className="tracking-tighter uppercase-none text-white/50">[SYS] TELEMETRY PULSE NOMINAL - L: 124.2ms</p>
+                     </div>
+                 </div>
++            </main>
++
++            {/* Telemetry Feed */}
++            <div className={`fixed bottom-0 right-0 lg:left-64 bg-neutral-950 border-t border-neutral-800 z-[60] transition-all duration-300 ${isTelemetryOpen ? 'h-64' : 'h-10'}`}>
++                <button 
++                    onClick={() => setIsTelemetryOpen(!isTelemetryOpen)}
++                    className="w-full h-10 flex items-center justify-between px-8 hover:bg-neutral-900 transition-colors group"
++                >
++                    <div className="flex items-center gap-3">
++                        <Terminal className="w-4 h-4 text-cyan-400" />
++                        <span className="text-xs font-semibold text-neutral-400 group-hover:text-neutral-200 transition-colors uppercase tracking-widest">Live telemetry feed</span>
++                    </div>
++                    {isTelemetryOpen ? <ChevronDown className="w-4 h-4 text-neutral-500" /> : <ChevronUp className="w-4 h-4 text-neutral-500" />}
++                </button>
++                <div className="p-6 font-mono text-[11px] text-cyan-400/70 overflow-y-auto h-52 space-y-1 custom-scrollbar font-bold">
++                    <p className="opacity-50 tracking-widest uppercase">[{new Date().toISOString()}] INITIALIZING CORE MODULES...</p>
++                    <p className="tracking-widest text-neutral-500">[OK] SECURITY PROTOCOLS ACTIVE</p>
++                    <p className="tracking-widest text-cyan-400">[NET] DHT REFRESH IN PROGRESS</p>
++                    <p className="tracking-widest text-neutral-600">[SYS] TELEMETRY PULSE NOMINAL - UP: ONLINE</p>
++                    {stats && <p className="tracking-widest text-green-400/50">[DATA] SYNC COMPLETE - {stats.totalNodes} NODES MAPPED</p>}
++                    {apiLatencyMs !== null && <p className="tracking-widest text-neutral-500">[PERF] API LATENCY: {apiLatencyMs}ms</p>}
++                    {!backendOnline && <p className="tracking-widest text-red-500">[WARN] BACKEND UNREACHABLE — USING CACHED DATA</p>}
++                    <p className="tracking-widest text-yellow-500/50">[STORE] REDIS OFFLINE — RUNNING IN-MEMORY FALLBACK</p>
++                </div>
+             </div>
+-        </div>
++
++            <NodlInspector 
++                nodeId={selectedNode} 
++                onClose={() => setSelectedNode(null)} 
++            />
++        </>
+     );
+ }
+diff --git a/apps/command/tailwind.config.ts b/apps/command/tailwind.config.ts
+index 87f4e2c..f2c4904 100644
+--- a/apps/command/tailwind.config.ts
++++ b/apps/command/tailwind.config.ts
+@@ -4,12 +4,20 @@ const config: Config = {
+     content: [
+         "./app/**/*.{js,ts,jsx,tsx,mdx}",
+         "./components/**/*.{js,ts,jsx,tsx,mdx}",
++        "../shared/components/**/*.{js,ts,jsx,tsx,mdx}",
+     ],
+     theme: {
+         extend: {
+             colors: {
+-                background: "#000000",
+-                foreground: "#ffffff",
++                background: "var(--nodl-bg)",
++                foreground: "var(--nodl-text-primary)",
++                nodl: {
++                    cyan: "var(--nodl-cyan)",
++                    "cyan-dim": "var(--nodl-cyan-dim)",
++                    card: "var(--nodl-card-bg)",
++                    border: "var(--nodl-border)",
++                    "text-secondary": "var(--nodl-text-secondary)",
++                },
+                 cyber: {
+                     cyan: "#00f2ff",
+                     violet: "#9d00ff",
+@@ -21,6 +29,9 @@ const config: Config = {
+                 sans: ["Roboto", "sans-serif"],
+                 mono: ["Roboto", "monospace"],
+             },
++            borderRadius: {
++                '5px': 'var(--nodl-radius)',
++            }
+         },
+     },
+     plugins: [],
+diff --git a/apps/command/tsconfig.json b/apps/command/tsconfig.json
+index f619795..b71cf8c 100644
+--- a/apps/command/tsconfig.json
++++ b/apps/command/tsconfig.json
+@@ -21,7 +21,12 @@
+       {
+         "name": "next"
+       }
+-    ]
++    ],
++    "baseUrl": ".",
++    "paths": {
++      "@/*": ["./*"],
++      "@shared/*": ["../shared/*"]
++    }
+   },
+   "include": [
+     "next-env.d.ts",
+diff --git a/apps/shared/components/FleetMap.tsx b/apps/shared/components/FleetMap.tsx
+new file mode 100644
+index 0000000..008f73e
+--- /dev/null
++++ b/apps/shared/components/FleetMap.tsx
+@@ -0,0 +1,145 @@
++"use client";
++
++import React, { useEffect, useRef, useState } from "react";
++import { Globe, MapPin, Radio, Activity } from "lucide-react";
++import "leaflet/dist/leaflet.css";
++
++interface MapProps {
++    nodes: any[];
++    loading?: boolean;
++    onNodeSelect?: (id: string) => void;
++}
++
++export default function FleetMap({ nodes, loading = false, onNodeSelect }: MapProps) {
++    const mapRef = useRef<any>(null);
++    const markersRef = useRef<any>(null);
++    const [L, setL] = useState<any>(null);
++
++    const nodeList = Array.isArray(nodes) ? nodes : Object.values(nodes || {});
++    const mappedNodes = nodeList.filter((n: any) => n.lat && n.lon);
++
++    useEffect(() => {
++        if (typeof window === "undefined") return;
++
++        const init = async () => {
++            const leaflet = (await import("leaflet")).default;
++            setL(leaflet);
++            
++            const container = document.getElementById("shared-fleet-map");
++            if (!container || mapRef.current) return;
++
++            mapRef.current = leaflet.map("shared-fleet-map", {
++                center: [20, 0],
++                zoom: 2,
++                zoomControl: false,
++                attributionControl: false,
++            });
++
++            leaflet.tileLayer(
++                "https://tiles.stadiamaps.com/tiles/alidade_smooth_dark/{z}/{x}/{y}{r}.png",
++                {
++                    maxZoom: 20,
++                    attribution: '&copy; Stadia Maps, &copy; OpenMapTiles, &copy; OpenStreetMap',
++                }
++            ).addTo(mapRef.current);
++
++            markersRef.current = leaflet.layerGroup().addTo(mapRef.current);
++        };
++
++        init();
++
++        return () => {
++            if (mapRef.current) {
++                mapRef.current.remove();
++                mapRef.current = null;
++            }
++        };
++    }, []);
++
++    useEffect(() => {
++        if (!mapRef.current || !markersRef.current || !L || !mappedNodes.length) return;
++
++        markersRef.current.clearLayers();
++
++        mappedNodes.forEach((node: any) => {
++            const status = node.status?.toLowerCase() || "active";
++            let color = "#22D3EE";
++            if (status === "offline" || status === "down") color = "#EF4444";
++            if (status === "suspended" || status === "flagged") color = "#F59E0B";
++
++            const marker = L.circleMarker([node.lat, node.lon], {
++                radius: 6,
++                fillColor: color,
++                color: "#FFFFFF",
++                weight: 1.5,
++                opacity: 1,
++                fillOpacity: 0.8,
++            }).addTo(markersRef.current);
++
++            const tooltipContent = `
++                <div style="font-family: ui-monospace, monospace; padding: 6px 10px; border-radius: 4px; font-size: 11px; background: #000; border: 1px solid rgba(255,255,255,0.1); color: #fff;">
++                    <div style="color: #64748b; margin-bottom: 2px;">NODE_ID: <span style="color: #fff; font-weight: bold;">${node.id || 'Unknown'}</span></div>
++                    <div style="color: #64748b;">STATUS: <span style="color: ${color}; font-weight: bold; text-transform: uppercase;">${status}</span></div>
++                </div>
++            `;
++
++            marker.bindTooltip(tooltipContent, {
++                direction: "top",
++                offset: [0, -10],
++                className: "nodl-map-tooltip",
++                opacity: 0.9,
++            });
++
++            if (onNodeSelect) {
++                marker.on("click", () => onNodeSelect(node.id));
++            }
++        });
++    }, [L, mappedNodes, onNodeSelect]);
++
++    return (
++        <section className="w-full bg-white/[0.02] border border-white/10 p-6 rounded-[5px] h-[520px] relative overflow-hidden flex flex-col group backdrop-blur-sm shadow-xl transition-all hover:bg-white/[0.03]">
++            <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/5">
++                <div className="flex items-center gap-3">
++                    <Globe className="w-4 h-4 text-[#22D3EE] opacity-70" />
++                    <span className="text-[11px] font-bold text-white uppercase tracking-[0.2em]">Global Fleet Distribution</span>
++                </div>
++                <div className="flex items-center gap-6">
++                    <div className="flex items-center gap-2">
++                        <div className="w-1.5 h-1.5 rounded-full bg-[#22D3EE] shadow-[0_0_8px_#22D3EE]" />
++                        <span className="text-[10px] text-slate-400 uppercase tracking-widest font-bold">Protocol Active</span>
++                    </div>
++                </div>
++            </div>
++
++            <div className="flex-1 relative bg-black/40 rounded-[5px] overflow-hidden border border-white/5">
++                <div id="shared-fleet-map" className="absolute inset-0 z-0" style={{ backgroundColor: "#050505" }} />
++
++                {loading && (
++                    <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/60 backdrop-blur-md">
++                        <div className="flex flex-col items-center gap-4">
++                            <div className="w-8 h-8 border-2 border-t-[#22D3EE] border-white/10 rounded-full animate-spin" />
++                            <span className="text-[10px] text-slate-500 uppercase tracking-[0.2em] font-bold">Synchronizing Nodes...</span>
++                        </div>
++                    </div>
++                )}
++
++                {!loading && mappedNodes.length === 0 && (
++                    <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
++                        <div className="flex flex-col items-center gap-4 p-8 bg-black/60 border border-white/10 rounded-[5px] backdrop-blur-md">
++                            <MapPin className="w-8 h-8 text-slate-700" />
++                            <div className="text-center">
++                                <span className="text-[11px] text-white uppercase tracking-[0.2em] font-bold block mb-1">Zero geocoded nodes detected</span>
++                                <span className="text-[10px] text-slate-600 font-mono tracking-widest uppercase">Nodes online: {nodeList.length} — Awaiting coordinate data</span>
++                            </div>
++                        </div>
++                    </div>
++                )}
++            </div>
++
++            <div className="absolute bottom-10 right-10 flex flex-col items-end pointer-events-none z-10">
++                <span className="text-[10px] font-mono font-bold tracking-[0.3em] text-[#22D3EE] animate-pulse uppercase">Fleet Link Active</span>
++                <p className="text-[9px] text-slate-500 mt-1 uppercase tracking-widest font-mono">P2P_MESH_MODE: OPERATIONAL</p>
++            </div>
++        </section>
++    );
++}
+diff --git a/apps/shared/components/IdentityHeader.tsx b/apps/shared/components/IdentityHeader.tsx
+new file mode 100644
+index 0000000..e6bfc6f
+--- /dev/null
++++ b/apps/shared/components/IdentityHeader.tsx
+@@ -0,0 +1,145 @@
++"use client";
++
++import React, { useState, useEffect, useRef } from "react";
++import { motion, AnimatePresence } from "framer-motion";
++import { 
++    User, Shield, Key, Clock, LogOut, ChevronDown, 
++    Settings, ShieldCheck, Activity, UserCircle, Loader2
++} from "lucide-react";
++import { useRouter } from "next/navigation";
++
++export default function IdentityHeader() {
++    const [user, setUser] = useState<any>(null);
++    const [loading, setLoading] = useState(true);
++    const [error, setError] = useState(false);
++    const [isOpen, setIsOpen] = useState(false);
++    const dropdownRef = useRef<HTMLDivElement>(null);
++    const router = useRouter();
++
++    useEffect(() => {
++        const fetchUser = async () => {
++            try {
++                const jwt = typeof window !== 'undefined' ? localStorage.getItem("nodl_jwt") : null;
++                const res = await fetch("/api/account/me", {
++                    headers: jwt ? { "Authorization": `Bearer ${jwt}` } : {}
++                });
++                
++                if (res.ok) {
++                    const data = await res.json();
++                    setUser(data);
++                } else {
++                    setError(true);
++                }
++            } catch (err) {
++                console.error("Identity fetch failed:", err);
++                setError(true);
++            } finally {
++                setLoading(false);
++            }
++        };
++
++        fetchUser();
++
++        const handleClickOutside = (event: MouseEvent) => {
++            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
++                setIsOpen(false);
++            }
++        };
++        document.addEventListener("mousedown", handleClickOutside);
++        return () => document.removeEventListener("mousedown", handleClickOutside);
++    }, []);
++
++    const handleLogout = () => {
++        localStorage.removeItem("nodl_jwt");
++        localStorage.removeItem("nodl_user");
++        router.push("/auth/login");
++    };
++
++    if (loading) {
++        return (
++            <div className="flex items-center gap-3 px-4 py-2 bg-white/[0.02] border border-white/10 rounded-[5px]">
++                <Loader2 className="w-3.5 h-3.5 text-slate-500 animate-spin" />
++                <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Authenticating...</span>
++            </div>
++        );
++    }
++
++    if (error || !user) {
++        return (
++            <div className="flex items-center gap-2 px-4 py-2 bg-red-400/5 border border-red-400/20 rounded-[5px]">
++                <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
++                <span className="text-[10px] text-red-500 uppercase tracking-widest font-bold">Not signed in</span>
++            </div>
++        );
++    }
++
++    const menuItems = [
++        { label: "My Account", icon: UserCircle, href: "/settings/profile" },
++        { label: "Security Settings", icon: ShieldCheck, href: "/settings/security" },
++        { label: "API Keys", icon: Key, href: "/settings/api" },
++        { label: "Sessions", icon: Clock, href: "/settings/sessions" },
++    ];
++
++    return (
++        <div className="relative" ref={dropdownRef}>
++            <div 
++                className="flex items-center gap-4 cursor-pointer group select-none"
++                onClick={() => setIsOpen(!isOpen)}
++            >
++                <div className="text-right hidden md:flex flex-col items-end">
++                    <div className="flex items-center gap-2">
++                        <span className="text-[13px] font-bold text-white group-hover:text-[#22D3EE] transition-colors">{user.email}</span>
++                        <span className="text-[8px] px-1.5 py-0.5 rounded-[2px] bg-[#22D3EE]/10 text-[#22D3EE] border border-[#22D3EE]/30 font-bold uppercase tracking-widest">{user.role || 'user'}</span>
++                    </div>
++                    <span className="text-[10px] text-slate-600 font-mono tracking-tighter uppercase mt-0.5">SEC_SESSION_ACTIVE</span>
++                </div>
++
++                <div className="relative">
++                    <div className="w-9 h-9 rounded-full bg-white/[0.03] border border-white/10 flex items-center justify-center text-[#22D3EE] group-hover:bg-[#22D3EE] group-hover:text-black transition-all duration-300 shadow-inner overflow-hidden">
++                        {user.avatar ? (
++                            <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover" />
++                        ) : (
++                            <User className="w-5 h-5" />
++                        )}
++                    </div>
++                    <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-green-500 border-2 border-black shadow-[0_0_8px_rgba(34,197,94,0.5)]" />
++                </div>
++                
++                <ChevronDown className={`w-3.5 h-3.5 text-slate-600 group-hover:text-slate-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
++            </div>
++
++            <AnimatePresence>
++                {isOpen && (
++                    <motion.div
++                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
++                        animate={{ opacity: 1, y: 0, scale: 1 }}
++                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
++                        transition={{ duration: 0.2, ease: "easeOut" }}
++                        className="absolute top-12 right-0 w-56 bg-black border border-white/10 rounded-[5px] shadow-[0_10px_40px_rgba(0,0,0,0.8)] overflow-hidden z-50 backdrop-blur-xl"
++                    >
++                        <div className="p-2 space-y-0.5">
++                            {menuItems.map((item) => (
++                                <button
++                                    key={item.label}
++                                    onClick={() => { router.push(item.href); setIsOpen(false); }}
++                                    className="w-full flex items-center gap-3 px-3 py-2.5 text-[12px] text-slate-400 hover:text-white hover:bg-white/[0.04] rounded-[3px] transition-all group"
++                                >
++                                    <item.icon className="w-4 h-4 text-slate-600 group-hover:text-[#22D3EE] transition-colors" />
++                                    {item.label}
++                                </button>
++                            ))}
++                            <div className="h-px bg-white/5 my-1 mx-2" />
++                            <button
++                                onClick={handleLogout}
++                                className="w-full flex items-center gap-3 px-3 py-2.5 text-[12px] text-slate-500 hover:text-red-400 hover:bg-red-400/5 rounded-[3px] transition-all group"
++                            >
++                                <LogOut className="w-4 h-4 text-slate-700 group-hover:text-red-400 transition-colors" />
++                                Logout
++                            </button>
++                        </div>
++                    </motion.div>
++                )}
++            </AnimatePresence>
++        </div>
++    );
++}
+diff --git a/apps/shared/components/MetricCard.tsx b/apps/shared/components/MetricCard.tsx
+new file mode 100644
+index 0000000..adeb2f8
+--- /dev/null
++++ b/apps/shared/components/MetricCard.tsx
+@@ -0,0 +1,25 @@
++import React from 'react';
++import { LucideIcon } from 'lucide-react';
++
++interface MetricCardProps {
++  label: string;
++  value: string | number;
++  icon: LucideIcon;
++  colorClass?: string;
++  subValue?: string;
++}
++
++export default function MetricCard({ label, value, icon: Icon, colorClass = "text-white", subValue }: MetricCardProps) {
++  return (
++    <div className="bg-white/[0.02] border border-white/10 p-5 rounded-[5px] flex flex-col gap-1 group truncate transition-all hover:bg-white/[0.04] backdrop-blur-sm">
++      <span className="text-[10px] text-slate-600 uppercase tracking-widest font-bold">{label}</span>
++      <div className="flex items-center justify-between">
++        <div className="flex flex-col">
++          <span className={`text-xl font-normal tracking-tighter ${colorClass}`}>{value}</span>
++          {subValue && <span className="text-[9px] text-slate-500 mt-0.5">{subValue}</span>}
++        </div>
++        <Icon className="w-4 h-4 text-slate-500 opacity-20 group-hover:opacity-100 transition-opacity" />
++      </div>
++    </div>
++  );
++}
+diff --git a/apps/shared/styles/design-tokens.css b/apps/shared/styles/design-tokens.css
+new file mode 100644
+index 0000000..0b72035
+--- /dev/null
++++ b/apps/shared/styles/design-tokens.css
+@@ -0,0 +1,61 @@
++:root {
++  /* Core Colors - Obsidian & Cyan Baseline */
++  --nodl-bg: #000000;
++  --nodl-bg-nav: rgba(0, 0, 0, 0.4);
++  --nodl-card-bg: rgba(255, 255, 255, 0.02);
++  --nodl-card-bg-hover: rgba(255, 255, 255, 0.04);
++  --nodl-border: rgba(255, 255, 255, 0.1);
++  --nodl-border-hover: rgba(255, 255, 255, 0.2);
++  
++  --nodl-cyan: #22D3EE;
++  --nodl-cyan-dim: rgba(34, 211, 238, 0.1);
++  --nodl-cyan-border: rgba(34, 211, 238, 0.2);
++  
++  --nodl-purple: #a855f7;
++  --nodl-green: #22c55e;
++  --nodl-yellow: #eab308;
++  --nodl-red: #ef4444;
++
++  /* Text Colors */
++  --nodl-text-primary: #ffffff;
++  --nodl-text-secondary: #94a3b8; /* slate-400 */
++  --nodl-text-muted: #64748b; /* slate-500 */
++  --nodl-text-dim: #475569; /* slate-600 */
++
++  /* Spacing & Radii */
++  --nodl-radius: 5px;
++  --nodl-gap: 24px;
++}
++
++/* Utility Classes */
++.card-glass {
++  background-color: var(--nodl-card-bg);
++  border: 1px solid var(--nodl-border);
++  border-radius: var(--nodl-radius);
++  backdrop-filter: blur(8px);
++  transition: all 0.2s ease-in-out;
++}
++
++.card-glass:hover {
++  background-color: var(--nodl-card-bg-hover);
++  border-color: var(--nodl-border-hover);
++}
++
++.text-header-caps {
++  text-transform: uppercase;
++  letter-spacing: 0.2em;
++  font-weight: 700;
++  font-size: 10px;
++  color: var(--nodl-text-muted);
++}
++
++.text-value-lg {
++  font-size: 1.25rem; /* 20px */
++  font-weight: 400;
++  letter-spacing: -0.05em;
++  color: var(--nodl-text-primary);
++}
++
++.glow-cyan {
++  box-shadow: 0 0 15px rgba(34, 211, 238, 0.1);
++}

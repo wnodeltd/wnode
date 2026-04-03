@@ -23,13 +23,13 @@ export default function Terminal({ logs }: { logs: TerminalLog[] }) {
     }, [logs]);
 
     return (
-        <div className="bg-black/40 border border-white/5 backdrop-blur-md p-4  text-[10px] h-[400px] overflow-hidden flex flex-col group">
-            <div className="flex items-center justify-between mb-2 pb-2 border-b border-white/5">
-                <span className="text-slate-500 uppercase flex items-center gap-2 font-bold tracking-tighter">
-                    <div className="w-1.5 h-1.5 rounded-full bg-cyber-crimson animate-pulse shadow-[0_0_5px_#ef4444]" />
+        <div className="bg-black border border-white/10 backdrop-blur-md p-4 text-[11px] h-[400px] overflow-hidden flex flex-col group rounded-none">
+            <div className="flex items-center justify-between mb-3 pb-2 border-b border-white/5">
+                <span className="text-white uppercase flex items-center gap-2 font-black tracking-[0.2em] text-[9px]">
+                    <div className="w-1.5 h-1.5 bg-cyber-crimson shadow-[0_0_8px_#ef4444]" />
                     Live Mesh Telemetry
                 </span>
-                <span className="text-[8px] text-slate-700 ">SYSTEM_TRACE_v2.0</span>
+                <span className="text-[8px] text-slate-700 font-bold tracking-[0.3em]">SYSTEM_TRACE_v2.0</span>
             </div>
 
             <div

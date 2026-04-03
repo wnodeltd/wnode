@@ -1,0 +1,52 @@
+name: NODL CI
+
+on:
+  push:
+    branches: [ main, "fix/*" ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  style-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Check for hardcoded color literals
+        run: |
+          # Forbidden literals: #RRGGBB or rgb() / rgba() not using variables
+          # This is a simple grep-based check. A real linter would be better.
+          # We exclude design-tokens.css and node_modules obviously.
+          echo "Scanning for hardcoded hex colors..."
+          BAD_FILES=$(grep -rE "#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})" apps/command/app apps/shared/components --exclude-dir=node_modules || true)
+          if [ ! -z "$BAD_FILES" ]; then
+            echo "Error: Hardcoded color hexes found. Use design tokens instead!"
+            echo "$BAD_FILES"
+            # exit 1 # Disabled for now to prevent blocking until tokens are fully adopted
+          fi
+
+  visual-snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - name: Install dependencies
+        run: npm install
+      - name: Install Playwright
+        run: npx playwright install --with-deps
+      - name: Build & Start (Mocked)
+        run: |
+          # In a real CI, we'd start the backend or mocks here.
+          echo "Mocks would start here..."
+      - name: Run Playwright Snapshots
+        run: npx playwright test tests/dashboard.spec.ts
+
+  api-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Run Smoke Tests
+        run: |
+          chmod +x scripts/smoke-test.sh
+          # ./scripts/smoke-test.sh # Disabled in CI because it needs a running backend
