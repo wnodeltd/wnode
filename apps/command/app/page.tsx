@@ -12,7 +12,7 @@ import "leaflet/dist/leaflet.css";
 
 import NodeInspector from "./components/NodeInspector";
 import FleetMap from "./components/FleetMap";
-import MetricCard from "./components/MetricCard";
+import MetricCard from "@shared/components/MetricCard";
 
 export default function CommandCentrePage() {
     const [isTelemetryOpen, setIsTelemetryOpen] = useState(false);
@@ -194,7 +194,7 @@ export default function CommandCentrePage() {
                             value={loading ? '...' : m.value}
                             icon={m.icon}
                             statusColor={m.color}
-                            sub={m.sub}
+                            subValue={m.sub}
                             larger={true}
                         />
                     ))}
@@ -224,9 +224,9 @@ export default function CommandCentrePage() {
 
                 {/* Protocol + Summary */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div className="bg-white/[0.02] border border-white/10 p-6 rounded-[5px] flex flex-col h-[380px] shadow-sm transition-all hover:bg-white/[0.04] backdrop-blur-sm">
+                    <div className="ds-card p-6 flex flex-col h-[380px] shadow-sm transition-all">
                         <div className="flex items-center gap-3 mb-5 pb-3 border-b border-white/5">
-                            <Shield className="w-4 h-4 text-[#22D3EE] opacity-70" />
+                            <Shield className="w-4 h-4 ds-icon opacity-70" />
                             <span className="ds-sub font-bold text-white tracking-[0.2em]">Protocol Integrity Trace</span>
                         </div>
                         <div className="space-y-3 flex-1 overflow-y-auto custom-scrollbar pr-2">
@@ -234,7 +234,7 @@ export default function CommandCentrePage() {
                                 <div key={item.name} className="flex items-center justify-between py-3 px-4 rounded-[5px] group border border-white/5 bg-white/[0.01] hover:bg-white/[0.03] transition-colors">
                                     <span className="ds-sub font-bold group-hover:text-white transition-colors">{item.name}</span>
                                     <div className="flex items-center gap-3">
-                                        <span className="text-[10px] font-mono text-slate-500 tracking-tighter uppercase font-bold">{item.status}</span>
+                                        <span className="text-[10px] font-mono text-[#b0bac3] tracking-tighter uppercase font-bold">{item.status}</span>
                                         <div className={`w-1.5 h-1.5 rounded-full ${item.light === 'bg-green-500' ? 'bg-[#22D3EE] shadow-[0_0_8px_#22D3EE]' : 'bg-yellow-500'}`} />
                                     </div>
                                 </div>

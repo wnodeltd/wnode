@@ -77,7 +77,7 @@ export default function NodeInspector({ nodeId, onClose }: NodeInspectorProps) {
             ) : node ? (
                 <div className="space-y-8">
                     {/* Status Header */}
-                    <section className="flex items-center justify-between p-4 bg-white/[0.02] border border-white/5 rounded-[5px]">
+                    <section className="flex items-center justify-between p-4 ds-card">
                         <div className="flex flex-col">
                             <span className="ds-sub">Heartbeat Status</span>
                             <span className={`text-[13px] font-bold uppercase tracking-widest ${node.status === 'active' || node.status === 'online' ? 'text-[#22D3EE]' : 'text-slate-500'}`}>
@@ -91,27 +91,27 @@ export default function NodeInspector({ nodeId, onClose }: NodeInspectorProps) {
                     <section className="space-y-4">
                         <h3 className="ds-sub border-b border-white/5 pb-2">Operational Core</h3>
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="flex flex-col gap-1 p-3 bg-white/[0.01] border border-white/5 rounded-[5px]">
+                            <div className="flex flex-col gap-1 p-3 ds-card">
                                 <span className="ds-sub opacity-60">CPU Capacity</span>
                                 <div className="flex items-center gap-2">
-                                    <Cpu className="w-3.5 h-3.5 text-[#22D3EE] opacity-50" />
+                                    <Cpu className="w-3.5 h-3.5 ds-icon opacity-50" />
                                     <span className="text-sm font-mono text-white">{node.cpuCores || node.cpu_cores || 0} Cores</span>
                                 </div>
                             </div>
-                            <div className="flex flex-col gap-1 p-3 bg-white/[0.01] border border-white/5 rounded-[5px]">
+                            <div className="flex flex-col gap-1 p-3 ds-card">
                                 <span className="ds-sub opacity-60">Memory Swarm</span>
                                 <div className="flex items-center gap-2">
-                                    <Database className="w-3.5 h-3.5 text-[#22D3EE] opacity-50" />
+                                    <Database className="w-3.5 h-3.5 ds-icon opacity-50" />
                                     <span className="text-sm font-mono text-white">{node.memoryGB || node.memory_gb || 0} GB</span>
                                 </div>
                             </div>
                         </div>
                     </section>
 
-                    {/* Provider Overlay */}
+                    {/* Protocol Identity */}
                     <section className="space-y-4">
                         <h3 className="ds-sub border-b border-white/5 pb-2">Protocol Identity</h3>
-                        <div className="space-y-3">
+                        <div className="space-y-4">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                     <User className="w-4 h-4 text-slate-500" />
@@ -119,19 +119,34 @@ export default function NodeInspector({ nodeId, onClose }: NodeInspectorProps) {
                                 </div>
                                 <span className="text-[12px] text-white font-bold">{node.name || 'ANONYMOUS'}</span>
                             </div>
+                            
+                            <div className="p-3 ds-card space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <span className="ds-sub opacity-60">nodl.id</span>
+                                    <span className="text-[11px] font-mono text-white break-all text-right max-w-[200px]">{node.id}</span>
+                                </div>
+                                {nodlr && (
+                                    <div className="flex items-center justify-between border-t border-white/5 pt-3">
+                                        <span className="ds-sub opacity-60">nodlr.id</span>
+                                        <span className="text-[11px] font-mono text-[#22D3EE] font-bold">{nodlr.id}</span>
+                                    </div>
+                                )}
+                            </div>
+
                             {nodlr && (
                                 <div className="flex items-center justify-between">
                                     <div className="flex items-center gap-3">
                                         <BarChart className="w-4 h-4 text-[#22D3EE] opacity-50" />
                                         <span className="text-[11px] text-slate-400">Accrued Balance</span>
                                     </div>
-                                    <span className="text-[12px] text-[#22D3EE] font-mono">${(nodlr.accruedFounderBalance / 100 || 0).toLocaleString()}</span>
+                                    <span className="text-[12px] text-[#22D3EE] font-mono font-bold">${(nodlr.accruedFounderBalance / 100 || 0).toLocaleString()}</span>
                                 </div>
                             )}
+                            
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-3">
                                     <Globe className="w-4 h-4 text-slate-500" />
-                                    <span className="text-[11px] text-slate-400">Geo Distribution</span>
+                                    <span className="text-[11px] text-slate-400">Region Root</span>
                                 </div>
                                 <span className="text-[12px] text-white underline underline-offset-4 decoration-white/10">{node.region || 'Unknown Location'}</span>
                             </div>

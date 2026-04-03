@@ -21,6 +21,7 @@
   --nodl-text-secondary: #94a3b8; /* slate-400 */
   --nodl-text-muted: #b0bac3; /* Improved contrast subtext */
   --nodl-text-dim: #475569; /* slate-600 */
+  --ds-icon: #f8fafc; /* Brightened icon baseline */
 
   /* Spacing & Radii */
   --nodl-radius: 5px;
@@ -33,7 +34,27 @@
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
+  font-weight: 700;
 }
+
+.ds-icon {
+  color: var(--ds-icon);
+  filter: drop-shadow(0 0 4px rgba(255,255,255,0.1));
+}
+
+.ds-card {
+  background-color: rgba(255, 255, 255, 0.03); /* Subtly brightened */
+  border: 1px solid rgba(255, 255, 255, 0.12); /* Brighter border */
+  border-radius: var(--nodl-radius);
+  backdrop-filter: blur(12px);
+  transition: all 0.2s ease-in-out;
+}
+
+.ds-card:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
 .card-glass {
   background-color: var(--nodl-card-bg);
   border: 1px solid var(--nodl-border);

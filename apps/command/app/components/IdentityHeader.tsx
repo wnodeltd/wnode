@@ -140,10 +140,10 @@ export default function IdentityHeader() {
                 >
                     <div className="text-right hidden md:flex flex-col items-end">
                         <div className="flex items-center gap-2">
-                            <span className="text-[13px] text-white font-bold tracking-tight group-hover:text-[#22D3EE] transition-colors">{user.email}</span>
-                            <span className="text-[8px] px-1.5 py-0.5 rounded-[2px] bg-[#22D3EE]/10 text-[#22D3EE] border border-[#22D3EE]/30 font-bold uppercase tracking-widest">{user.role}</span>
+                            <span className="text-[13px] text-white font-bold tracking-tight group-hover:text-[#22D3EE] transition-colors">
+                                {user.email} • {user.role?.toUpperCase()} • <span className="ds-sub opacity-60">ID_{user.id?.slice(0, 8) || '4492-X'}</span>
+                            </span>
                         </div>
-                        <span className="ds-sub font-mono tracking-tighter mt-0.5 opacity-60">SEC_SESSION_ACTIVE</span>
                     </div>
 
                     <div className="relative">
