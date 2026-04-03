@@ -545,12 +545,10 @@ func (s *Server) handleTransferAffiliate(c *fiber.Ctx) error {
 }
 func (s *Server) handleGetRegistry(c *fiber.Ctx) error {
 	if s.host == nil {
-		// TEMP: Return sample nodes for map recovery when host is unavailable
-		return c.JSON([]fiber.Map{
-			{"id": "node-lon-01", "name": "London Edge", "lat": 51.5074, "lon": -0.1278, "status": "active", "cpu_cores": 8},
-			{"id": "node-par-02", "name": "Paris Core", "lat": 48.8566, "lon": 2.3522, "status": "active", "cpu_cores": 16},
-			{"id": "node-ber-03", "name": "Berlin Relay", "lat": 52.5200, "lon": 13.4050, "status": "active", "cpu_cores": 4},
-		})
+		// TEMPORARY: return an empty array instead of an object so frontend expects an array.
+		// This avoids breaking the UI while host initialization or data source is restored.
+		// Remove this fallback once the real host/data source is available.
+		return c.Status(fiber.StatusOK).JSON([]interface{}{})
 	}
 	list := s.host.Registry().List()
 	if len(list) == 0 {
