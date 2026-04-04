@@ -118,7 +118,7 @@ func main() {
 	// ── Account & Affiliate Store ─────────────────────────────────────────────
 	// (Moved up)
 	
-	// Seed Data for Testing
+	// Seed Data — Persistent Real Accounts
 	ownerID := "0xFD-OWNER-SYSTEM"
 	accountStore.SetFounder(1, ownerID)
 	
@@ -137,6 +137,24 @@ func main() {
 	}
 	accountStore.AddNodlr(owner)
 
+	// Eldesskar — Second Founder (Persistent Real Account)
+	eldesskarID := "0xFD-ELDESSKAR-02"
+	accountStore.SetFounder(2, eldesskarID)
+	eldesskarHash, _ := api.HashPassword("command")
+	eldesskar := &account.Nodlr{
+		ID:              eldesskarID,
+		Email:           "eldesskar@protocol.nodl",
+		PasswordHash:    eldesskarHash,
+		Role:            account.RoleManager,
+		PayoutFrequency: account.PayoutDaily,
+		PayoutStatus:    account.PayoutStatusActive,
+		StripeConnectID: "acct_2test",
+		IsFounder:       true,
+		FounderIndex:    2,
+		CreatedAt:       time.Now(),
+	}
+	accountStore.AddNodlr(eldesskar)
+
 	// Create a small tree with Manager/CS roles
 	for i := 1; i <= 3; i++ {
 		l1, _ := accountStore.CreateNodlr(fmt.Sprintf("l1_%d@example.com", i), ownerID)
@@ -152,7 +170,7 @@ func main() {
 		}
 	}
 
-	log.Info("account store online with seeded data", zap.String("ownerID", ownerID))
+	log.Info("account store online with seeded data", zap.String("ownerID", ownerID), zap.String("eldesskarID", eldesskarID))
 
 	// ── API Server ────────────────────────────────────────────────────────────
 	srv := api.New(dispatcher, store, pricingStore, accountStore, p2pHost, log, startTime)

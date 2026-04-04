@@ -78,18 +78,6 @@ export default function ProvidersPage() {
 
     return (
         <>
-            <header className="h-14 border-b border-white/10 flex items-center justify-between px-8 bg-black shrink-0 relative z-10 transition-all">
-                <div className="flex items-center gap-2">
-                    <div className="w-1.5 h-1.5 rounded-full bg-[#22D3EE] shadow-[0_0_8px_#22D3EE]" />
-                    <span className="text-[10px] font-normal text-slate-400 tracking-[0.2em] uppercase">Supply Core Active</span>
-                </div>
-                <button 
-                    onClick={() => { fetchProviders(); }}
-                    className="p-2 hover:bg-white/5 rounded-[5px] transition-colors text-slate-400 hover:text-white"
-                >
-                    <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-                </button>
-            </header>
 
             <main className="p-8 w-full flex flex-col space-y-8 overflow-y-auto pb-24">
                 <h1 className="text-[26px] font-medium text-white tracking-tight mb-4">
