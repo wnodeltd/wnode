@@ -13,29 +13,31 @@ export async function GET() {
     const apiUrl = process.env.NODLD_API_URL || 'http://127.0.0.1:8080';
 
     try {
-        // 1. Fetch /api/nodes/all from nodld to discover all active providers
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 3000);
+
         const nodesRes = await fetch(`${apiUrl}/api/nodlrs/all`, {
             cache: 'no-store',
-            headers: { 'Accept': 'application/json' }
+            headers: { 'Accept': 'application/json' },
+            signal: controller.signal,
         });
+        clearTimeout(timeout);
 
         if (!nodesRes.ok) {
-            return NextResponse.json({ error: `Backend nodes list unavailable (${nodesRes.status})` }, { status: nodesRes.status });
+            return NextResponse.json(simulationState.nodlrs);
         }
 
         const allNodes = await nodesRes.json();
         
-        // 2. Extract unique user IDs and count their nodes
         const userStats: Record<string, { nodeCount: number, totalUptime: number, uptimeCount: number }> = {};
         allNodes.forEach((node: any) => {
-            const uid = node.userID || node.user_id || node.ownerID; // Correct extraction order
+            const uid = node.userID || node.user_id || node.ownerID;
             if (!uid) return;
             if (!userStats[uid]) {
                 userStats[uid] = { nodeCount: 0, totalUptime: 0, uptimeCount: 0 };
             }
             userStats[uid].nodeCount++;
 
-            // Handle both percentage (simulation) and HH:MM:SS (real db) uptime strings
             if (node.uptime) {
                 if (typeof node.uptime === 'string' && node.uptime.includes('%')) {
                     const upVal = parseFloat(node.uptime.replace('%', ''));
@@ -44,7 +46,6 @@ export async function GET() {
                         userStats[uid].uptimeCount++;
                     }
                 } else if (typeof node.uptime === 'string' && node.uptime.includes(':')) {
-                    // HH:MM:SS - consider it 100% for now if it exists, or calculate health
                     userStats[uid].totalUptime += 100; 
                     userStats[uid].uptimeCount++;
                 }
@@ -53,7 +54,6 @@ export async function GET() {
 
         const uniqueUserIds = Object.keys(userStats);
 
-        // 3. For each unique user ID, fetch /account/:id to get profile details
         const nodlrs = await Promise.all(
             uniqueUserIds.map(async (id) => {
                 try {
@@ -66,7 +66,6 @@ export async function GET() {
                     
                     const accData = await accRes.json();
                     
-                    // 4. Return formatted Nodl'r object
                     return {
                         id: accData.id || id,
                         email: accData.email || "N/A",
@@ -82,17 +81,15 @@ export async function GET() {
                         protocolId: accData.protocolId || id
                     };
                 } catch (e) {
-                    console.error(`Failed to fetch account metadata for ${id}:`, e);
                     return null;
                 }
             })
         );
 
-        // Filter failures and return the list
         return NextResponse.json(nodlrs.filter(Boolean));
 
     } catch (error) {
-        console.error('[Nodlrs Route Error]:', error);
-        return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+        // Backend unreachable — fall back to simulation data
+        return NextResponse.json(simulationState.nodlrs);
     }
 }

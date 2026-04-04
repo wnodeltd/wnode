@@ -9,13 +9,8 @@ import { PageTitleProvider, usePageTitle } from "./PageTitleContext";
 function HeaderContent() {
     const { pageTitle } = usePageTitle();
     return (
-        <header className="h-16 border-b border-white/10 flex items-center justify-between px-8 bg-neutral-950 shrink-0 z-50">
-            <div className="flex items-center gap-4">
-                <Link href="/" className="flex items-center">
-                    <img src="/logo.webp" alt="NODL Logo" className="h-8" />
-                </Link>
-                <h1 className="text-lg font-normal tracking-tight text-white uppercase tracking-widest">{pageTitle}</h1>
-            </div>
+        <header className="h-10 border-b border-white/10 flex items-center justify-between px-8 bg-neutral-950 shrink-0 z-50">
+            <h1 className="text-lg font-normal tracking-tight text-white uppercase tracking-widest">{pageTitle}</h1>
             <div className="flex items-center gap-6">
                 <IdentityHeader />
             </div>
