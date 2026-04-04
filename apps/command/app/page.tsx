@@ -24,6 +24,7 @@ export default function CommandCentrePage() {
     const [selectedNode, setSelectedNode] = useState<string | null>(null);
     const [backendOnline, setBackendOnline] = useState(false);
     const [apiLatencyMs, setApiLatencyMs] = useState<number | null>(null);
+    const [mountTime, setMountTime] = useState<string>("");
     const router = useRouter();
 
     useEffect(() => {
@@ -76,6 +77,7 @@ export default function CommandCentrePage() {
 
     useEffect(() => {
         fetchData();
+        setMountTime(new Date().toISOString());
         const interval = setInterval(fetchData, 10000);
         return () => clearInterval(interval);
     }, []);
@@ -283,7 +285,7 @@ export default function CommandCentrePage() {
                     {isTelemetryOpen ? <ChevronDown className="w-4 h-4 text-neutral-500" /> : <ChevronUp className="w-4 h-4 text-neutral-500" />}
                 </button>
                 <div className="p-6 font-mono text-[11px] text-cyan-400/70 overflow-y-auto h-52 space-y-1 custom-scrollbar font-bold">
-                    <p className="opacity-50 tracking-widest uppercase">[{new Date().toISOString()}] INITIALIZING CORE MODULES...</p>
+                    <p className="opacity-50 tracking-widest uppercase">[{mountTime || "INITIALIZING"}] INITIALIZING CORE MODULES...</p>
                     <p className="tracking-widest text-neutral-500">[OK] SECURITY PROTOCOLS ACTIVE</p>
                     <p className="tracking-widest text-cyan-400">[NET] DHT REFRESH IN PROGRESS</p>
                     <p className="tracking-widest text-neutral-600">[SYS] TELEMETRY PULSE NOMINAL - UP: ONLINE</p>

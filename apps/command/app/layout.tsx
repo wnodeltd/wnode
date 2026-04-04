@@ -17,11 +17,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                     backgroundColor: "black",
                     color: "white",
                     "--command-portal-glow-color": "#22D3EE",
-                }}
+                } as React.CSSProperties}
             >
                 <Libp2pProvider>
                     <React.Suspense fallback={<div className="h-screen w-screen bg-black" />}>
-                        <Shell>{children}</Shell>
+                        {pathname?.startsWith("/auth") ? (
+                            children
+                        ) : (
+                            <Shell>{children}</Shell>
+                        )}
                     </React.Suspense>
                 </Libp2pProvider>
             </body>

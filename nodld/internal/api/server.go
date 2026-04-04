@@ -86,7 +86,7 @@ func New(dispatcher *jobs.Dispatcher, store *jobs.Store, pricingStore *pricing.S
 
 	app.Use(recover.New())
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "https://cmd.nodl.one, https://nodl.one, https://mesh.nodl.one, https://nodlr.nodl.one, http://localhost:3000, http://localhost:3001, http://localhost:3002, http://localhost:3003, http://localhost:3004",
+		AllowOrigins: "https://cmd.nodl.one, https://nodl.one, https://mesh.nodl.one, https://nodlr.nodl.one, http://localhost:3000, http://localhost:3001, http://localhost:3002, http://localhost:3003, http://localhost:3004, http://127.0.0.1:3000, http://127.0.0.1:3001, http://127.0.0.1:3002, http://127.0.0.1:3003, http://127.0.0.1:3004",
 		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
 	}))
 	app.Use(logger.New())

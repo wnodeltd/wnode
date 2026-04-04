@@ -18,22 +18,41 @@ export default function IdentityHeader() {
     const router = useRouter();
 
     useEffect(() => {
+        // Immediately hydrate from localStorage (set during login)
+        if (typeof window !== 'undefined') {
+            const cached = localStorage.getItem("nodl_user");
+            if (cached) {
+                try {
+                    setUser(JSON.parse(cached));
+                    setLoading(false);
+                } catch {}
+            }
+        }
+
+        // Then try to enhance with fresh API data (non-blocking)
         const fetchUser = async () => {
             try {
                 const jwt = typeof window !== 'undefined' ? localStorage.getItem("nodl_jwt") : null;
+                if (!jwt) {
+                    if (!user) setError(true);
+                    setLoading(false);
+                    return;
+                }
+                const controller = new AbortController();
+                const timeout = setTimeout(() => controller.abort(), 5000);
                 const res = await fetch("/api/account/me", {
-                    headers: jwt ? { "Authorization": `Bearer ${jwt}` } : {}
+                    headers: { "Authorization": `Bearer ${jwt}` },
+                    signal: controller.signal,
                 });
+                clearTimeout(timeout);
                 
                 if (res.ok) {
                     const data = await res.json();
                     setUser(data);
-                } else {
-                    setError(true);
+                    localStorage.setItem("nodl_user", JSON.stringify(data));
                 }
-            } catch (err) {
-                console.error("Identity fetch failed:", err);
-                setError(true);
+            } catch {
+                // Silently fail — localStorage data is already loaded
             } finally {
                 setLoading(false);
             }
@@ -90,17 +109,18 @@ export default function IdentityHeader() {
                 <div className="text-right hidden md:flex flex-col items-end">
                     <div className="flex items-center gap-2">
                         <span className="text-[13px] font-bold text-white group-hover:text-[#22D3EE] transition-colors">
-                            {user.email} • <span className="uppercase">{user.role || 'USER'}</span> • <div className="user-id">{displayUserId}</div>
+                            {user.email || 'No Email'} • <span className="uppercase">{user.role || 'USER'}</span>
                         </span>
                     </div>
+                    <div className="text-[9px] font-mono opacity-40 uppercase tracking-tighter">{displayUserId}</div>
                 </div>
 
                 <div className="relative">
-                    <div className="w-8 h-8 rounded-full bg-white/[0.03] border border-white/10 flex items-center justify-center text-[#22D3EE] group-hover:bg-[#22D3EE] group-hover:text-black transition-all duration-300 shadow-inner overflow-hidden">
+                    <div className="w-8 h-8 rounded-full bg-white/[0.1] border border-white/20 flex items-center justify-center text-[#22D3EE] group-hover:bg-[#22D3EE] group-hover:text-black transition-all duration-300 shadow-inner overflow-hidden">
                         {user.avatar ? (
                             <img src={user.avatar} alt="Avatar" className="w-full h-full object-cover" />
                         ) : (
-                            <User className="w-4 h-4" />
+                            <UserCircle className="w-5 h-5" />
                         )}
                     </div>
                     <div className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-green-500 border border-black shadow-[0_0_8px_rgba(34,197,94,0.5)]" />
