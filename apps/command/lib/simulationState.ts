@@ -50,40 +50,82 @@ export const resetSimulation = () => {
         { id: 'TX-88211', jobId: 'JOB-441', type: 'payout', status: 'paid', amount: 5000, fee: 500, timestamp: new Date(Date.now() - 7200000).toISOString(), entity_name: 'Alpha Node Runner', entity_id: 'NR-A' },
     ];
 
-    // Initialize 10 Founders (5 Active, 5 Dormant)
+    // Initialize 10 Founders (5 Active, 5 Dormant) — Full data model
     const founders = [
-        { id: '100001-0426-01-AA', name: 'Stephen Soos', email: 'stephen@nodl.one', region: 'North America', status: 'active', crmRights: 'full', onboardingBypass: true, balance: 250000 },
-        { id: '100002-0426-02-AA', name: 'Eldesskar', email: 'eldesskar@protocol.nodl', region: 'Northern Europe', status: 'active', crmRights: 'none', onboardingBypass: true, balance: 125000 },
-        { id: '100003-0426-03-AA', name: 'Ava Chen', email: 'ava@nodl.one', region: 'Asia Pacific', status: 'active', crmRights: 'none', onboardingBypass: true, balance: 85000 },
-        { id: '100004-0426-04-AA', name: 'Marcus Thorne', email: 'marcus@nodl.one', region: 'Western Europe', status: 'active', crmRights: 'none', onboardingBypass: true, balance: 92000 },
-        { id: '100005-0426-05-AA', name: 'Yara Hassan', email: 'yara@nodl.one', region: 'Middle East', status: 'active', crmRights: 'none', onboardingBypass: true, balance: 77000 },
-        { id: '100006-0426-06-AA', name: 'Founder 06', email: 'f06@nodl.one', region: 'Global', status: 'dormant', crmRights: 'none', onboardingBypass: true, balance: 0 },
-        { id: '100007-0426-07-AA', name: 'Founder 07', email: 'f07@nodl.one', region: 'Global', status: 'dormant', crmRights: 'none', onboardingBypass: true, balance: 0 },
-        { id: '100008-0426-08-AA', name: 'Founder 08', email: 'f08@nodl.one', region: 'Global', status: 'dormant', crmRights: 'none', onboardingBypass: true, balance: 0 },
-        { id: '100009-0426-09-AA', name: 'Founder 09', email: 'f09@nodl.one', region: 'Global', status: 'dormant', crmRights: 'none', onboardingBypass: true, balance: 0 },
-        { id: '100010-0426-10-AA', name: 'Founder 10', email: 'f10@nodl.one', region: 'Global', status: 'dormant', crmRights: 'none', onboardingBypass: true, balance: 0 },
+        { id: '100001-0426-01-AA', name: 'Stephen Soos', email: 'stephen@nodl.one', region: 'North America', status: 'active', crmRights: 'full', onboardingBypass: true, balance: 250000, bio: 'Founder & CEO, Nodl Protocol', org: 'Nodl', nodeCount: 3, activeNodes: 3, peers: 12, mfa: true, perms: ['admin','finance','nodes','users','settings'] },
+        { id: '100002-0426-02-AA', name: 'Eldesskar', email: 'eldesskar@protocol.nodl', region: 'Northern Europe', status: 'active', crmRights: 'none', onboardingBypass: true, balance: 125000, bio: '', org: '', nodeCount: 0, activeNodes: 0, peers: 0, mfa: false, perms: ['nodes','finance'] },
+        { id: '100003-0426-03-AA', name: 'Ava Chen', email: 'ava@nodl.one', region: 'Asia Pacific', status: 'active', crmRights: 'none', onboardingBypass: true, balance: 85000, bio: 'Head of APAC Operations', org: 'Nodl APAC', nodeCount: 2, activeNodes: 2, peers: 8, mfa: true, perms: ['nodes'] },
+        { id: '100004-0426-04-AA', name: 'Marcus Thorne', email: 'marcus@nodl.one', region: 'Western Europe', status: 'active', crmRights: 'none', onboardingBypass: true, balance: 92000, bio: 'Infrastructure Lead', org: 'Nodl EU', nodeCount: 1, activeNodes: 1, peers: 5, mfa: false, perms: ['nodes'] },
+        { id: '100005-0426-05-AA', name: 'Yara Hassan', email: 'yara@nodl.one', region: 'Middle East', status: 'active', crmRights: 'none', onboardingBypass: true, balance: 77000, bio: 'Regional Coordinator', org: 'Nodl ME', nodeCount: 1, activeNodes: 1, peers: 3, mfa: false, perms: ['nodes'] },
+        { id: '100006-0426-06-AA', name: 'Founder 06', email: 'f06@nodl.one', region: 'Global', status: 'dormant', crmRights: 'none', onboardingBypass: true, balance: 0, bio: '', org: '', nodeCount: 0, activeNodes: 0, peers: 0, mfa: false, perms: [] },
+        { id: '100007-0426-07-AA', name: 'Founder 07', email: 'f07@nodl.one', region: 'Global', status: 'dormant', crmRights: 'none', onboardingBypass: true, balance: 0, bio: '', org: '', nodeCount: 0, activeNodes: 0, peers: 0, mfa: false, perms: [] },
+        { id: '100008-0426-08-AA', name: 'Founder 08', email: 'f08@nodl.one', region: 'Global', status: 'dormant', crmRights: 'none', onboardingBypass: true, balance: 0, bio: '', org: '', nodeCount: 0, activeNodes: 0, peers: 0, mfa: false, perms: [] },
+        { id: '100009-0426-09-AA', name: 'Founder 09', email: 'f09@nodl.one', region: 'Global', status: 'dormant', crmRights: 'none', onboardingBypass: true, balance: 0, bio: '', org: '', nodeCount: 0, activeNodes: 0, peers: 0, mfa: false, perms: [] },
+        { id: '100010-0426-10-AA', name: 'Founder 10', email: 'f10@nodl.one', region: 'Global', status: 'dormant', crmRights: 'none', onboardingBypass: true, balance: 0, bio: '', org: '', nodeCount: 0, activeNodes: 0, peers: 0, mfa: false, perms: [] },
     ];
 
     simulationState.nodlrs = founders.map((f, i) => ({
+        // Identity
         id: f.id,
         protocolId: f.id,
-        name: f.name,
         displayName: f.name,
+        name: f.name,
         email: f.email,
-        region: f.region,
-        status: f.status,
-        accountHealth: f.status === 'active' ? 'Optimal' : 'Dormant',
-        nodeCount: f.id === '100001-0426-01-AA' ? 3 : 0,
+        role: i === 0 ? 'owner' : 'manager',
+        netId: (i + 1).toString().padStart(2, '0'),
+        // Profile
+        avatarUrl: '',
+        bio: f.bio,
+        organization: f.org,
+        // Network / Node Info
+        nodeCount: f.nodeCount,
+        activeNodes: f.activeNodes,
+        nodeStatusSummary: f.status === 'active' ? `${f.activeNodes} active, ${f.nodeCount - f.activeNodes} offline` : 'No nodes registered',
+        networkArchitecture: 'Mesh v2',
+        connectedPeers: f.peers,
+        lastSeen: new Date().toISOString(),
+        // Protocol / Registry
+        registryEntryId: `REG-${(i + 1).toString().padStart(3, '0')}`,
+        registryStatus: f.status === 'active' ? 'verified' : 'inactive',
+        protocolVersion: '1.2.0',
+        protocolCapabilities: f.status === 'active' ? ['compute', 'storage', 'relay'] : [],
+        // Financial / Yield
         accruedFounderBalance: f.balance,
-        stability: f.status === 'active' ? 100.0 : 0.0,
-        stripeVerification: 'verified',
+        pendingPayouts: Math.round(f.balance * 0.05),
+        lifetimeEarnings: f.balance * 5,
+        commissionRate: i === 0 ? 0.03 : 0.02,
+        payoutStatus: f.status === 'active' ? 'active' : 'pending',
+        payoutFrequency: 'daily',
+        stripeVerification: f.status === 'active' ? 'verified' : 'pending',
+        // Security / Auth
+        mfaEnabled: f.mfa,
+        lastLogin: new Date().toISOString(),
+        sessionStatus: f.status === 'active' ? 'active' : 'inactive',
+        permissions: f.perms,
+        // Telemetry / Health
+        integrityScore: f.status === 'active' ? 950 + i * 5 : 0,
+        apiLatency: f.status === 'active' ? 10 + i * 3 : 0,
+        syncStatus: f.status === 'active' ? 'synced' : 'disconnected',
+        storageMode: 'redis',
+        errorCount: 0,
+        recentEvents: f.status === 'active' ? [
+            { ts: new Date().toISOString(), type: 'heartbeat', msg: 'Peer signature verified' },
+            { ts: new Date().toISOString(), type: 'sync', msg: 'Registry synced' },
+        ] : [],
+        // Founder / Affiliate
         isFounder: true,
         founderNetworkId: (i + 1).toString().padStart(2, '0'),
         nodlSequence: 1000000 + i,
-        role: i === 0 ? 'owner' : 'manager',
         crmRights: f.crmRights,
         onboardingBypass: f.onboardingBypass,
+        region: f.region,
+        status: f.status,
+        accountHealth: f.status === 'active' ? 'Optimal' : 'Dormant',
+        stability: f.status === 'active' ? 100.0 : 0.0,
+        // Metadata
         createdAt: new Date(2025, 0, 15 + i).toISOString(),
+        updatedAt: new Date().toISOString(),
+        source: 'simulation',
         metadata: { region: f.region, tier: 'FOUNDER' },
         contactInfo: { phone: f.id === '100001-0426-01-AA' ? '+1-555-0101' : 'N/A', telegram: `@${f.name.toLowerCase().replace(' ', '')}` }
     }));

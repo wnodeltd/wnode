@@ -212,130 +212,124 @@ export default function ProvidersPage() {
             <DetailPanel
                 isOpen={!!selectedProvider}
                 onClose={() => setSelectedProvider(null)}
-                title="Nodl’r Account Details"
-                subtitle={`Account ID: ${selectedProvider?.id}`}
+                title="Nodl'r Account Details"
+                subtitle={`Protocol ID: ${providerDetails?.protocolId || selectedProvider?.protocolId || selectedProvider?.id}`}
                 footer={
-                    <div className="flex items-center gap-3">
-                        <button disabled className="flex-1 py-3 bg-red-400/5 border border-red-400/10 rounded-[5px] text-[13px] text-red-400/30 cursor-not-allowed flex items-center justify-center gap-2 font-normal">
-                            <ShieldAlert className="w-4 h-4" />
-                            Suspend (N/A)
+                    <div className="grid grid-cols-3 gap-2">
+                        <button className="py-2 px-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-[3px] text-[10px] text-white font-bold uppercase tracking-widest transition-all">
+                            Edit Profile
                         </button>
-                        <button disabled className="flex-[2] py-3 bg-[#22D3EE]/10 border border-[#22D3EE]/20 text-[#22D3EE]/40 rounded-[5px] text-[13px] font-medium cursor-not-allowed flex items-center justify-center gap-2">
-                            <ShieldCheck className="w-4 h-4" />
-                            Authorize (N/A)
+                        <button className="py-2 px-3 bg-[#22D3EE]/10 hover:bg-[#22D3EE]/20 border border-[#22D3EE]/20 rounded-[3px] text-[10px] text-[#22D3EE] font-bold uppercase tracking-widest transition-all">
+                            Export Data
+                        </button>
+                        <button className="py-2 px-3 bg-red-400/5 hover:bg-red-400/10 border border-red-400/10 rounded-[3px] text-[10px] text-red-400 font-bold uppercase tracking-widest transition-all">
+                            Suspend
                         </button>
                     </div>
                 }
             >
                 {providerDetails ? (
-                    <div className="space-y-12">
-                        <section className="space-y-12">
-                            <h4 className="text-[17px] font-medium text-slate-200 uppercase tracking-widest flex items-center gap-2">
-                                <User className="w-4 h-4 text-[#22D3EE] relative top-[1px]" />
-                                Account Details
-                            </h4>
-                            <div className="grid grid-cols-1 gap-4">
-                                <div className="p-5 bg-white/5 border border-white/10 rounded-[5px] flex items-center justify-between gap-4">
-                                    <span className="text-[14px] text-slate-300 uppercase tracking-widest flex items-center gap-2">
-                                        <Mail className="w-3.5 h-3.5" /> Email Identity
-                                    </span>
-                                    <span className="text-[14px] text-white font-normal">{providerDetails.email}</span>
-                                </div>
-                                <div className="p-5 bg-white/5 border border-white/10 rounded-[5px] flex items-center justify-between">
-                                    <span className="text-[12px] text-slate-300 uppercase tracking-widest">Name</span>
-                                    <span className="text-[14px] text-white font-normal">
-                                        {providerDetails?.email?.split('@')[0] ?? 'Unknown'}
-                                    </span>
-                                </div>
-                                <div className="p-5 bg-white/5 border border-white/10 rounded-[5px] flex items-center justify-between">
-                                    <span className="text-[12px] text-slate-300 uppercase tracking-widest">Role</span>
-                                    <span className="text-[14px] text-white font-normal">{providerDetails.role}</span>
-                                </div>
-                                <div className="p-5 bg-white/5 border border-white/10 rounded-[5px] flex items-center justify-between">
-                                    <span className="text-[12px] text-slate-500 uppercase tracking-widest">Account Created</span>
-                                    <span className="text-[14px] text-white font-normal">
-                                        {providerDetails.createdAt ? new Date(providerDetails.createdAt).toLocaleDateString() : 'N/A'}
-                                    </span>
-                                </div>
-                                <div className="p-5 bg-white/5 border border-white/10 rounded-[5px] flex items-center justify-between">
-                                    <span className="text-[12px] text-slate-300 uppercase tracking-widest">Account ID</span>
-                                    <span className="text-[14px] text-white font-mono">
-                                        {providerDetails.id}
-                                    </span>
-                                </div>
-                            </div>
-                        </section>
+                    <div className="space-y-8">
+                        {/* ── Identity ────────────────────────────────── */}
+                        <Section icon={<User className="w-4 h-4 text-[#22D3EE]" />} title="Identity">
+                            <Field label="Display Name" value={providerDetails.displayName} />
+                            <Field label="Email" value={providerDetails.email} mono />
+                            <Field label="Role" value={providerDetails.role} tag />
+                            <Field label="Protocol ID" value={providerDetails.protocolId} mono cyan />
+                            <Field label="Net ID" value={providerDetails.netId} mono />
+                            <Field label="User ID" value={providerDetails.id} mono />
+                        </Section>
 
-                        <section className="space-y-5">
-                            <div className="flex items-center gap-2">
-                                <ShieldCheck className="w-4 h-4 text-[#22D3EE] relative top-[1px]" />
-                                <h4 className="text-[17px] font-medium text-slate-200 uppercase tracking-widest">
-                                    Verification Methods
-                                </h4>
-                            </div>
-                            <div className="grid grid-cols-2 gap-3">
-                                <div className="p-5 bg-white/5 border border-white/10 rounded-[5px]">
-                                    <span className="text-[12px] text-slate-300 uppercase tracking-widest">Stripe Status</span>
-                                    <div className="text-[14px] text-green-400 font-normal capitalize">
-                                        {providerDetails.stripeVerification}
-                                    </div>
-                                </div>
-                                <div className="p-5 bg-white/5 border border-white/10 rounded-[5px]">
-                                    <span className="text-[12px] text-slate-300 uppercase tracking-widest">Operational Verification</span>
-                                    <div className="text-[14px] text-white font-normal">
-                                        Node Count: {providerDetails.fleetSummary?.length || 0}  
-                                    </div>
-                                </div>
-                            </div>
-                        </section>
+                        {/* ── Profile ─────────────────────────────────── */}
+                        <Section icon={<Users className="w-4 h-4 text-[#22D3EE]" />} title="Profile">
+                            <Field label="Bio / Title" value={providerDetails.bio || '—'} />
+                            <Field label="Organization" value={providerDetails.organization || '—'} />
+                            <Field label="Region" value={providerDetails.region} />
+                        </Section>
 
-                        <section className="space-y-12">
-                            <h4 className="text-[17px] font-medium text-slate-200 uppercase tracking-widest flex items-center gap-2">
-                                <HardDrive className="w-4 h-4 text-[#22D3EE] relative top-[1px]" />
-                                Nodl Fleet Overview
-                            </h4>
-                            <div className="grid grid-cols-2 gap-3">
-                                <div className="p-5 bg-white/5 border border-white/10 rounded-[5px]">
-                                    <span className="text-[12px] text-slate-500 uppercase tracking-widest">Total Nodls</span>
-                                    <div className="text-[18px] font-mono text-white">{providerDetails.fleetSummary?.length || 0}</div>
-                                </div>
-                                <div className="p-5 bg-white/5 border border-white/10 rounded-[5px]">
-                                    <span className="text-[12px] text-slate-500 uppercase tracking-widest">Active Nodls</span>
-                                    <div className="text-[18px] font-mono text-green-400">{providerDetails.fleetSummary?.length || 0}</div>
-                                </div>
+                        {/* ── Network / Node Info ─────────────────────── */}
+                        <Section icon={<Server className="w-4 h-4 text-[#22D3EE]" />} title="Network / Node Info">
+                            <div className="grid grid-cols-3 gap-3 mb-3">
+                                <StatBlock label="Total Nodes" value={providerDetails.nodeCount} />
+                                <StatBlock label="Active" value={providerDetails.activeNodes} color="text-green-400" />
+                                <StatBlock label="Peers" value={providerDetails.connectedPeers} color="text-[#22D3EE]" />
                             </div>
-                            <div className="space-y-4">
-                                {providerDetails.fleetSummary?.map((node: any) => (
-                                    <div key={node.id} className="p-4 bg-white/5 border border-white/10 rounded-[3px] flex justify-between items-center text-[11px]">
-                                        <div className="flex flex-col">
-                                            <span className="text-white font-mono">{node.id}</span>
-                                            <span className="text-slate-500 uppercase tracking-widest">{node.tier}</span>
+                            <Field label="Node Status" value={providerDetails.nodeStatusSummary} />
+                            <Field label="Architecture" value={providerDetails.networkArchitecture} />
+                            <Field label="Last Seen" value={providerDetails.lastSeen ? new Date(providerDetails.lastSeen).toLocaleString() : '—'} mono />
+                        </Section>
+
+                        {/* ── Protocol / Registry ────────────────────── */}
+                        <Section icon={<Shield className="w-4 h-4 text-[#22D3EE]" />} title="Protocol / Registry">
+                            <Field label="Registry Entry ID" value={providerDetails.registryEntryId} mono />
+                            <Field label="Registry Status" value={providerDetails.registryStatus} tag />
+                            <Field label="Protocol Version" value={providerDetails.protocolVersion} mono />
+                            <Field label="Capabilities" value={providerDetails.protocolCapabilities?.join(', ') || '—'} />
+                        </Section>
+
+                        {/* ── Financial / Yield ───────────────────────── */}
+                        <Section icon={<DollarSign className="w-4 h-4 text-green-400" />} title="Financial / Yield">
+                            <div className="bg-[#22D3EE]/5 border border-[#22D3EE]/20 p-4 rounded-[5px] mb-3">
+                                <span className="text-[9px] text-slate-400 uppercase tracking-widest block mb-1">Current Balance</span>
+                                <span className="text-[24px] font-mono text-white">${((providerDetails.accruedFounderBalance || 0) / 100).toLocaleString(undefined, { minimumFractionDigits: 2 })}</span>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3 mb-3">
+                                <StatBlock label="Pending" value={`$${((providerDetails.pendingPayouts || 0) / 100).toLocaleString()}`} color="text-yellow-400" />
+                                <StatBlock label="Lifetime" value={`$${((providerDetails.lifetimeEarnings || 0) / 100).toLocaleString()}`} color="text-green-400" />
+                            </div>
+                            <Field label="Commission Rate" value={providerDetails.commissionRate ? `${(providerDetails.commissionRate * 100).toFixed(1)}%` : '—'} />
+                            <Field label="Payout Frequency" value={providerDetails.payoutFrequency} />
+                            <Field label="Stripe Status" value={providerDetails.stripeVerification} tag />
+                            {providerDetails.recentPayouts?.length > 0 && (
+                                <div className="mt-2">
+                                    <span className="text-[10px] text-slate-500 uppercase tracking-widest block mb-2">Recent Payouts</span>
+                                    {providerDetails.recentPayouts.map((p: any) => (
+                                        <div key={p.id} className="flex justify-between items-center py-1.5 border-b border-white/5 text-[11px]">
+                                            <span className="text-slate-400 font-mono">{p.id}</span>
+                                            <span className="text-white font-mono">${(p.amount / 100).toLocaleString()}</span>
+                                            <span className="text-slate-500 font-mono">{new Date(p.date).toLocaleDateString()}</span>
                                         </div>
-                                        <span className="text-[#22D3EE] font-mono uppercase tracking-widest">{node.status}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </section>
+                                    ))}
+                                </div>
+                            )}
+                        </Section>
 
-                        <section className="space-y-5">
-                            <div className="flex items-center gap-2">
-                                <Users className="w-4 h-4 text-[#22D3EE] relative top-[1px]" />
-                                <h4 className="text-[17px] font-medium text-slate-200 uppercase tracking-widest">
-                                    Affiliate Network
-                                </h4>
+                        {/* ── Security / Auth ────────────────────────── */}
+                        <Section icon={<Lock className="w-4 h-4 text-[#22D3EE]" />} title="Security / Auth">
+                            <Field label="MFA Enabled" value={providerDetails.mfaEnabled ? '✓ Enabled' : '✗ Disabled'} tag={providerDetails.mfaEnabled} />
+                            <Field label="Last Login" value={providerDetails.lastLogin ? new Date(providerDetails.lastLogin).toLocaleString() : '—'} mono />
+                            <Field label="Session Status" value={providerDetails.sessionStatus} tag />
+                            <Field label="Permissions" value={providerDetails.permissions?.join(', ') || '—'} />
+                        </Section>
+
+                        {/* ── Telemetry / Health ─────────────────────── */}
+                        <Section icon={<Zap className="w-4 h-4 text-[#22D3EE]" />} title="Telemetry / Health">
+                            <div className="grid grid-cols-3 gap-3 mb-3">
+                                <StatBlock label="Latency" value={`${providerDetails.apiLatency || 0}ms`} color="text-[#22D3EE]" />
+                                <StatBlock label="Integrity" value={`${providerDetails.integrityScore || 0}`} color="text-white" />
+                                <StatBlock label="Errors" value={providerDetails.errorCount || 0} color={providerDetails.errorCount > 0 ? 'text-red-400' : 'text-green-400'} />
                             </div>
-                            <div className="space-y-3">
-                                {providerDetails.affiliateTree?.map((member: any) => (
-                                    <div key={member.id} className="p-4 bg-white/5 border border-white/10 rounded-[3px] flex justify-between items-center text-[11px]">
-                                        <span className="text-white font-mono">{member.id}</span>
-                                        <span className="px-2 py-0.5 rounded-[2px] bg-white/10 text-slate-400 uppercase tracking-widest">L{member.level}</span>
-                                    </div>
-                                ))}
-                                {(!providerDetails.affiliateTree || providerDetails.affiliateTree.length === 0) && (
-                                    <p className="text-[12px] text-slate-500 italic">No affiliate network discovered for this user.</p>
-                                )}
-                            </div>
-                        </section>
+                            <Field label="Sync Status" value={providerDetails.syncStatus} tag />
+                            <Field label="Storage Mode" value={providerDetails.storageMode} />
+                            {providerDetails.recentEvents?.length > 0 && (
+                                <div className="mt-2">
+                                    <span className="text-[10px] text-slate-500 uppercase tracking-widest block mb-2">Recent Events</span>
+                                    {providerDetails.recentEvents.map((e: any, i: number) => (
+                                        <div key={i} className="flex items-center gap-2 py-1 text-[10px] font-mono text-slate-500">
+                                            <span className="text-[#22D3EE]/40">[{e.type}]</span>
+                                            <span>{e.msg}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </Section>
+
+                        {/* ── Metadata ────────────────────────────────── */}
+                        <Section icon={<BarChart3 className="w-4 h-4 text-slate-500" />} title="Metadata">
+                            <Field label="Created At" value={providerDetails.createdAt ? new Date(providerDetails.createdAt).toLocaleString() : '—'} mono />
+                            <Field label="Updated At" value={providerDetails.updatedAt ? new Date(providerDetails.updatedAt).toLocaleString() : '—'} mono />
+                            <Field label="Source" value={providerDetails.source} tag />
+                        </Section>
                     </div>
                 ) : selectedProvider ? (
                     <div className="flex items-center justify-center py-40">
@@ -344,5 +338,45 @@ export default function ProvidersPage() {
                 ) : null}
             </DetailPanel>
         </>
+    );
+}
+
+// ── Helper Components ────────────────────────────────────────────────────────
+
+function Section({ icon, title, children }: { icon: React.ReactNode; title: string; children: React.ReactNode }) {
+    return (
+        <section className="space-y-3">
+            <div className="flex items-center gap-2 border-b border-white/5 pb-2">
+                {icon}
+                <h4 className="text-[11px] font-bold text-slate-300 uppercase tracking-widest">{title}</h4>
+            </div>
+            <div className="space-y-0">{children}</div>
+        </section>
+    );
+}
+
+function Field({ label, value, mono, cyan, tag }: { label: string; value: any; mono?: boolean; cyan?: boolean; tag?: boolean }) {
+    return (
+        <div className="flex justify-between items-center py-2 border-b border-white/[0.03] hover:bg-white/[0.01] px-1 transition-all">
+            <span className="text-[11px] text-slate-500 uppercase tracking-wider">{label}</span>
+            {tag ? (
+                <span className="text-[10px] px-2 py-0.5 rounded-[2px] bg-[#22D3EE]/10 text-[#22D3EE] border border-[#22D3EE]/20 uppercase tracking-widest font-bold">
+                    {String(value)}
+                </span>
+            ) : (
+                <span className={`text-[12px] ${cyan ? 'text-[#22D3EE]' : 'text-white'} ${mono ? 'font-mono tracking-tighter' : ''} max-w-[200px] text-right truncate`}>
+                    {String(value ?? '—')}
+                </span>
+            )}
+        </div>
+    );
+}
+
+function StatBlock({ label, value, color = 'text-white' }: { label: string; value: any; color?: string }) {
+    return (
+        <div className="bg-white/[0.03] border border-white/5 p-3 rounded-[5px] text-center">
+            <span className={`text-[16px] font-mono ${color} block`}>{value}</span>
+            <span className="text-[8px] text-slate-500 uppercase tracking-widest">{label}</span>
+        </div>
     );
 }

@@ -124,16 +124,56 @@ func main() {
 	
 	ownerHash, _ := api.HashPassword("command")
 	owner := &account.Nodlr{
-		ID:              ownerID,
-		Email:           "stephen@nodl.one",
-		PasswordHash:    ownerHash,
-		Role:            account.RoleOwner,
-		PayoutFrequency: account.PayoutDaily,
-		PayoutStatus:    account.PayoutStatusActive,
-		StripeConnectID: "acct_1test",
-		IsFounder:       true,
-		FounderIndex:    1,
-		CreatedAt:       time.Now(),
+		// Identity
+		ID:          ownerID,
+		DisplayName: "Stephen Soos",
+		Email:       "stephen@nodl.one",
+		Role:        account.RoleOwner,
+		ProtocolID:  "100001-0426-01-AA",
+		NetID:       "01",
+		// Profile
+		AvatarURL:    "",
+		Bio:          "Founder & CEO, Nodl Protocol",
+		Organization: "Nodl",
+		// Network
+		NodeCount:           3,
+		ActiveNodes:         3,
+		NodeStatusSummary:   "3 active, 0 offline",
+		NetworkArchitecture: "Mesh v2",
+		ConnectedPeers:      12,
+		LastSeen:            time.Now(),
+		// Registry
+		RegistryEntryID:      "REG-001",
+		RegistryStatus:       "verified",
+		ProtocolVersion:      "1.2.0",
+		ProtocolCapabilities: []string{"compute", "storage", "relay", "governance"},
+		// Financial
+		AccruedFounderBalance: 250000,
+		PendingPayouts:        12500,
+		LifetimeEarnings:      1250000,
+		CommissionRate:        0.03,
+		PayoutStatus:          account.PayoutStatusActive,
+		PayoutFrequency:       account.PayoutDaily,
+		StripeConnectID:       "acct_1test",
+		// Security
+		PasswordHash:  ownerHash,
+		MFAEnabled:    true,
+		LastLogin:     time.Now(),
+		SessionStatus: "active",
+		Permissions:   []string{"admin", "finance", "nodes", "users", "settings"},
+		// Telemetry
+		IntegrityScore: 980,
+		APILatency:     12,
+		SyncStatus:     "synced",
+		StorageMode:    "redis",
+		ErrorCount:     0,
+		// Founder
+		IsFounder:    true,
+		FounderIndex: 1,
+		// Metadata
+		CreatedAt: time.Date(2025, 1, 15, 0, 0, 0, 0, time.UTC),
+		UpdatedAt: time.Now(),
+		Source:    "registry",
 	}
 	accountStore.AddNodlr(owner)
 
@@ -142,16 +182,56 @@ func main() {
 	accountStore.SetFounder(2, eldesskarID)
 	eldesskarHash, _ := api.HashPassword("command")
 	eldesskar := &account.Nodlr{
-		ID:              eldesskarID,
-		Email:           "eldesskar@protocol.nodl",
-		PasswordHash:    eldesskarHash,
-		Role:            account.RoleManager,
-		PayoutFrequency: account.PayoutDaily,
-		PayoutStatus:    account.PayoutStatusActive,
-		StripeConnectID: "acct_2test",
-		IsFounder:       true,
-		FounderIndex:    2,
-		CreatedAt:       time.Now(),
+		// Identity
+		ID:          eldesskarID,
+		DisplayName: "Eldesskar",
+		Email:       "eldesskar@protocol.nodl",
+		Role:        account.RoleManager,
+		ProtocolID:  "100002-0426-02-AA",
+		NetID:       "02",
+		// Profile
+		AvatarURL:    "",
+		Bio:          "",
+		Organization: "",
+		// Network
+		NodeCount:           0,
+		ActiveNodes:         0,
+		NodeStatusSummary:   "No nodes registered",
+		NetworkArchitecture: "Mesh v2",
+		ConnectedPeers:      0,
+		LastSeen:            time.Now(),
+		// Registry
+		RegistryEntryID:      "REG-002",
+		RegistryStatus:       "verified",
+		ProtocolVersion:      "1.2.0",
+		ProtocolCapabilities: []string{"compute", "storage"},
+		// Financial
+		AccruedFounderBalance: 125000,
+		PendingPayouts:        6250,
+		LifetimeEarnings:      625000,
+		CommissionRate:        0.02,
+		PayoutStatus:          account.PayoutStatusActive,
+		PayoutFrequency:       account.PayoutDaily,
+		StripeConnectID:       "acct_2test",
+		// Security
+		PasswordHash:  eldesskarHash,
+		MFAEnabled:    false,
+		LastLogin:     time.Now(),
+		SessionStatus: "active",
+		Permissions:   []string{"nodes", "finance"},
+		// Telemetry
+		IntegrityScore: 950,
+		APILatency:     18,
+		SyncStatus:     "synced",
+		StorageMode:    "redis",
+		ErrorCount:     0,
+		// Founder
+		IsFounder:    true,
+		FounderIndex: 2,
+		// Metadata
+		CreatedAt: time.Date(2025, 1, 16, 0, 0, 0, 0, time.UTC),
+		UpdatedAt: time.Now(),
+		Source:    "registry",
 	}
 	accountStore.AddNodlr(eldesskar)
 
