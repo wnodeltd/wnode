@@ -128,12 +128,12 @@ export default function BillingPage() {
                         <span className=" text-[10px] uppercase font-bold text-slate-500 tracking-widest">Auto Top-up Status</span>
                         <button 
                             onClick={() => setAutoTopUp(!autoTopUp)}
-                            className={`w-12 h-6 rounded-full p-1 relative transition-all duration-300 border-2 ${autoTopUp ? 'bg-mesh-emerald/20 border-mesh-emerald/50' : 'bg-white/5 border-white/10'}`}
+                            className={`w-12 h-6 rounded-full p-1 relative transition-all duration-300 border-2 ${autoTopUp ? 'bg-blue-500 border-blue-500' : 'bg-slate-600 border-slate-500'}`}
                         >
                             <motion.div 
                                 animate={{ x: autoTopUp ? 24 : 0 }}
                                 transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                                className={`w-4 h-4 rounded-full shadow-lg ${autoTopUp ? 'bg-white' : 'bg-slate-700'}`}
+                                className={`w-4 h-4 rounded-full shadow-lg ${autoTopUp ? 'bg-white' : 'bg-slate-200'}`}
                             />
                         </button>
                     </div>

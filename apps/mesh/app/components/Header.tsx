@@ -68,8 +68,8 @@ export function Header() {
 
                 <div className="flex items-center gap-3">
                     <div className="flex flex-col items-end">
-                        <span className="text-[11px] font-bold text-white tracking-tight">{profile?.full_name || 'Stephen O\'Regan'}</span>
-                        <span className="text-[9px] text-slate-500 tracking-widest font-normal leading-none mt-0.5">Acc# {profile?.id || '0xFD-99-C2'}</span>
+                        <span className="text-[11px] font-bold text-white tracking-tight">{profile?.full_name || 'Stephen Soos'}</span>
+                        <span className="text-[9px] text-slate-500 tracking-widest font-normal leading-none mt-0.5">Acc# {profile?.id || '100001-0426-01-AA'}</span>
                     </div>
                     <div className="w-10 h-10 rounded-full border border-white/10 bg-white/5 flex items-center justify-center overflow-hidden">
                         <img 
