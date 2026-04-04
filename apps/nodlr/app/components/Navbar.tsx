@@ -27,10 +27,10 @@ export default function Navbar() {
             <div className="flex items-center gap-6">
                 <div className="flex flex-col items-end">
                     <span className="text-[10px] text-slate-500 uppercase font-normal tracking-widest">Active session</span>
-                    <span className="text-16px text-white font-normal tracking-tight">ACC_#4492-X</span>
+                    <span className="text-16px text-white font-normal tracking-tight font-mono">100001-0426-01-AA</span>
                 </div>
                 <div className="w-10 h-10 border border-white/10 flex items-center justify-center text-[11px] text-white font-normal uppercase tracking-widest">
-                    JD
+                    SS
                 </div>
             </div>
 

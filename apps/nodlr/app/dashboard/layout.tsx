@@ -99,10 +99,10 @@ export default function DashboardLayout({
                             className="hidden" 
                         />
                         <div className="flex flex-col items-end mr-6">
-                            <span className="text-16px text-white font-bold tracking-tight">ACC_#4492-X</span>
+                            <span className="text-16px text-white font-bold tracking-tight font-mono">100001-0426-01-AA</span>
                         </div>
                         <div className="flex flex-col items-end">
-                            <span className="text-16px font-bold text-white tracking-tight">Stephen Nodl</span>
+                            <span className="text-16px font-bold text-white tracking-tight">Stephen Soos</span>
                             <button 
                                 onClick={handlePhotoClick}
                                 className="text-[10px] text-cyber-cyan hover:underline font-bold tracking-widest  mt-0.5"
@@ -116,7 +116,7 @@ export default function DashboardLayout({
                             {avatar ? (
                                 <img src={avatar} alt="avatar" className="w-full h-full object-cover" />
                             ) : (
-                                "SN"
+                                "SS"
                             )}
                         </div>
                     </div>
