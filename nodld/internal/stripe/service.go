@@ -22,22 +22,22 @@ import (
 
 // Service wraps Stripe API calls with Nodl-specific business logic.
 type Service struct {
-	secretKey      string
-	webhookSecret  string
-	platformAcct   string
-	accountStore   *internalAccount.Store
-	log            *zap.Logger
+	secretKey     string
+	webhookSecret string
+	platformAcct  string
+	accountStore  *internalAccount.Store
+	ledgerStore   *PostgresLedger // New PostgreSQL Ledger logic
+	log           *zap.Logger
 }
 
-// NewService creates a configured Stripe service.
-// Stripe SDK is global, so we set the key here.
-func NewService(secretKey, webhookSecret, platformAcct string, accountStore *internalAccount.Store, log *zap.Logger) *Service {
+func NewService(secretKey, webhookSecret, platformAcct string, accountStore *internalAccount.Store, ledgerStore *PostgresLedger, log *zap.Logger) *Service {
 	stripe.Key = secretKey
 	return &Service{
 		secretKey:     secretKey,
 		webhookSecret: webhookSecret,
 		platformAcct:  platformAcct,
 		accountStore:  accountStore,
+		ledgerStore:   ledgerStore,
 		log:           log,
 	}
 }
@@ -309,13 +309,25 @@ func (s *Service) handleWebhook(c *fiber.Ctx) error {
 		if err := json.Unmarshal(event.Data.Raw, &pi); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "parse error"})
 		}
-		jobID := pi.Metadata["jobID"]
-		s.log.Info("payment succeeded — funds in escrow",
+		
+		nodlrID := pi.Metadata["nodlrID"] // Ensure the frontend sends this
+		if nodlrID == "" {
+			s.log.Warn("payment intent missing nodlrID metadata", zap.String("piID", pi.ID))
+		}
+
+		s.log.Info("payment succeeded — materializing ledger allocations",
 			zap.String("piID", pi.ID),
-			zap.String("jobID", jobID),
+			zap.String("nodlrID", nodlrID),
 			zap.Int64("amount", pi.Amount),
 		)
-		// TODO(Phase 2): trigger job dispatch after payment confirmation
+
+		if s.ledgerStore != nil && nodlrID != "" {
+			err := s.ledgerStore.MaterializePayment(pi.ID, nodlrID, pi.Amount)
+			if err != nil {
+				s.log.Error("failed to materialize payment intent safely", zap.Error(err), zap.String("pi", pi.ID))
+				return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "ledger materialization failed"})
+			}
+		}
 
 	case "transfer.created":
 		s.log.Info("transfer confirmed — Nodlr paid")
