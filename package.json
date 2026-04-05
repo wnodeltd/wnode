@@ -1,15 +1,16 @@
 {
     "name": "nodl-root",
     "version": "1.0.0",
-  "private": true,
-  "workspaces": [
-    "apps/*"
-  ],
-  "scripts": {
+    "private": true,
+    "workspaces": [
+        "apps/*"
+    ],
+    "scripts": {
         "dev:all": "concurrently -n \"BACKEND,NODLR,MESH,COMMAND,WEB\" -c \"bgBlue,bgGreen,bgMagenta,bgCyan,bgBlack\" \"cd nodld && go run cmd/nodld/main.go\" \"cd apps/nodlr && npm run dev\" \"cd apps/mesh && npm run dev\" \"cd apps/command && npm run dev\" \"cd apps/web && npm run dev\"",
         "start:all": "./scripts/start-all.sh"
     },
     "devDependencies": {
+        "@playwright/test": "^1.59.1",
         "concurrently": "^8.2.2"
     }
 }
