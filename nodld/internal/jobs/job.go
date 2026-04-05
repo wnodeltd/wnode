@@ -140,12 +140,7 @@ func (d *Dispatcher) Submit(ctx context.Context, wasm []byte, budget float64, ta
 	}
 
 	d.store.Add(job)
-	d.log.Info("job submitted", zap.String("jobID", job.ID), zap.Float64("budget", budget))
-
-	// Transition to active immediately (local execution stub)
-	if err := d.store.UpdateStatus(job.ID, StatusActive); err != nil {
-		return nil, err
-	}
+	d.log.Info("job submitted, awaiting payment confirmation to dispatch", zap.String("jobID", job.ID), zap.Float64("budget", budget))
 
 	return job, nil
 }

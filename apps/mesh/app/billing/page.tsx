@@ -16,13 +16,33 @@ export default function BillingPage() {
     const [isCheckoutLoading, setIsCheckoutLoading] = useState(false);
     const [selectedInvoice, setSelectedInvoice] = useState<string | null>(null);
 
-    const handleStripePortal = () => {
+    const handleAddCredits = async () => {
         setIsCheckoutLoading(true);
-        // Simulate redirecting to Stripe Billing Portal
-        setTimeout(() => {
-            window.open('https://billing.stripe.com/p/session/test_mock_session', '_blank');
+        try {
+            const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8080';
+            const res = await fetch(`${apiBase}/api/v1/stripe/payment/create`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    amountCents: Math.round(autoTopUpAmount * 100),
+                    jobID: 'mesh_reload_' + Date.now()
+                })
+            });
+            const data = await res.json();
+            if (data.clientSecret) {
+                alert(`PaymentIntent Created successfully!\nReady for Stripe Elements with Client-Secret:\n${data.clientSecret.substring(0,35)}...\n\nSwitch to Stripe Dashboard to simulate payment.`);
+            } else {
+                alert(`Error: ${data.error || 'Failed to create intent'}`);
+            }
+        } catch (err) {
+            console.error(err);
+        } finally {
             setIsCheckoutLoading(false);
-        }, 1000);
+        }
+    };
+
+    const handleStripePortal = () => {
+        window.open('https://dashboard.stripe.com/test/payments', '_blank');
     };
 
     const [autoTopUp, setAutoTopUp] = useState(true);
@@ -81,7 +101,7 @@ export default function BillingPage() {
                 </div>
                 <div className="flex gap-4">
                     <button 
-                        onClick={handleStripePortal}
+                        onClick={handleAddCredits}
                         disabled={isCheckoutLoading}
                         className="flex items-center gap-3 bg-mesh-emerald hover:bg-mesh-emerald/80 text-black px-6 py-4 font-bold text-xs tracking-widest transition-all shadow-lg shadow-mesh-emerald/10 disabled:opacity-50 rounded-[4px]"
                     >

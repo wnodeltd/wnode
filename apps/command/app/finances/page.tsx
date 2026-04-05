@@ -50,12 +50,24 @@ export default function FinancesPage() {
 
     const handleOnboard = async () => {
         try {
-            const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://api.nodl.one';
+            const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8080';
+            
+            let connectId = account?.stripeConnectId;
+            if (!connectId) {
+                const resAcct = await fetch(`${apiBase}/api/v1/stripe/connect/account`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: account?.email || 'admin@nodl.one' })
+                });
+                const dataAcct = await resAcct.json();
+                connectId = dataAcct.accountID;
+            }
+
             const res = await fetch(`${apiBase}/api/v1/stripe/connect/onboard`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
-                    accountID: account?.stripeConnectId || "",
+                    accountID: connectId,
                     returnURL: window.location.href,
                     refreshURL: window.location.href
                 })

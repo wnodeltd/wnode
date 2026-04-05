@@ -6,7 +6,7 @@ const inter = Inter({ subsets: ["latin"], variable: "--" });
 const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--" });
 
 export const metadata: Metadata = {
-    title: "Nodl — Harvesting the Idle",
+    title: "Wnode — Harvesting the Idle",
     description: "A global, decentralized compute marketplace designed to democratize access to processing power.",
 };
 

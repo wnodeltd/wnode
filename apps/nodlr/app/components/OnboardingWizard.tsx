@@ -31,7 +31,7 @@ export default function OnboardingWizard() {
             const res = await fetch(`${apiBase}/api/v1/stripe/connect/account`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: 'nodlr@example.com' }) // In real app, get from auth
+                body: JSON.stringify({ email: 'stephen@nodl.one' }) // Seeded account
             });
             const { accountID } = await res.json();
 

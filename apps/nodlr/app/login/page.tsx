@@ -49,7 +49,7 @@ export default function LoginPage() {
                 <div className="flex flex-col items-center mb-10">
                     <img
                         src="https://nodl.one/wp-content/uploads/2025/05/nodl-medium.webp"
-                        alt="Nodl"
+                        alt="Wnode"
                         className="w-48 h-auto mb-2"
                         style={{ filter: 'drop-shadow(0 0 15px rgba(147, 51, 234, 0.3))' }}
                     />
@@ -59,7 +59,7 @@ export default function LoginPage() {
                 <div className="bg-[#1a1a1b] border border-white/5 rounded-[5px] p-10 shadow-2xl">
                     <div className="text-center mb-8">
                         <h1 className="text-4xl font-bold text-white mb-2 tracking-tight">
-                            nodl dashboard
+                            wnode dashboard
                         </h1>
                     </div>
 
@@ -164,7 +164,7 @@ export default function LoginPage() {
                         target="_blank"
                         className="text-white hover:text-slate-200 text-[10px]  uppercase tracking-[0.2em] transition-colors"
                     >
-                        go to nodl.one
+                        go to wnode.io
                     </a>
                 </div>
             </motion.div>

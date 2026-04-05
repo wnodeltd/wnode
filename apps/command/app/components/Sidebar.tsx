@@ -43,9 +43,9 @@ export default function Sidebar() {
             <div className="pt-[24px] pl-8 mb-12 flex flex-col items-start gap-4">
                 <Link href="/">
                     <div className="flex flex-col items-start select-none gap-3">
-                        <img src="/logo.webp" alt="NODL Logo" className="h-10" />
+                        <img src="/logo.webp" alt="WNODE Logo" className="h-10" />
                         <div className="flex flex-col items-start">
-                            <span className="text-[10px] font-normal tracking-[0.4em] text-[#22D3EE]">NODL COMMAND</span>
+                            <span className="text-[10px] font-normal tracking-[0.4em] text-[#22D3EE]">WNODE COMMAND</span>
                             <span className="text-[10px] text-slate-500 mt-1 uppercase tracking-widest font-normal">Executive Control</span>
                         </div>
                     </div>

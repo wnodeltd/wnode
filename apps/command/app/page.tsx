@@ -166,7 +166,7 @@ export default function CommandCentrePage() {
 
     const integrity = [
         { name: 'Gateway', status: 'Active', light: 'bg-green-500' },
-        { name: 'P2P Mesh nodl', status: 'Online', light: 'bg-green-500' },
+        { name: 'P2P Mesh wnode', status: 'Online', light: 'bg-green-500' },
         { name: 'Registry Layer', status: stats ? 'Synced' : 'Loading', light: stats ? 'bg-green-500' : 'bg-yellow-500' },
     ];
 

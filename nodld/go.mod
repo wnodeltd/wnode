@@ -11,7 +11,7 @@ require (
 	github.com/libp2p/go-libp2p-kad-dht v0.28.2
 	github.com/libp2p/go-libp2p-pubsub v0.12.0
 	github.com/multiformats/go-multiaddr v0.14.0
-	github.com/stripe/stripe-go/v81 v81.3.0
+	github.com/stripe/stripe-go/v81 v81.4.0
 	github.com/tetratelabs/wazero v1.8.2
 	go.uber.org/zap v1.27.0
 )

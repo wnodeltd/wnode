@@ -18,7 +18,7 @@ export default function LandingPage() {
             <nav className={`fixed top-0 inset-x-0 z-50 px-10 py-6 flex items-center justify-between transition-all duration-500 ${scrolled ? "nav-blur border-b border-white/5" : "bg-transparent"}`}>
                 <div className="flex items-center gap-2">
                     <div className="w-8 h-8 bg-cyber-cyan rotate-45" />
-                    <span className="text-2xl font-black uppercase tracking-tighter glow-cyan">NODL</span>
+                    <span className="text-2xl font-black uppercase tracking-tighter glow-cyan">WNODE</span>
                 </div>
 
                 <div className="hidden md:flex items-center gap-10 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">
@@ -70,7 +70,7 @@ export default function LandingPage() {
                     <div className="space-y-8">
                         <h2 className="text-6xl font-black uppercase  tracking-tighter leading-none glow-cyan">Invisible <br /> Compute.</h2>
                         <p className="text-lg text-slate-400 leading-relaxed font-medium">
-                            Nodl harvests unused CPU/GPU cycles from consumer devices, turning billions of idle processors into a liquid, global supercompute mesh. No AWS overhead. No centralized lock-in. Just raw throughput.
+                            Wnode harvests unused CPU/GPU cycles from consumer devices, turning billions of idle processors into a liquid, global supercompute mesh. No AWS overhead. No centralized lock-in. Just raw throughput.
                         </p>
                         <div className="grid grid-cols-2 gap-8 pt-6">
                             <div>

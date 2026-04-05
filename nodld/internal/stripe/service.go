@@ -17,6 +17,7 @@ import (
 	"github.com/stripe/stripe-go/v81/transfer"
 	"github.com/stripe/stripe-go/v81/webhook"
 	internalAccount "github.com/obregan/nodl/nodld/internal/account"
+	"github.com/obregan/nodl/nodld/internal/jobs"
 	"go.uber.org/zap"
 )
 
@@ -26,18 +27,20 @@ type Service struct {
 	webhookSecret  string
 	platformAcct   string
 	accountStore   *internalAccount.Store
+	jobStore       *jobs.Store
 	log            *zap.Logger
 }
 
 // NewService creates a configured Stripe service.
 // Stripe SDK is global, so we set the key here.
-func NewService(secretKey, webhookSecret, platformAcct string, accountStore *internalAccount.Store, log *zap.Logger) *Service {
+func NewService(secretKey, webhookSecret, platformAcct string, accountStore *internalAccount.Store, jobStore *jobs.Store, log *zap.Logger) *Service {
 	stripe.Key = secretKey
 	return &Service{
 		secretKey:     secretKey,
 		webhookSecret: webhookSecret,
 		platformAcct:  platformAcct,
 		accountStore:  accountStore,
+		jobStore:      jobStore,
 		log:           log,
 	}
 }
@@ -315,7 +318,15 @@ func (s *Service) handleWebhook(c *fiber.Ctx) error {
 			zap.String("jobID", jobID),
 			zap.Int64("amount", pi.Amount),
 		)
-		// TODO(Phase 2): trigger job dispatch after payment confirmation
+		
+		if jobID != "" && s.jobStore != nil {
+			err := s.jobStore.UpdateStatus(jobID, jobs.StatusActive)
+			if err != nil {
+				s.log.Warn("failed to transition job to active", zap.String("jobID", jobID), zap.Error(err))
+			} else {
+				s.log.Info("job dispatched to active queue after successful payment", zap.String("jobID", jobID))
+			}
+		}
 
 	case "transfer.created":
 		s.log.Info("transfer confirmed — Nodlr paid")

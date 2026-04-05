@@ -104,6 +104,7 @@ func main() {
 		cfg.StripeWebhookSecret,
 		cfg.StripePlatformAccount,
 		accountStore,
+		store,
 		log,
 	)
 	if !stripeSvc.IsConfigured() {
