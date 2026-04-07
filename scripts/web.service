@@ -1,0 +1,20 @@
+[Unit]
+Description=Nodl Web — Public Site
+After=network.target mesh.service
+Requires=mesh.service
+
+[Service]
+Type=simple
+User=obregan
+Group=obregan
+WorkingDirectory=/home/obregan/nodl/apps/web
+Environment=PORT=3000
+Environment=NEXT_PUBLIC_MESH_API_URL=http://localhost:8080
+ExecStart=/home/obregan/.local/share/pnpm/pnpm start
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

@@ -17,8 +17,13 @@ export default function LandingPage() {
             {/* Navbar */}
             <nav className={`fixed top-0 inset-x-0 z-50 px-10 py-6 flex items-center justify-between transition-all duration-500 ${scrolled ? "nav-blur border-b border-white/5" : "bg-transparent"}`}>
                 <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 bg-cyber-cyan rotate-45" />
-                    <span className="text-2xl font-black uppercase tracking-tighter glow-cyan">WNODE</span>
+                    <div className="flex flex-col items-center justify-center w-12">
+                        <svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg" className="w-full h-auto fill-white drop-shadow-sm">
+                            <path d="M 22 110 L 22 50 A 28 28 0 0 1 78 50 L 78 110" fill="none" stroke="white" strokeWidth="26" strokeLinecap="butt" />
+                            <circle cx="50" cy="72" r="16" />
+                        </svg>
+                        <span style={{ fontFamily: "'Roboto', sans-serif", fontSize: "14pt", fontWeight: "bold", color: "white", marginTop: "8px", lineHeight: "1", letterSpacing: "0.02em" }}>wnode</span>
+                    </div>
                 </div>
 
                 <div className="hidden md:flex items-center gap-10 text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500">

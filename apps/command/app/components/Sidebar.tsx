@@ -20,7 +20,7 @@ export default function Sidebar() {
     const handleLogout = () => {
         localStorage.removeItem("nodl_jwt");
         localStorage.removeItem("nodl_user");
-        router.push("/login");
+        router.push("/auth/login");
     };
 
     const role = user?.role || 'visitor';
@@ -43,8 +43,14 @@ export default function Sidebar() {
             <div className="pt-[24px] pl-8 mb-12 flex flex-col items-start gap-4">
                 <Link href="/">
                     <div className="flex flex-col items-start select-none gap-3">
-                        <img src="/logo.webp" alt="WNODE Logo" className="h-10" />
-                        <div className="flex flex-col items-start">
+                        <div className="flex flex-col items-center justify-center w-14">
+                            <svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg" className="w-full h-auto fill-white drop-shadow-sm">
+                                <path d="M 22 110 L 22 50 A 28 28 0 0 1 78 50 L 78 110" fill="none" stroke="white" strokeWidth="26" strokeLinecap="butt" />
+                                <circle cx="50" cy="72" r="16" />
+                            </svg>
+                            <span style={{ fontFamily: "'Roboto', sans-serif", fontSize: "14pt", fontWeight: "bold", color: "white", marginTop: "12px", lineHeight: "1", letterSpacing: "0.02em" }}>wnode</span>
+                        </div>
+                        <div className="flex flex-col items-start mt-4">
                             <span className="text-[10px] font-normal tracking-[0.4em] text-[#22D3EE]">WNODE COMMAND</span>
                             <span className="text-[10px] text-slate-500 mt-1 uppercase tracking-widest font-normal">Executive Control</span>
                         </div>

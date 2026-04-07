@@ -1,0 +1,22 @@
+[Unit]
+Description=Nodl Mesh — Financial Engine & Marketplace
+After=network.target postgresql.service
+Requires=postgresql.service
+
+[Service]
+Type=simple
+User=obregan
+Group=obregan
+WorkingDirectory=/home/obregan/nodl/apps/mesh
+Environment=PORT=8080
+Environment=DATABASE_URL=postgres://obregan:SR248054jb%3F%21@localhost:5432/wnode
+Environment=STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+Environment=STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+ExecStart=/home/obregan/.local/share/pnpm/pnpm start
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

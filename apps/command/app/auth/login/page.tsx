@@ -2,16 +2,29 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Loader2, ArrowRight } from "lucide-react";
 
 export default function LoginPage() {
     const router = useRouter();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
+        setIsLoading(true);
         setError("");
+
+        // Seed account bypass for testing
+        if (email === 'stephen@nodl.one' && password === 'command') {
+            localStorage.setItem("nodl_jwt", "bypass-token");
+            localStorage.setItem("nodl_user", JSON.stringify({ email, role: 'owner', id: 'seed-owner' }));
+            setTimeout(() => {
+                router.push("/");
+            }, 500);
+            return;
+        }
 
         try {
             const res = await fetch("http://127.0.0.1:8080/api/auth/login", {
@@ -32,39 +45,87 @@ export default function LoginPage() {
             router.push("/");
         } catch (err: any) {
             setError(err.message);
+        } finally {
+            setIsLoading(false);
         }
     };
 
     return (
-        <div className="min-h-screen bg-black text-white flex items-center justify-center">
-            <form onSubmit={handleLogin} className="space-y-4 w-80">
-                <h1 className="text-xl font-bold">Command Login</h1>
+        <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center p-6">
+            <div className="w-full max-w-sm">
+                {/* Logo Section */}
+                <div className="flex flex-col items-center mb-10 w-full">
+                    <div className="flex flex-col items-center justify-center w-24 mb-2">
+                        <svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg" className="w-full h-auto fill-white drop-shadow-sm">
+                            <path d="M 22 110 L 22 50 A 28 28 0 0 1 78 50 L 78 110" fill="none" stroke="white" strokeWidth="26" strokeLinecap="butt" />
+                            <circle cx="50" cy="72" r="16" />
+                        </svg>
+                        <span style={{ fontFamily: "'Roboto', sans-serif", fontSize: "14pt", fontWeight: "bold", color: "white", marginTop: "12px", lineHeight: "1", letterSpacing: "0.02em" }}>wnode</span>
+                    </div>
+                </div>
 
-                <input
-                    type="email"
-                    placeholder="Email"
-                    className="w-full p-2 bg-gray-900 border border-gray-700 rounded"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                />
+                <div className="bg-[#1a1a1b] border border-white/5 rounded-[5px] p-10 shadow-2xl">
+                    <div className="text-center mb-8">
+                        <h1 className="text-4xl font-bold text-white mb-2 tracking-tight uppercase">
+                            Command
+                        </h1>
+                        <p className="text-slate-500 text-xs tracking-widest uppercase mt-2">Executive Control Access</p>
+                    </div>
 
-                <input
-                    type="password"
-                    placeholder="Password"
-                    className="w-full p-2 bg-gray-900 border border-gray-700 rounded"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                />
+                    <form onSubmit={handleLogin} className="space-y-4">
+                        <div className="space-y-1.5 font-bold uppercase tracking-widest text-[10px] text-slate-500">
+                             Email
+                             <input
+                                type="email"
+                                placeholder="stephen@wnode.one"
+                                className="w-full bg-black/40 border border-white/10 rounded-[5px] px-4 py-4 text-white text-sm focus:outline-none focus:border-cyan-500/50 transition-all border-b-2"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                required
+                            />
+                        </div>
 
-                {error && <p className="text-red-400 text-sm">{error}</p>}
+                        <div className="space-y-1.5 font-bold uppercase tracking-widest text-[10px] text-slate-500">
+                             Password
+                             <input
+                                type="password"
+                                placeholder="••••••••"
+                                className="w-full bg-black/40 border border-white/10 rounded-[5px] px-4 py-4 text-white text-sm focus:outline-none focus:border-cyan-500/50 transition-all border-b-2"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                required
+                            />
+                        </div>
 
-                <button
-                    type="submit"
-                    className="w-full bg-cyan-500 py-2 rounded font-semibold"
-                >
-                    Login
-                </button>
-            </form>
+                        {error && (
+                            <p className="text-red-400 text-[10px] uppercase font-bold bg-red-400/10 border border-red-400/20 p-3 rounded">
+                                {error}
+                                {error === "Invalid credentials" && <span className="block mt-1 opacity-60">Hint: use stephen@nodl.one / command</span>}
+                            </p>
+                        )}
+
+                        <button
+                            type="submit"
+                            disabled={isLoading}
+                            className="w-full bg-transparent border border-white/10 hover:bg-white/5 text-white font-bold py-4 rounded-[5px] transition-all flex items-center justify-center gap-2 group active:scale-[0.98] mt-6"
+                        >
+                            {isLoading ? (
+                                <Loader2 className="w-5 h-5 animate-spin text-cyan-400" />
+                            ) : (
+                                <>
+                                    <span className="tracking-tight">Sign In</span>
+                                    <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                </>
+                            )}
+                        </button>
+                    </form>
+                </div>
+                
+                <div className="mt-12 text-center">
+                    <p className="text-slate-500 text-[10px] uppercase tracking-[0.4em]">Authorized Personnel Only</p>
+                </div>
+            </div>
         </div>
     );
 }
+

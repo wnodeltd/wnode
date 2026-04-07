@@ -1,0 +1,22 @@
+[Unit]
+Description=Nodl'r — Provider Dashboard
+After=network.target mesh.service nodld.service
+Requires=mesh.service nodld.service
+
+[Service]
+Type=simple
+User=obregan
+Group=obregan
+WorkingDirectory=/home/obregan/nodl/apps/nodlr
+Environment=PORT=3005
+Environment=NEXT_PUBLIC_MESH_API_URL=http://localhost:8080
+Environment=NODLD_HOST=localhost
+Environment=NODLD_PORT=7000
+ExecStart=/home/obregan/.local/share/pnpm/pnpm start
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

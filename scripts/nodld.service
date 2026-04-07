@@ -1,0 +1,19 @@
+[Unit]
+Description=Nodl Registry & P2P Daemon
+After=network.target redis.service
+Requires=redis.service
+
+[Service]
+Type=simple
+User=obregan
+Group=obregan
+WorkingDirectory=/home/obregan/nodl/nodld
+EnvironmentFile=/home/obregan/nodl/nodld/.env
+ExecStart=/home/obregan/nodl/nodld/nodld
+Restart=always
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
