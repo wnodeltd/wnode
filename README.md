@@ -142,3 +142,7 @@ See [`.env.example`](wnoded/.env.example) for full documentation.
 ## License
 
 MIT — see LICENSE
+
+## Integration Updates Reminder
+Ensure Docker tags, CI Provider targets, and Package Registries are correctly synced to the `wnode` namespaces externally.
+
