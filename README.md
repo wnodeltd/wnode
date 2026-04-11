@@ -2,6 +2,9 @@
 
 > **Harvest the Idle.** Turn unused CPU/GPU cycles on consumer devices into liquid compute.
 
+> [!IMPORTANT]
+> **Migration Notice:** This repository has been rebranded to **Wnode**. Please see [MIGRATION.md](docs/MIGRATION.md) for details on the transition from `Nodlshire/nodl` to `Nodlshire/wnode`.
+
 ---
 
 ## Architecture
