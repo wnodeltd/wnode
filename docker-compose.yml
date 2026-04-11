@@ -1,7 +1,7 @@
 services:
-  nodld:
+  wnoded:
     build:
-      context: ./nodld
+      context: ./wnoded
       dockerfile: Dockerfile
     ports:
       - "8080:8080"   # HTTP/WebSocket API
@@ -9,23 +9,23 @@ services:
       - "9001:9001/udp"  # WebRTC Direct
       - "9002:9002/udp"  # WebTransport
     env_file:
-      - ./nodld/.env
+      - ./wnoded/.env
     environment:
       - REDIS_URL=redis://redis:6379
     depends_on:
       - redis
     restart: unless-stopped
 
-  nodlr:
+  wnoder:
     build:
-      context: ./apps/nodlr
+      context: ./apps/wnoder
       dockerfile: Dockerfile
     ports:
       - "3001:3000"
     env_file:
-      - ./nodld/.env
+      - ./wnoded/.env
     depends_on:
-      - nodld
+      - wnoded
     restart: unless-stopped
 
   command-ui:
@@ -35,9 +35,9 @@ services:
     ports:
       - "3000:3000"
     env_file:
-      - ./nodld/.env
+      - ./wnoded/.env
     depends_on:
-      - nodld
+      - wnoded
     restart: unless-stopped
 
   mesh-ui:
@@ -47,9 +47,9 @@ services:
     ports:
       - "3002:3000"
     env_file:
-      - ./nodld/.env
+      - ./wnoded/.env
     depends_on:
-      - nodld
+      - wnoded
     restart: unless-stopped
 
   redis:

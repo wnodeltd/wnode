@@ -18,7 +18,7 @@
 │       └──────────────┴──────────────┘                   │
 │                       │                                  │
 │              ┌─────────▼──────────┐                     │
-│              │       nodld        │                     │
+│              │       wnoded        │                     │
 │              │  Go Daemon / API   │                     │
 │              └─────────┬──────────┘                     │
 │                        │                                │
@@ -40,7 +40,7 @@
 ### Run Locally
 
 ```bash
-cd nodld
+cd wnoded
 
 # Copy and fill in your credentials
 cp .env.example .env
@@ -52,14 +52,14 @@ go mod tidy
 go test -race -v ./...
 
 # Start the daemon
-go run ./cmd/nodld
+go run ./cmd/wnoded
 ```
 
 ### With Docker Compose
 
 ```bash
 # From the repo root
-cp nodld/.env.example nodld/.env
+cp wnoded/.env.example wnoded/.env
 docker compose up --build
 ```
 
@@ -90,9 +90,9 @@ curl -X POST http://localhost:8080/jobs \
 ## Project Structure
 
 ```
-nodl/
-├── nodld/                  # Go backend daemon
-│   ├── cmd/nodld/main.go   # Entry point
+wnode/
+├── wnoded/                  # Go backend daemon
+│   ├── cmd/wnoded/main.go   # Entry point
 │   ├── internal/
 │   │   ├── config/         # Env loading
 │   │   ├── p2p/            # libp2p host (WebRTC+WebTransport+DHT)
@@ -103,7 +103,7 @@ nodl/
 │   ├── Dockerfile
 │   └── .env.example
 ├── apps/                   # Next.js dashboards (Phase 2+)
-│   ├── nodlr/              # Provider dashboard
+│   ├── wnoder/              # Provider dashboard
 │   ├── mesh/               # Buyer marketplace
 │   └── command/            # Admin control plane
 ├── docker-compose.yml
@@ -123,7 +123,7 @@ Modules without these exports are executed via `_start` (WASI command modules).
 
 ## Environment Variables
 
-See [`.env.example`](nodld/.env.example) for full documentation.
+See [`.env.example`](wnoded/.env.example) for full documentation.
 
 ## Technology Stack
 
