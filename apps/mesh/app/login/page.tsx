@@ -24,7 +24,7 @@ export default function LoginPage() {
 
         // Seed account bypass
         console.log("Attempting login for:", email);
-        if (email === 'stephen@nodl.one' && password === 'command') {
+        if (email === 'stephen@wnode.one' && password === 'command') {
             console.log("Bypass matched. Setting auth keys.");
             localStorage.setItem('nodl_auth_bypass', 'true');
             localStorage.setItem('nodl_user_email', email);
@@ -39,7 +39,7 @@ export default function LoginPage() {
 
         setTimeout(() => {
             setIsLoading(false);
-            alert('Invalid credentials. Hint: use stephen@nodl.one / command');
+            alert('Invalid credentials. Hint: use stephen@wnode.one / command');
         }, 1000);
     };
 
@@ -56,26 +56,28 @@ export default function LoginPage() {
                 className="w-full max-w-md z-10"
             >
                 {/* Logo Section */}
-                <div className="flex flex-col items-center mb-10">
-                    <img
-                        src="https://nodl.one/wp-content/uploads/2025/05/nodl-medium.webp"
-                        alt="Nodl"
-                        className="w-48 h-auto mb-2"
-                    />
+                <div className="flex flex-col items-center mb-10 w-full">
+                    <div className="flex flex-col items-center justify-center w-24 mb-2">
+                        <svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg" className="w-full h-auto fill-white drop-shadow-sm">
+                            <path d="M 22 110 L 22 50 A 28 28 0 0 1 78 50 L 78 110" fill="none" stroke="white" strokeWidth="26" strokeLinecap="butt" />
+                            <circle cx="50" cy="72" r="16" />
+                        </svg>
+                        <span style={{ fontFamily: "'Roboto', sans-serif", fontSize: "14pt", fontWeight: "bold", color: "white", marginTop: "12px", lineHeight: "1", letterSpacing: "0.02em" }}>wnode</span>
+                    </div>
                 </div>
 
                 {/* Dashboard Login Card (nodlr style) */}
-                <div className="bg-[#1a1a1b] border border-white/5 rounded-3xl p-10 shadow-2xl relative overflow-hidden">
+                <div className="bg-[#1a1a1b] border border-white/5 rounded-[5px] p-10 shadow-2xl relative overflow-hidden">
                     <div className="text-center mb-8">
                         <h1 className="text-4xl font-bold text-white mb-2 tracking-tight">
-                            nodl dashboard
+                            wnode dashboard
                         </h1>
                     </div>
 
                     <div className="space-y-4">
                         {/* google Login Button */}
                         <button
-                            className="w-full bg-transparent border border-white/10 hover:bg-white/5 text-white font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-3 active:scale-[0.98]"
+                            className="w-full bg-transparent border border-white/10 hover:bg-white/5 text-white font-bold py-4 rounded-[5px] transition-all flex items-center justify-center gap-3 active:scale-[0.98]"
                         >
                             <Chrome className="w-5 h-5" />
                             Continue with Google
@@ -92,24 +94,24 @@ export default function LoginPage() {
 
                         {/* Email Form */}
                         <form onSubmit={handleEmailAuth} className="space-y-4">
-                            <div className="space-y-1.5 focus-within:ring-1 focus-within:ring-[#00f2ff]/30 rounded-xl transition-all">
+                            <div className="space-y-1.5 focus-within:ring-1 focus-within:ring-[#00f2ff]/30 rounded-[5px] transition-all">
                                 <input
                                     type="email"
                                     placeholder="Email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-4 text-white text-sm focus:outline-none focus:border-[#00f2ff]/50 transition-all border-b-2 font-normal"
+                                    className="w-full bg-black/40 border border-white/10 rounded-[5px] px-4 py-4 text-white text-sm focus:outline-none focus:border-[#00f2ff]/50 transition-all border-b-2 font-normal"
                                     required
                                 />
                             </div>
 
-                            <div className="space-y-1.5 focus-within:ring-1 focus-within:ring-[#00f2ff]/30 rounded-xl transition-all">
+                            <div className="space-y-1.5 focus-within:ring-1 focus-within:ring-[#00f2ff]/30 rounded-[5px] transition-all">
                                 <input
                                     type="password"
                                     placeholder="Password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-4 text-white text-sm focus:outline-none focus:border-[#00f2ff]/50 transition-all border-b-2 font-normal"
+                                    className="w-full bg-black/40 border border-white/10 rounded-[5px] px-4 py-4 text-white text-sm focus:outline-none focus:border-[#00f2ff]/50 transition-all border-b-2 font-normal"
                                     required
                                 />
                             </div>
@@ -117,7 +119,7 @@ export default function LoginPage() {
                             <button
                                 type="submit"
                                 disabled={isLoading}
-                                className="w-full bg-transparent border border-white/10 hover:bg-white/5 text-white font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2 group active:scale-[0.98] mt-6"
+                                className="w-full bg-transparent border border-white/10 hover:bg-white/5 text-white font-bold py-4 rounded-[5px] transition-all flex items-center justify-center gap-2 group active:scale-[0.98] mt-6"
                             >
                                 {isLoading ? (
                                     <Loader2 className="w-5 h-5 animate-spin text-[#00f2ff]" />
@@ -143,11 +145,11 @@ export default function LoginPage() {
 
                 <div className="mt-12 text-center">
                     <a
-                        href="https://nodl.one"
+                        href="https://wnode.one"
                         target="_blank"
                         className="text-white hover:text-slate-200 text-[10px] uppercase tracking-[0.4em] transition-colors font-bold"
                     >
-                        go to nodl.one
+                        go to wnode.io
                     </a>
                 </div>
             </motion.div>

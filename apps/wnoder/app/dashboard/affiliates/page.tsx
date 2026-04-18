@@ -1,21 +1,29 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Users, Code, TrendingUp, Wallet, ArrowUpRight, ShieldCheck, ChevronRight, Info } from 'lucide-react';
+import { Users, Code, TrendingUp, Wallet, ArrowUpRight, ShieldCheck, ChevronRight, Info, Copy, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function AffiliatePage() {
-    const affiliateCode = "NODL_ALPHA_01";
+    const affiliateCode = "100001-0426-01-AA";
     const [l1Referrals, setL1Referrals] = useState([
-        { id: '1', node: 'NODE_X1_FRA', status: 'ACTIVE', revenue: 12.42 },
-        { id: '2', node: 'NODE_X2_FRA', status: 'ACTIVE', revenue: 8.15 },
-        { id: '3', node: 'NODE_Z9_NYC', status: 'PENDING', revenue: 0.00 },
+        { id: '1', affiliate: '100421-0426-01-AA', status: 'ACTIVE', revenue: 12.42 },
+        { id: '2', affiliate: '100085-0426-01-AA', status: 'ACTIVE', revenue: 8.15 },
+        { id: '3', affiliate: '100204-0426-01-AA', status: 'PENDING', revenue: 0.00 },
     ]);
     const [l2Referrals, setL2Referrals] = useState([
-        { id: '4', node: 'NODE_A1_LDN', status: 'ACTIVE', revenue: 42.12 },
-        { id: '5', node: 'NODE_B2_TKY', status: 'ACTIVE', revenue: 15.80 },
+        { id: '4', affiliate: '100931-0426-01-AA', status: 'ACTIVE', revenue: 42.12 },
+        { id: '5', affiliate: '100772-0426-01-AA', status: 'ACTIVE', revenue: 15.80 },
     ]);
     const [selectedAffiliate, setSelectedAffiliate] = useState<any>(null);
+    const [copied, setCopied] = useState(false);
+
+    const handleCopy = () => {
+        const url = `wnode.one/invite/${affiliateCode}`;
+        navigator.clipboard.writeText(url);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
 
 
     const totalRevenue = (l1Referrals.reduce((acc, r) => acc + r.revenue, 0) * 0.02) + 
@@ -29,7 +37,7 @@ export default function AffiliatePage() {
             <div className="flex justify-between items-end border-b border-white/10 pb-6">
                 <div>
                     <h1 className="text-3xl font-normal tracking-tight text-white mb-1.5">Invite & earn</h1>
-                    <p className="text-16px text-slate-400 font-normal">Earn money by bringing new people to the Nodl network</p>
+                    <p className="text-16px text-slate-400 font-normal">Grow your Affiliate network to increase revenue</p>
                 </div>
 
                 <div className="bg-[#9333ea]/10 border border-[#9333ea]/30 p-4.5 flex items-center gap-6 rounded-[5px]">
@@ -80,22 +88,27 @@ export default function AffiliatePage() {
                 {/* Referrals Table */}
                 <div className="space-y-4">
                     <div className="surface-card overflow-hidden">
-                        <div className="bg-white/[0.02] p-4.5 border-b border-white/10 flex justify-between items-center">
-                            <h3 className="text-base font-normal text-white uppercase tracking-tight">Direct affiliate network</h3>
-                            <button className="bg-cyber-cyan/10 hover:bg-cyber-cyan/20 text-cyber-cyan text-[10px] font-normal uppercase tracking-widest px-3 py-1.5 border border-cyber-cyan/30 rounded-[5px] transition-all">
-                                + Add affiliate
-                            </button>
+                        <div className="bg-white/[0.02] p-4.5 border-b border-white/10">
+                            <h3 className="text-base font-normal text-white tracking-tight">Direct affiliate network</h3>
                         </div>
 
+                        <div className="bg-white/[0.02] px-8 py-5 grid grid-cols-4 items-center border-b border-white/10 gap-4">
+                            <span className="text-[10px] text-slate-500 uppercase font-bold tracking-widest">Affiliate</span>
+                            <span className="text-[10px] text-slate-500 uppercase font-bold tracking-widest">Status</span>
+                            <span className="text-[11px] text-cyber-cyan uppercase font-black tracking-[0.2em]">Level 1</span>
+                            <div className="text-right">
+                                <span className="text-[11px] text-[#22D3EE] uppercase font-black tracking-[0.2em]">Level 2</span>
+                            </div>
+                        </div>
 
                         <div className="divide-y divide-white/5">
                             {l1Referrals.map(ref => (
                                 <div 
                                     key={ref.id} 
                                     onClick={() => setSelectedAffiliate(ref)}
-                                    className="grid grid-cols-4 p-4.5 items-center hover:bg-white/[0.04] cursor-pointer transition-all text-16px active:bg-white/[0.06]"
+                                    className="grid grid-cols-4 px-8 py-6 items-center hover:bg-white/[0.04] cursor-pointer transition-all text-16px active:bg-white/[0.06] gap-4"
                                 >
-                                    <span className="font-normal text-white uppercase tracking-tighter">{ref.node}</span>
+                                    <span className="font-normal text-white uppercase tracking-tighter font-mono">{ref.affiliate}</span>
                                     <div className="flex items-center gap-1.5">
                                         <div className={`w-1.5 h-1.5 rounded-full ${ref.status === 'ACTIVE' ? 'bg-green-500' : 'bg-yellow-500'}`} />
                                         <span className="text-13px text-slate-400 font-normal uppercase">{ref.status}</span>
@@ -105,18 +118,28 @@ export default function AffiliatePage() {
                                         <span className="text-small text-cyber-cyan font-normal">+$ {(ref.revenue * 0.02).toFixed(2)}</span>
                                     </div>
                                 </div>
-
                             ))}
-
                         </div>
                     </div>
 
-                    <div className="surface-card p-4.5 flex items-center justify-between group cursor-pointer hover:border-white/20 transition-all max-w-lg">
+                    <div 
+                        onClick={handleCopy}
+                        className="surface-card p-4.5 flex items-center justify-between group cursor-pointer hover:border-cyber-cyan/30 transition-all max-w-lg relative"
+                    >
                          <div className="flex-1 overflow-hidden">
                             <span className="text-[10px] text-slate-500 uppercase font-normal block mb-0.5">Invite link</span>
-                            <span className="text-sm text-white font-normal truncate tracking-tight">nodl.one/invite/{affiliateCode}</span>
+                            <span className="text-sm text-white font-normal truncate tracking-tight">wnode.one/invite/{affiliateCode}</span>
                         </div>
-                        <ArrowUpRight className="w-4 h-4 text-slate-600 group-hover:text-white transition-colors ml-4" />
+                        <div className="flex items-center gap-3 ml-4">
+                            {copied && (
+                                <span className="text-[10px] text-cyber-cyan uppercase font-bold tracking-widest animate-in fade-in slide-in-from-right-2">Copied!</span>
+                            )}
+                            {copied ? (
+                                <Check className="w-4 h-4 text-cyber-cyan" />
+                            ) : (
+                                <Copy className="w-4 h-4 text-slate-600 group-hover:text-white transition-colors" />
+                            )}
+                        </div>
                     </div>
 
 
@@ -144,7 +167,7 @@ export default function AffiliatePage() {
                             <div className="flex justify-between items-center mb-12 pb-6 border-b border-white/5">
                                 <div>
                                     <h4 className="text-sm uppercase font-bold text-cyber-cyan tracking-widest mb-1.5">Affiliate Detail</h4>
-                                    <h2 className="text-2xl font-bold text-white tracking-tight">{selectedAffiliate.node}</h2>
+                                    <h2 className="text-2xl font-bold text-white tracking-tight font-mono">{selectedAffiliate.affiliate}</h2>
                                 </div>
                                 <button 
                                     onClick={() => setSelectedAffiliate(null)}

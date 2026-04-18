@@ -13,6 +13,8 @@ type Store struct {
 	founders          [5]string // IDs mapping to Founder #1..#5
 	organicCount      int       // For round-robin placement
 	pendingCommissions map[string][]CommissionRecord // NodlrID -> Records
+	computeLedger      []ComputeRecord
+	payoutLedger       []PayoutRecord
 }
 
 func NewStore() *Store {
@@ -181,4 +183,157 @@ func (s *Store) GetPendingTotal(nodlrID string) int64 {
 		total += r.AmountCents
 	}
 	return total
+}
+
+// AddComputeRecord records earnings from compute.
+func (s *Store) AddComputeRecord(opID string, amount int64) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.computeLedger = append(s.computeLedger, ComputeRecord{
+		OperatorID: opID,
+		Amount:     amount,
+		Timestamp:  time.Now(),
+	})
+}
+
+// AddPayoutRecord records a payout event.
+func (s *Store) AddPayoutRecord(opID string, amount int64, stripeTransferID, status string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.payoutLedger = append(s.payoutLedger, PayoutRecord{
+		OperatorID:       opID,
+		Amount:           amount,
+		StripeTransferID: stripeTransferID,
+		Status:           status,
+		Timestamp:        time.Now(),
+	})
+}
+
+// UpdatePayoutRecordStatus updates the status of a payout by its Stripe Transfer ID.
+func (s *Store) UpdatePayoutRecordStatus(stripeTransferID, status string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	for i, r := range s.payoutLedger {
+		if r.StripeTransferID == stripeTransferID {
+			s.payoutLedger[i].Status = status
+			break
+		}
+	}
+}
+
+// GetOperatorSummary calculates the financial summary for an operator.
+func (s *Store) GetOperatorSummary(email string) (*OperatorSummary, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	var op *Nodlr
+	for _, n := range s.nodlrs {
+		if n.Email == email {
+			op = n
+			break
+		}
+	}
+
+	if op == nil {
+		return nil, nil // or error
+	}
+
+	summary := &OperatorSummary{
+		StripeAccountID: op.StripeAccountID,
+		PayoutStatus:    string(op.PayoutStatus),
+	}
+
+	for _, r := range s.computeLedger {
+		if r.OperatorID == op.ID {
+			summary.TotalCompute += r.Amount
+		}
+	}
+
+	for _, r := range s.payoutLedger {
+		if r.OperatorID == op.ID {
+			if r.Status == "paid" {
+				summary.TotalPaid += r.Amount
+			} else if r.Status == "pending" {
+				summary.TotalPending += r.Amount
+			}
+			if r.Timestamp.After(summary.LastPayout) {
+				summary.LastPayout = r.Timestamp
+			}
+		}
+	}
+
+	return summary, nil
+}
+
+// GetGlobalLedgerStats returns platform-wide aggregated financials.
+func (s *Store) GetGlobalLedgerStats() (totalCompute, totalPaid, totalPending int64) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	for _, r := range s.computeLedger {
+		totalCompute += r.Amount
+	}
+
+	for _, r := range s.payoutLedger {
+		if r.Status == "paid" {
+			totalPaid += r.Amount
+		} else {
+			totalPending += r.Amount
+		}
+	}
+	return
+}
+
+// GetRecentComputeVolume calculates the total compute volume within the specified duration window.
+func (s *Store) GetRecentComputeVolume(window time.Duration) int64 {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	var total int64
+	cutoff := time.Now().Add(-window)
+	for _, r := range s.computeLedger {
+		if r.Timestamp.After(cutoff) {
+			total += r.Amount
+		}
+	}
+	return total
+}
+
+// GetOperatorLedgerTotals returns aggregated financials for a single operator.
+func (s *Store) GetOperatorLedgerTotals(opID string) (totalCompute, totalPaid, totalPending int64, lastPayout time.Time) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	for _, r := range s.computeLedger {
+		if r.OperatorID == opID {
+			totalCompute += r.Amount
+		}
+	}
+
+	for _, r := range s.payoutLedger {
+		if r.OperatorID == opID {
+			if r.Status == "paid" {
+				totalPaid += r.Amount
+			} else {
+				totalPending += r.Amount
+			}
+			if r.Timestamp.After(lastPayout) {
+				lastPayout = r.Timestamp
+			}
+		}
+	}
+	return
+}
+// AuditLedgerRecomputation performs a raw re-summation of all ledger records for internal audit verification.
+func (s *Store) AuditLedgerRecomputation() (rev, pay int64) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	for _, r := range s.computeLedger {
+		rev += r.Amount
+	}
+	for _, r := range s.payoutLedger {
+		pay += r.Amount
+	}
+	return
 }

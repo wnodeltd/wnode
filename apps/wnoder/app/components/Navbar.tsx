@@ -7,7 +7,7 @@ export default function Navbar() {
         <nav className="flex items-center justify-between py-6 px-8 border-b border-white/5 backdrop-blur-xl sticky top-0 z-50">
             <div className="flex items-center gap-3">
                 <img
-                    src="https://nodl.one/wp-content/uploads/2025/05/nodl-medium.webp"
+                    src="https://wnode.one/wp-content/uploads/2025/05/nodl-medium.webp"
                     alt="Nodl"
                     className="w-16 h-auto"
                 />
@@ -21,16 +21,17 @@ export default function Navbar() {
                 <Link href="/growth" className="hover:text-white transition-colors">Growth</Link>
                 <Link href="/dashboard/hardware" className="hover:text-white transition-colors">Hardware</Link>
                 <Link href="/dashboard/settings" className="hover:text-white transition-colors">Security</Link>
+                <Link href="/help" className="hover:text-white transition-colors">Help</Link>
             </div>
 
 
             <div className="flex items-center gap-6">
                 <div className="flex flex-col items-end">
                     <span className="text-[10px] text-slate-500 uppercase font-normal tracking-widest">Active session</span>
-                    <span className="text-16px text-white font-normal tracking-tight">ACC_#4492-X</span>
+                    <span className="text-16px text-white font-normal tracking-tight font-mono">100001-0426-01-AA</span>
                 </div>
                 <div className="w-10 h-10 border border-white/10 flex items-center justify-center text-[11px] text-white font-normal uppercase tracking-widest">
-                    JD
+                    SS
                 </div>
             </div>
 

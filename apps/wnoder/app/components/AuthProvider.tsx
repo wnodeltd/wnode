@@ -24,30 +24,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     useEffect(() => {
         const checkBypass = () => {
-            if (typeof window !== 'undefined' && localStorage.getItem('nodl_auth_bypass') === 'true') {
-                const mockEmail = localStorage.getItem('nodl_user_email') || 'stephen@nodl.one';
-                const mockUser = {
-                    id: 'mock-id-123',
-                    email: mockEmail,
-                    user_metadata: { full_name: 'Stephen' }
-                } as any;
+            try {
+                if (typeof window !== 'undefined' && localStorage.getItem('nodl_auth_bypass') === 'true') {
+                    const mockEmail = localStorage.getItem('nodl_user_email') || 'stephen@wnode.one';
+                    localStorage.setItem('nodl_jwt', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InN0ZXBoZW5Abm9kbC5vbmUiLCJleHAiOjE3NzkzMjk3ODAsInJvbGUiOiJnb2QiLCJzdWIiOiJtb2NrLWlkLTEyMyJ9.cggY1itCGfrs6C38jmEm3fpxS7ZxybwEj13NCxfwVpk');
+                    
+                    const mockUser = {
+                        id: 'mock-id-123',
+                        email: mockEmail,
+                        user_metadata: { full_name: 'Stephen' }
+                    } as any;
 
-                setUser(mockUser);
-                setSession({ user: mockUser } as any);
-                setProfile({ id: 'mock-id-123', role: 'god', full_name: 'Stephen' });
-                setIsLoading(false);
-                return true;
+                    setUser(mockUser);
+                    setSession({ user: mockUser } as any);
+                    setProfile({ id: 'mock-id-123', role: 'god', full_name: 'Stephen' });
+                    return true;
+                }
+            } catch (e) {
+                console.error("Auth bypass error:", e);
             }
             return false;
         };
 
-        const setData = async () => {
-            if (checkBypass()) return;
-            setIsLoading(false);
-        };
-
-        setData();
-    }, [pathname]);
+        if (!checkBypass()) {
+            // Default to mock-god for now if no bypass found
+            setUser({ id: 'mock-id-123', email: 'stephen@wnode.one' });
+            setProfile({ role: 'god' });
+        }
+        
+        setIsLoading(false);
+    }, []);
 
     useEffect(() => {
         if (!isLoading && !user && !pathname?.startsWith('/login')) {

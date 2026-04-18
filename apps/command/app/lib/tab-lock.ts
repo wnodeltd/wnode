@@ -4,8 +4,11 @@
  */
 
 export async function acquireTabLock(onAcquired: () => void, onLost: () => void) {
-  if (!navigator.locks) {
-    console.warn("Web Locks API not supported. Falling back to multi-tab mode.");
+  // SSR Guard
+  if (typeof window === "undefined" || typeof navigator === "undefined" || !navigator.locks) {
+    if (typeof window !== "undefined") {
+        console.warn("Web Locks API not supported or SSR. Falling back.");
+    }
     onAcquired();
     return;
   }

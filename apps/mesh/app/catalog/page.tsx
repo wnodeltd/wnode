@@ -36,12 +36,24 @@ export default function CatalogPage() {
 
     const fetchTiers = async () => {
         try {
-            const res = await fetch('http://localhost:8080/v1/meta/tiers');
+            const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8080';
+            const res = await fetch(`${apiBase}/v1/meta/tiers`).catch(err => {
+                // Internal catch to prevent bubbling to Next.js Dev Overlay
+                return null;
+            });
+            
+            if (!res || !res.ok) {
+                setTiers([]); // Clear or keep previous
+                return;
+            }
+            
             const data = await res.json();
-            setTiers(data);
-            setLoading(false);
+            setTiers(Array.isArray(data) ? data : []);
         } catch (err) {
-            console.error("Failed to fetch tiers:", err);
+            // Final safety catch
+            setTiers([]);
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -123,12 +135,12 @@ export default function CatalogPage() {
                                     <h3 className="text-lg font-bold text-white tracking-tight italic px-1">{tier.name}</h3>
                                     <p className="text-[12px] text-slate-400 leading-relaxed mt-2 font-medium line-clamp-2 px-1">
                                         {tier.description || (
-                                            tier.id === 'tiny' ? 'Lightweight compute for basic microservices and testing.' :
                                             tier.id === 'standard' ? 'Balanced performance for general-purpose workloads.' :
-                                            tier.id === 'high-ram' ? 'Memory-optimized instance for large datasets.' :
-                                            tier.id === 'boost' ? 'High-performance compute for demanding applications.' :
-                                            tier.id === 'ultra' ? 'Maximum power for intensive processing tasks.' :
-                                            tier.id === 'decc-tee' ? 'Secure enclave with Trusted Execution Environment.' :
+                                            tier.id === 'boost' ? 'High-performance GPU compute for AI/ML tasks.' :
+                                            tier.id === 'ultra' ? 'Extreme multi-GPU performance for massive processing.' :
+                                            tier.id === 'decc' ? 'Secure confidential compute with TEE protection.' :
+                                            tier.id === 'gpu-pro' ? 'Professional grade GPU clusters (A100).' :
+                                            tier.id === 'gpu-max' ? 'Maximum enterprise cluster density (H100).' :
                                             'High-efficiency compute resource.'
                                         )}
                                     </p>

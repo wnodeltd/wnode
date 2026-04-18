@@ -146,24 +146,24 @@ export default function FinancesPage() {
 
                         <div className="overflow-x-auto">
                             <table className="w-full text-left font-normal text-16px">
-                                <thead>
-                                    <tr className="border-b border-white/5 text-16px text-slate-500">
-                                        <th className="pb-6 font-normal">Timeframe</th>
-                                        <th className="pb-6 font-normal text-right">Total revenue</th>
-                                        <th className="pb-6 font-normal text-right">Status</th>
+                                <thead className="border-b border-white/10 bg-white/[0.01]">
+                                    <tr className="text-[12px] text-slate-500 uppercase tracking-widest font-bold">
+                                        <th className="px-8 py-5 font-bold">Timeframe</th>
+                                        <th className="px-8 py-5 font-bold text-right">Total revenue</th>
+                                        <th className="px-8 py-5 font-bold text-right">Status</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-white/5">
                                     {SUMMARY_LEDGER.map((row) => (
                                         <tr 
                                             key={row.timeframe} 
-                                            className="group hover:bg-white/[0.01] transition-colors cursor-pointer"
+                                            className="group hover:bg-white/[0.04] transition-colors cursor-pointer"
                                             onClick={() => setSelectedTimeframe(row)}
                                         >
-                                            <td className="py-6 text-slate-400">{row.timeframe}</td>
-                                            <td className="py-6 text-right text-white font-normal">{row.total}</td>
-                                            <td className="py-6 text-right">
-                                                <span className={`text-16px px-3 py-1 rounded-[5px] border ${row.status === 'Settled' ? 'border-green-500/20 text-green-500 bg-green-500/5' : 'border-yellow-500/20 text-yellow-500 bg-yellow-500/5'}`}>
+                                            <td className="px-8 py-6 text-slate-400 font-mono italic">{row.timeframe}</td>
+                                            <td className="px-8 py-6 text-right text-white font-bold font-mono">{row.total}</td>
+                                            <td className="px-8 py-6 text-right">
+                                                <span className={`text-[12px] px-3 py-1.5 rounded-[3px] border font-bold uppercase tracking-widest ${row.status === 'Settled' ? 'border-green-500/20 text-green-500 bg-green-500/5' : 'border-yellow-500/20 text-yellow-500 bg-yellow-500/5'}`}>
                                                     {row.status}
                                                 </span>
                                             </td>

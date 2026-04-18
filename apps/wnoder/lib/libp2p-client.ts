@@ -46,9 +46,12 @@ export async function startNodlNode() {
         // 4. Connect to Anchor
         // Example: /ip4/100.97.254.59/tcp/8080/ws/p2p/ID
         // In a real app, this should be fetched from config or env.
-        const anchorAddr = process.env.NEXT_PUBLIC_ANCHOR_MULTIADDR || '/ip4/100.97.254.59/tcp/8080/ws/p2p/PEER_ID';
-        
+        const anchorAddr = process.env.NEXT_PUBLIC_ANCHOR_MULTIADDR || '/ip4/127.0.0.1/tcp/8080/ws/p2p/PEER_ID';
         try {
+          if (anchorAddr.includes('PEER_ID')) {
+            console.warn("Anchor node not configured: 'PEER_ID' placeholder detected. Skipping dial.");
+            return;
+          }
           const ma = multiaddr(anchorAddr);
           await libp2p.dial(ma);
           console.log('Dialed Anchor node!');

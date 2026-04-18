@@ -1,23 +1,19 @@
-'use client';
-
-import React from 'react';
-import { useAuth } from './AuthProvider';
-import { Basket } from './Basket';
-import { useBilling } from './BillingProvider';
-import { TopUpDialogue } from './TopUpDialogue';
-import { Leaf, Plus, Wallet } from 'lucide-react';
+import IdentityHeader from '@/../shared/components/IdentityHeader';
 
 export function Header() {
-    const { profile } = useAuth();
     const { balance, setIsTopUpOpen } = useBilling();
 
     return (
-        <header className="h-16 border-b border-white/5 bg-black flex items-center justify-between px-8 shrink-0 relative z-30 font-sans">
-            {/* Logo Left */}
-            {/* Logo Left */}
+        <header className="h-20 border-b border-white/5 bg-black flex items-center gap-10 px-8 shrink-0 relative z-30 font-sans">
+            {/* Standard Global Identity (Top-Left) */}
+            <IdentityHeader />
+
+            <div className="h-8 w-[1px] bg-white/10 mx-2" />
+
+            {/* Logo Section */}
             <div className="flex items-center gap-4">
                 <img 
-                    src="https://nodl.one/wp-content/uploads/2025/05/nodl-medium.webp" 
+                    src="https://wnode.one/wp-content/uploads/2025/05/nodl-medium.webp" 
                     alt="nodl logo" 
                     className="h-8 w-auto object-contain brightness-110"
                 />
@@ -25,7 +21,9 @@ export function Header() {
                 <span className="font-bold text-[10px] tracking-[0.4em] text-slate-500 hidden md:block">Nodl Mesh System</span>
             </div>
 
-            {/* Identity Right */}
+            <div className="flex-1" />
+
+            {/* Actions Right */}
             <div className="flex items-center gap-4">
                 {/* Account Balance Indicator */}
                 <div className="hidden lg:flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white rounded-md group hover:bg-white/10 transition-all">
@@ -68,8 +66,8 @@ export function Header() {
 
                 <div className="flex items-center gap-3">
                     <div className="flex flex-col items-end">
-                        <span className="text-[11px] font-bold text-white tracking-tight">{profile?.full_name || 'Stephen O\'Regan'}</span>
-                        <span className="text-[9px] text-slate-500 tracking-widest font-normal leading-none mt-0.5">Acc# {profile?.id || '0xFD-99-C2'}</span>
+                        <span className="text-[11px] font-bold text-white tracking-tight">{profile?.full_name || 'Stephen Soos'}</span>
+                        <span className="text-[9px] text-slate-500 tracking-widest font-normal leading-none mt-0.5">Acc# {profile?.id || '100001-0426-01-AA'}</span>
                     </div>
                     <div className="w-10 h-10 rounded-full border border-white/10 bg-white/5 flex items-center justify-center overflow-hidden">
                         <img 

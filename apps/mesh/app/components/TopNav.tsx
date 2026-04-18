@@ -46,8 +46,8 @@ export function TopNav() {
                     {/* Identity Header (Snag 13) */}
                     <div className="flex items-center gap-3 pl-6 border-l border-white/10">
                         <div className="flex flex-col items-end">
-                            <span className="text-[11px] font-bold text-white uppercase tracking-tight">Stephen O'Regan</span>
-                            <span className="text-[9px] text-slate-500 uppercase tracking-widest font-normal">ACC# 0XFD-99-C2</span>
+                            <span className="text-[11px] font-bold text-white uppercase tracking-tight">Stephen Soos</span>
+                            <span className="text-[9px] text-slate-500 uppercase tracking-widest font-normal">ACC# 100001-0426-01-AA</span>
                         </div>
                         <div className="w-9 h-9 rounded-full border border-white/10 bg-white/5 flex items-center justify-center overflow-hidden">
                             <img 

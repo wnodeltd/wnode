@@ -5,40 +5,43 @@ import { AuthProvider } from "./components/AuthProvider";
 import { Libp2pProvider } from "./components/Libp2pProvider";
 
 const roboto = Roboto({
-  subsets: ["latin"],
-  weight: ["100", "300", "400", "500", "700", "900"],
-  variable: "--font-roboto",
+    subsets: ["latin"],
+    weight: ["100", "300", "400", "500", "700", "900"],
+    variable: "--font-roboto",
 });
 
 export const metadata: Metadata = {
-  title: "Nodlr — Harvest the Idle",
-  description: "Decentralized Compute Marketplace Provider Dashboard",
+    title: "Nodlr — Harvest the Idle",
+    description: "Decentralized Compute Marketplace Provider Dashboard",
 };
 
 export default function RootLayout({
-  children,
+    children,
 }: Readonly<{
-  children: React.ReactNode;
+    children: React.ReactNode;
 }>) {
-  return (
-    <html lang="en" className="dark">
-      <head>
-        <link
-          rel="stylesheet"
-          href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-          integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-          crossOrigin="anonymous"
-        />
-      </head>
-      <body
-        data-portal="nodlr"
-        className={`${roboto.variable} antialiased bg-[#080808] text-white min-h-screen font-sans`}
-        style={{ "--nodlr-portal-glow-color": "#ffff00" } as any}
-      >
-        <AuthProvider>
-          <Libp2pProvider>{children}</Libp2pProvider>
-        </AuthProvider>
-      </body>
-    </html>
-  );
+    return (
+        <html lang="en" className="dark">
+            <head>
+                <link 
+                    rel="stylesheet" 
+                    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
+                    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" 
+                    crossOrigin="" 
+                />
+            </head>
+            <body
+
+                data-portal="nodlr"
+                className={`${roboto.variable} antialiased bg-[#080808] text-white min-h-screen font-sans`}
+                style={{ "--nodlr-portal-glow-color": "#ffff00" } as any}
+            >
+                <AuthProvider>
+                    <Libp2pProvider>
+                        {children}
+                    </Libp2pProvider>
+                </AuthProvider>
+            </body>
+        </html>
+    );
 }

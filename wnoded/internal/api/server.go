@@ -9,6 +9,7 @@ import (
 	"io"
 	"sync"
 	"time"
+	"os"
 
 	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
@@ -22,6 +23,7 @@ import (
 	"github.com/obregan/nodl/nodld/internal/pricing"
 	"github.com/obregan/nodl/nodld/internal/account"
 	"github.com/obregan/nodl/nodld/internal/impact"
+	"github.com/gofiber/fiber/v2/middleware/proxy"
 )
 
 // Server is the Fiber-based HTTP/WebSocket API server.
@@ -76,7 +78,11 @@ func New(dispatcher *jobs.Dispatcher, store *jobs.Store, pricingStore *pricing.S
 		WriteTimeout: 10 * time.Second,
 		// Return structured JSON on panics
 		ErrorHandler: func(c *fiber.Ctx, err error) error {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			code := fiber.StatusInternalServerError
+			if e, ok := err.(*fiber.Error); ok {
+				code = e.Code
+			}
+			return c.Status(code).JSON(fiber.Map{
 				"error": err.Error(),
 			})
 		},
@@ -84,7 +90,7 @@ func New(dispatcher *jobs.Dispatcher, store *jobs.Store, pricingStore *pricing.S
 
 	app.Use(recover.New())
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "https://cmd.nodl.one, https://nodl.one, https://mesh.nodl.one, https://nodlr.nodl.one, http://localhost:3000, http://localhost:3001, http://localhost:3002, http://localhost:3003, http://localhost:3004",
+		AllowOrigins: os.Getenv("ALLOWED_ORIGINS"),
 		AllowHeaders: "Origin, Content-Type, Accept",
 	}))
 	app.Use(logger.New())
@@ -114,44 +120,67 @@ func (s *Server) registerRoutes() {
 		return fiber.ErrUpgradeRequired
 	})
 
-	// Liveness probe
+	// Liveness probe (at root)
 	s.app.Get("/health", s.handleHealth)
 
-	// Phase 3: Vertical Slice - Real Metrics
-	s.app.Get("/stats", s.handleStats)
+	// API V1 Group (Nodlr & Command Portals)
+	v1 := s.app.Group("/api/v1")
+
+	// Stats & Pulse
+	v1.Get("/stats", s.handleStats)
+	s.app.Get("/stats", s.handleStats) // Legacy Alias
 
 	// Peer information
-	s.app.Get("/peers", s.handlePeers)
+	v1.Get("/peers", s.handlePeers)
 
 	// Job CRUD
-	s.app.Get("/jobs", s.handleListJobs)
-	s.app.Post("/jobs", s.handleSubmitJob)
-	s.app.Get("/jobs/:id", s.handleGetJob)
+	v1.Get("/jobs", s.handleListJobs)
+	v1.Post("/jobs", s.handleSubmitJob)
+	v1.Get("/jobs/:id", s.handleGetJob)
 
 	// Pricing
-	s.app.Get("/pricing", s.handleGetPricing)
-	s.app.Post("/pricing/override", s.handleUpdatePricingRule)
-	s.app.Get("/pricing/history/:tier", s.handleGetPricingHistory)
-	s.app.Get("/pricing/alerts", s.handleGetPricingAlerts)
+	v1.Get("/pricing", s.handleGetPricing)
+	v1.Post("/pricing/override", s.handleUpdatePricingRule)
+	v1.Get("/pricing/history/:tier", s.handleGetPricingHistory)
+	v1.Get("/pricing/alerts", s.handleGetPricingAlerts)
 
 	// Account & Affiliates
-	s.app.Get("/account/me", s.handleGetMyAccount)
-	s.app.Get("/account/:id", s.handleGetAccount)
-	s.app.Put("/account/:id", s.handleUpdateAccount)
-	s.app.Post("/account/onboard", s.handleOnboardAccount)
-	s.app.Get("/affiliates/tree/:id", s.handleGetAffiliateTree)
-	s.app.Post("/affiliates/transfer", s.handleTransferAffiliate)
-	s.app.Post("/affiliates/genesis/swap", s.handleSwapGenesisSlot) // RBAC Lvl 4
+	v1.Get("/account/me", s.handleGetMyAccount)
+	v1.Get("/account/:id", s.handleGetAccount)
+	v1.Put("/account/:id", s.handleUpdateAccount)
+	v1.Post("/account/onboard", s.handleOnboardAccount)
+	v1.Get("/affiliates/tree/:id", s.handleGetAffiliateTree)
+	v1.Post("/affiliates/transfer", s.handleTransferAffiliate)
+	v1.Post("/affiliates/genesis/swap", s.handleSwapGenesisSlot)
 	
-	// Global Tier Controller (Master Directive)
-	s.app.Get("/v1/meta/tiers", s.handleGetMetaTiers)
-	s.app.Patch("/v1/admin/tiers/:id", s.handleUpdateAdminTier)
+	// Money Proxy (Forward to Canonical 8080)
+	v1.All("/money/*", proxy.Balancer(proxy.Config{
+		Servers: []string{"http://127.0.0.1:8080"},
+	}))
+
+	// Acquisition Proxy (Forward to Canonical 8080)
+	v1.All("/acquisition/*", proxy.Balancer(proxy.Config{
+		Servers: []string{"http://127.0.0.1:8080"},
+	}))
+
+	// Institutional Proxy (Forward to Canonical 8080)
+	v1.All("/institutional/*", proxy.Balancer(proxy.Config{
+		Servers: []string{"http://127.0.0.1:8080"},
+	}))
+
+	// Global Tier Controller
+	v1.Get("/meta/tiers", s.handleGetMetaTiers)
+	v1.Patch("/admin/tiers/:id", s.handleUpdateAdminTier)
 
 	// Hardware Registry
-	s.app.Get("/registry", s.handleGetRegistry)
-	s.app.Post("/registry/register", s.handleRegisterHardware)
-	s.app.Post("/registry/release", s.handleReleaseHardware)
-	s.app.Post("/api/admin/resolve-flag", s.handleResolveFlag)
+	v1.Get("/registry", s.handleGetRegistry)
+	v1.Post("/registry/register", s.handleRegisterHardware)
+	v1.Post("/registry/release", s.handleReleaseHardware)
+	v1.Post("/admin/resolve-flag", s.handleResolveFlag)
+	v1.Get("/system/pulse", s.handleGetSystemPulse)
+	v1.Get("/impact", s.handleGetImpact)
+
+	// Legacy System Aliases (Avoid breaking existing CMD tools)
 	s.app.Get("/api/system/pulse", s.handleGetSystemPulse)
 	s.app.Get("/api/impact", s.handleGetImpact)
 

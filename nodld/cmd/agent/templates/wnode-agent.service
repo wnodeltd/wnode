@@ -1,0 +1,13 @@
+[Unit]
+Description=Nodlr Compute Agent
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/nodlr-agent
+Restart=always
+User=nodlr
+Environment=PATH=/usr/bin:/usr/local/bin
+WorkingDirectory=/home/nodlr
+
+[Install]
+WantedBy=multi-user.target

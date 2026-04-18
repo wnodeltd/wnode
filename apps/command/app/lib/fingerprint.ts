@@ -4,6 +4,11 @@
  */
 
 export async function getHardwareDNA(): Promise<{ dna: string, trustScore: number }> {
+    // 0. SSR Guard
+    if (typeof window === "undefined" || typeof document === "undefined") {
+        return { dna: "ssr-placeholder", trustScore: 1.0 };
+    }
+
     let components: string[] = [];
     let trustScore = 1.0;
 
@@ -49,19 +54,22 @@ export async function getHardwareDNA(): Promise<{ dna: string, trustScore: numbe
 
     // 3. Audio Fingerprinting
     try {
-        const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
-        const oscillator = audioCtx.createOscillator();
-        const analyser = audioCtx.createAnalyser();
-        const gain = audioCtx.createGain();
-        oscillator.type = 'triangle';
-        oscillator.frequency.setValueAtTime(10000, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0, audioCtx.currentTime);
-        oscillator.connect(analyser);
-        analyser.connect(gain);
-        gain.connect(audioCtx.destination);
-        oscillator.start(0);
-        components.push(analyser.frequencyBinCount.toString());
-        oscillator.stop();
+        const AudioCtxClass = (window as any).AudioContext || (window as any).webkitAudioContext;
+        if (AudioCtxClass) {
+            const audioCtx = new AudioCtxClass();
+            const oscillator = audioCtx.createOscillator();
+            const analyser = audioCtx.createAnalyser();
+            const gain = audioCtx.createGain();
+            oscillator.type = 'triangle';
+            oscillator.frequency.setValueAtTime(10000, audioCtx.currentTime);
+            gain.gain.setValueAtTime(0, audioCtx.currentTime);
+            oscillator.connect(analyser);
+            analyser.connect(gain);
+            gain.connect(audioCtx.destination);
+            oscillator.start(0);
+            components.push(analyser.frequencyBinCount.toString());
+            oscillator.stop();
+        }
     } catch (e) { console.error("Audio failed", e); }
 
     // Hash components into DNA string
@@ -71,6 +79,9 @@ export async function getHardwareDNA(): Promise<{ dna: string, trustScore: numbe
 }
 
 async function hashString(str: string): Promise<string> {
+    if (typeof crypto === "undefined" || !crypto.subtle) {
+        return "insecure-hash-" + Math.random().toString(36).substring(7);
+    }
     const encoder = new TextEncoder();
     const data = encoder.encode(str);
     const hash = await crypto.subtle.digest('SHA-256', data);

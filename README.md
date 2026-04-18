@@ -2,9 +2,6 @@
 
 > **Harvest the Idle.** Turn unused CPU/GPU cycles on consumer devices into liquid compute.
 
-> [!IMPORTANT]
-> **Migration Notice:** This repository has been rebranded to **Wnode**. Please see [MIGRATION.md](docs/MIGRATION.md) for details on the transition from `Nodlshire/nodl` to `Nodlshire/wnode`.
-
 ---
 
 ## Architecture
@@ -21,7 +18,7 @@
 │       └──────────────┴──────────────┘                   │
 │                       │                                  │
 │              ┌─────────▼──────────┐                     │
-│              │       wnoded        │                     │
+│              │       nodld        │                     │
 │              │  Go Daemon / API   │                     │
 │              └─────────┬──────────┘                     │
 │                        │                                │
@@ -43,7 +40,7 @@
 ### Run Locally
 
 ```bash
-cd wnoded
+cd nodld
 
 # Copy and fill in your credentials
 cp .env.example .env
@@ -55,14 +52,14 @@ go mod tidy
 go test -race -v ./...
 
 # Start the daemon
-go run ./cmd/wnoded
+go run ./cmd/nodld
 ```
 
 ### With Docker Compose
 
 ```bash
 # From the repo root
-cp wnoded/.env.example wnoded/.env
+cp nodld/.env.example nodld/.env
 docker compose up --build
 ```
 
@@ -93,9 +90,9 @@ curl -X POST http://localhost:8080/jobs \
 ## Project Structure
 
 ```
-wnode/
-├── wnoded/                  # Go backend daemon
-│   ├── cmd/wnoded/main.go   # Entry point
+nodl/
+├── nodld/                  # Go backend daemon
+│   ├── cmd/nodld/main.go   # Entry point
 │   ├── internal/
 │   │   ├── config/         # Env loading
 │   │   ├── p2p/            # libp2p host (WebRTC+WebTransport+DHT)
@@ -106,7 +103,7 @@ wnode/
 │   ├── Dockerfile
 │   └── .env.example
 ├── apps/                   # Next.js dashboards (Phase 2+)
-│   ├── wnoder/              # Provider dashboard
+│   ├── nodlr/              # Provider dashboard
 │   ├── mesh/               # Buyer marketplace
 │   └── command/            # Admin control plane
 ├── docker-compose.yml
@@ -126,7 +123,7 @@ Modules without these exports are executed via `_start` (WASI command modules).
 
 ## Environment Variables
 
-See [`.env.example`](wnoded/.env.example) for full documentation.
+See [`.env.example`](nodld/.env.example) for full documentation.
 
 ## Technology Stack
 
@@ -142,7 +139,3 @@ See [`.env.example`](wnoded/.env.example) for full documentation.
 ## License
 
 MIT — see LICENSE
-
-## Integration Updates Reminder
-Ensure Docker tags, CI Provider targets, and Package Registries are correctly synced to the `wnode` namespaces externally.
-

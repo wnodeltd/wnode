@@ -29,6 +29,7 @@ export default function Sidebar() {
         { name: 'Storefront', href: '/catalog', icon: ShoppingCart },
         { name: 'My Jobs', href: '/jobs', icon: Package },
         { name: 'Billing & Money', href: '/billing', icon: CreditCard },
+        { name: 'Referrals & Graph', href: '/referrals', icon: Share2 },
         { name: 'Settings', href: '/settings', icon: Layers },
     ];
 
@@ -42,9 +43,9 @@ export default function Sidebar() {
                         <Link
                             key={item.name}
                             href={item.href}
-                            className={`flex items-center gap-3 px-4 py-3.5 rounded-lg transition-all text-[11px] tracking-[0.1em] font-bold ${isActive
-                                    ? 'bg-[#00f2ff]/10 text-[#00f2ff] border border-[#00f2ff]/20'
-                                    : 'text-white hover:text-white hover:bg-white/[0.03]'
+                            className={`flex items-center gap-3 px-6 py-4 rounded-none transition-all text-[10px] tracking-[0.2em] font-black uppercase ${isActive
+                                    ? 'bg-cyber-cyan/10 text-cyber-cyan border-l-2 border-cyber-cyan shadow-[0_0_15px_rgba(0,242,255,0.1)]'
+                                    : 'text-slate-400 hover:text-white hover:bg-white/[0.03]'
                                 }`}
                         >
                             <item.icon className="w-4 h-4" />
@@ -56,7 +57,7 @@ export default function Sidebar() {
                 {/* moved logout under settings */}
                 <button 
                     onClick={handleLogout}
-                    className="flex items-center gap-3 px-4 py-3.5 w-full rounded-lg transition-all text-[11px] tracking-[0.1em] font-bold text-white hover:text-red-500 hover:bg-red-500/5 group mt-2"
+                    className="flex items-center gap-3 px-6 py-4 w-full rounded-none transition-all text-[10px] tracking-[0.2em] font-black uppercase text-slate-500 hover:text-red-500 hover:bg-red-500/5 group mt-4"
                 >
                     <LogOut className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> 
                     Sign Out

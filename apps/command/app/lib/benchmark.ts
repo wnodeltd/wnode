@@ -4,6 +4,11 @@
  */
 
 export async function runWasmBenchmark(): Promise<number> {
+    // SSR Guard
+    if (typeof window === "undefined" || typeof WebAssembly === "undefined") {
+        return 0;
+    }
+
     const wasmUrl = '/benchmark.wasm';
     
     try {

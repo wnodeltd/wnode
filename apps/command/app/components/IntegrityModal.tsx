@@ -8,12 +8,18 @@ export const IntegrityModal = () => {
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
+        if (typeof window === "undefined") return;
+
         const handleIntegrityError = (e: any) => {
             setError(e.detail.message);
         };
 
         window.addEventListener('nodl-integrity-error', handleIntegrityError);
-        return () => window.removeEventListener('nodl-integrity-error', handleIntegrityError);
+        return () => {
+            if (typeof window !== "undefined") {
+               window.removeEventListener('nodl-integrity-error', handleIntegrityError);
+            }
+        };
     }, []);
 
     if (!error) return null;

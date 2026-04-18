@@ -1,22 +1,34 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Zap, TrendingUp, Cpu, Server, Activity } from 'lucide-react';
+import { Zap, TrendingUp, Cpu, Server, Activity, Plus } from 'lucide-react';
 import { motion, AnimatePresence } from "framer-motion";
 import HealthAnnunciator from "../components/HealthAnnunciator";
 import ImpactCard from "../components/ImpactCard";
 import OnboardingWizard from "../components/OnboardingWizard";
+import AddMachineModal from "../components/AddMachineModal";
+import MachineList from "../components/MachineList";
+import FleetMap from "@shared/components/FleetMap";
 import useSWR from 'swr';
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
+
+import { useProviderNodes } from "../hooks/useProviderNodes";
 
 export default function DashboardPage() {
     const [isHarvesting, setIsHarvesting] = useState(false);
     const [allocation, setAllocation] = useState({ cpu: 0, gpu: 0, ram: 12 });
     
-    const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://api.nodl.one';
-    const { data: impactData } = useSWR(`${apiBase}/api/impact`, fetcher, { refreshInterval: 5000 });
+    const apiBase = 'http://127.0.0.1:8082';
+    const { data: impactData } = useSWR(`${apiBase}/api/impact`, fetcher, { refreshInterval: 10000 });
     const { data: accountData } = useSWR(`${apiBase}/api/v1/account/me`, fetcher);
+    
+    // Nodes are now handled internally by FleetMap in "provider" mode
+    // but we still need the count for the stat bar.
+    // To keep it simple and consistent with Copilot's "single source" rule,
+    // we can either let FleetMap report back or just do a simple count fetch here.
+    // Given the "170 errors" issue, let's keep page.tsx minimal.
+    const { nodes, loading: nodesLoading } = useProviderNodes();
     const impact = impactData || { carbonSavedKg: 0, equivalentKmDriven: 0, treeDays: 0 };
     const isPayoutActive = accountData?.payoutStatus === 'active';
 
@@ -43,8 +55,11 @@ export default function DashboardPage() {
     }, [isHarvesting]);
 
     const toggleHarvesting = () => setIsHarvesting(!isHarvesting);
+    
+    // Bypass onboarding for owner role
+    const isOwner = accountData?.role === 'owner';
 
-    if (accountData && !isPayoutActive) {
+    if (accountData && !isPayoutActive && !isOwner) {
         return (
             <div className="min-h-screen bg-black flex flex-col justify-center">
                 <OnboardingWizard />
@@ -53,243 +68,137 @@ export default function DashboardPage() {
     }
 
     return (
-        <div className="max-w-6xl mx-auto space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            {/* Header */}
-            <div className="flex justify-between items-end border-b border-white/10 pb-6">
-                <div>
-                    <h2 className="text-3xl font-normal tracking-tight text-white mb-1.5">Grow Your Affiliate Network</h2>
-                    <p className="text-16px text-slate-400 font-normal">Your node's health and operational work summary</p>
+        <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
+            {/* Top Stat Bar */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="surface-card p-4 flex flex-col justify-between">
+                    <span className="text-[10px] uppercase text-slate-500 tracking-widest">Total Earnings</span>
+                    <span className="text-2xl font-bold text-[#FFD700] tracking-tighter">$482.10</span>
                 </div>
-
-                <div className="w-80">
-                    <HealthAnnunciator status="Nominal" connectedNodes={5} uptime="342:12:04" />
+                <div className="surface-card p-4 flex flex-col justify-between">
+                    <span className="text-[10px] uppercase text-[#9333ea] tracking-widest">Affiliate Yield</span>
+                    <span className="text-2xl font-bold text-white tracking-tighter">$124.50</span>
+                </div>
+                <div className="surface-card p-4 flex flex-col justify-between text-cyber-cyan border border-cyber-cyan/20">
+                    <span className="text-[10px] uppercase text-cyber-cyan opacity-70 tracking-widest font-bold">Global Rank</span>
+                    <span className="text-2xl font-bold tracking-tighter">#412</span>
+                </div>
+                <div className="surface-card p-4 flex flex-col justify-between">
+                    <span className="text-[10px] uppercase text-slate-500 tracking-widest">Active Nodes</span>
+                    <span className="text-2xl font-bold text-cyber-cyan tracking-tighter">{nodes?.length || 0}</span>
                 </div>
             </div>
 
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                {/* Main Content (Left) */}
+                <div className="lg:col-span-8 space-y-8">
+                    {/* Fleet Map */}
+                    <FleetMap 
+                        nodes={nodes}
+                        loading={nodesLoading}
+                        id="nodlr-fleet-map"
+                    />
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-
-
-                {/* Action Panel */}
-                <div className="lg:col-span-1 space-y-8">
-                    <motion.div
-                        animate={isHarvesting ? { borderColor: "rgba(147, 51, 234, 0.4)", boxShadow: "0 0 30px rgba(147, 51, 234, 0.2)" } : { borderColor: "rgba(255, 255, 255, 0.08)" }}
-                        className="surface-card p-8 relative overflow-hidden group"
-                        style={{ borderStyle: 'solid' }}
-
-
-                    >
-                        <AnimatePresence>
-                            {isHarvesting && (
-                                <motion.div
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 0 }}
-                                    className="absolute inset-0 bg-[radial-gradient(circle_at_center,_rgba(147,51,234,0.1),transparent_70%)] animate-pulse"
-                                />
-                            )}
-                        </AnimatePresence>
-
-                        <div className="relative z-10 flex flex-col items-center text-center space-y-8">
-                            <motion.div
-                                animate={isHarvesting ? { scale: [1, 1.1, 1] } : {}}
-                                transition={{ repeat: Infinity, duration: 2 }}
-                                className={`w-16 h-16 flex items-center justify-center border transition-all shadow-xl ${isHarvesting ? 'bg-[#9333ea] border-white text-white' : 'bg-white/5 border-white/20 text-slate-400'}`}
-                            >
-                                <Zap className="w-8 h-8" />
-
-                            </motion.div>
-                            <div>
-                                <h3 className="text-xl font-normal uppercase text-white tracking-tight">
-                                    {isHarvesting ? 'Working' : 'Ready'}
-                                </h3>
-                                <p className="text-sm text-slate-400 mt-1 font-normal">
-                                    {isHarvesting ? 'Sharing your power' : 'Ready to start'}
-                                </p>
-
+                    {/* Machine List */}
+                    <div className="surface-card p-8 space-y-6">
+                        <div className="flex justify-between items-center border-b border-white/5 pb-4">
+                            <div className="flex items-center gap-3">
+                                <Server className="w-4 h-4 text-cyber-cyan" />
+                                <h4 className="text-sm uppercase font-bold text-white tracking-widest">Active Infrastructure</h4>
                             </div>
-                            <motion.button
-                                whileHover={{ scale: 1.02 }}
-                                whileTap={{ scale: 0.98 }}
-                                onClick={toggleHarvesting}
-                                className={`w-full font-normal uppercase py-4 text-lg transition-all shadow-2xl border ${isHarvesting ? 'bg-white text-black border-white' : 'bg-[#9333ea] text-white border-[#9333ea] hover:bg-white hover:text-black hover:border-white'}`}
-                            >
-                                {isHarvesting ? 'Stop Working' : 'Start Working'}
-
-                            </motion.button>
                         </div>
+                        <MachineList nodes={nodes || []} />
+                    </div>
+                </div>
+
+                {/* Sidebar Controls (Right) */}
+                <div className="lg:col-span-4 space-y-8">
+                    {/* Harvest Control */}
+                    <motion.div
+                        animate={isHarvesting ? { borderColor: "rgba(147, 51, 234, 0.4)", boxShadow: "0 0 40px rgba(147, 51, 234, 0.15)" } : { borderColor: "rgba(255, 255, 255, 0.05)" }}
+                        className="surface-card p-8 flex flex-col items-center text-center space-y-6 relative overflow-hidden group border-2"
+                        style={{ borderStyle: 'solid' }}
+                    >
+                        {isHarvesting && (
+                            <div className="absolute inset-0 bg-gradient-to-b from-[#9333ea]/5 to-transparent animate-pulse pointer-events-none" />
+                        )}
+                        <div className={`w-20 h-20 rounded-full flex items-center justify-center border-2 transition-all ${isHarvesting ? 'bg-[#9333ea] border-white shadow-[0_0_20px_#9333ea]' : 'bg-white/5 border-white/10 text-slate-600'}`}>
+                            <Zap className={`w-10 h-10 ${isHarvesting ? 'text-white' : 'text-slate-600'}`} />
+                        </div>
+                        <div>
+                            <h3 className="text-2xl font-bold uppercase tracking-tighter text-white">
+                                {isHarvesting ? 'Systems Active' : 'Standby Mode'}
+                            </h3>
+                            <p className="text-xs text-slate-500 mt-1 uppercase tracking-widest font-normal">
+                                {isHarvesting ? 'Distributing Compute Cycle' : 'Awaiting mesh assignment'}
+                            </p>
+                        </div>
+                        <button
+                            onClick={toggleHarvesting}
+                            className={`w-full py-4 rounded-[4px] font-bold uppercase tracking-widest transition-all ${isHarvesting ? 'bg-white text-black hover:bg-slate-200 shadow-xl' : 'bg-indigo-600 text-white hover:bg-indigo-500 shadow-[0_0_15px_rgba(79,70,229,0.4)]'}`}
+                        >
+                            {isHarvesting ? 'Deactivate Node' : 'Initialize Fleet'}
+                        </button>
                     </motion.div>
 
-                    <div className="surface-card p-6 space-y-8">
-                        <div>
-                            <h4 className="text-[10px] uppercase font-normal text-[#9333ea] tracking-[0.2em] border-b border-[#9333ea]/10 pb-3 mb-6">Infrastructure snapshot</h4>
-                            <div className="space-y-6">
-                                <div className="flex justify-between items-center text-16px font-normal">
-                                    <span className="text-slate-400">Total machines</span>
-                                    <span className="text-white">5 Active</span>
-                                </div>
-                                <div className="flex justify-between items-center text-16px font-normal">
-                                    <span className="text-slate-400">Total CPU power</span>
-                                    <span className="text-white">112 Cores / 3.4GHz</span>
-                                </div>
-                                <div className="flex justify-between items-center text-16px font-normal">
-                                    <span className="text-slate-400">Total GPU power</span>
-                                    <span className="text-white">128GB VRAM (A100/H100)</span>
-                                </div>
-                                <div className="flex justify-between items-center text-16px font-normal">
-                                    <span className="text-slate-400">Total RAM</span>
-                                    <span className="text-white">512GB DDR5</span>
-                                </div>
-                            </div>
+                    {/* Impact Card */}
+                    <ImpactCard 
+                        carbonSaved={impact.carbonSavedKg || 0}
+                        kmAvoided={impact.equivalentKmDriven || 0}
+                        treeDays={impact.treeDays || 0}
+                        isActive={isHarvesting}
+                    />
+
+                    {/* Infrastructure Snapshot */}
+                    <div className="surface-card p-6 space-y-6">
+                        <div className="flex items-center gap-2 border-b border-white/5 pb-3">
+                            <Activity className="w-3.5 h-3.5 text-[#9333ea]" />
+                            <h4 className="text-[10px] uppercase font-bold text-slate-400 tracking-widest">Resource Snapshot</h4>
                         </div>
-
-                        <div className="pt-6 border-t border-white/5 space-y-6">
-                            <h4 className="text-[10px] uppercase font-normal text-cyber-cyan tracking-[0.2em] border-b border-cyber-cyan/10 pb-3 mb-6">Real-time allocation</h4>
-                            <div className="space-y-6">
-                                <div>
-                                    <div className="flex justify-between text-base font-normal mb-2 text-13px">
-                                        <span className="text-slate-500 uppercase tracking-widest">Processor</span>
-                                        <span className="text-white">{Math.round(allocation.cpu)}%</span>
-                                    </div>
-                                    <div className="h-1.5 bg-white/5 w-full rounded-full overflow-hidden">
-                                        <motion.div
-                                            initial={{ width: 0 }}
-                                            animate={{ width: `${allocation.cpu}%` }}
-                                            className="h-full bg-[#9333ea]"
-                                        />
-                                    </div>
-                                </div>
-                                <div>
-                                    <div className="flex justify-between text-base font-normal mb-2 text-13px">
-                                        <span className="text-slate-500 uppercase tracking-widest">Graphics</span>
-                                        <span className="text-white">{Math.round(allocation.gpu)}%</span>
-                                    </div>
-                                    <div className="h-1.5 bg-white/5 w-full rounded-full overflow-hidden">
-                                        <motion.div
-                                            initial={{ width: 0 }}
-                                            animate={{ width: `${allocation.gpu}%` }}
-                                            className="h-full bg-cyber-cyan"
-                                        />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                </div>
-
-                {/* Charts & Stats */}
-                <div className="lg:col-span-2 space-y-8">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        {/* Earnings Snapshot (3-Tier) */}
-                        <div className="surface-card p-8 flex flex-col justify-between space-y-8">
-                            <div>
-                                <span className="text-[10px] uppercase font-normal text-slate-500 tracking-[0.2em] block mb-6 border-b border-white/5 pb-2">Earnings snapshot</span>
-                                <div className="space-y-6">
-                                    <div className="flex justify-between items-end">
-                                        <span className="text-13px text-slate-400 font-normal">To date</span>
-                                        <div className="flex items-baseline gap-1">
-                                            <span className="text-2xl font-normal text-[#FFD700] tracking-tighter">$482</span>
-                                            <span className="text-[#FFD700] text-xs font-normal">.10</span>
-                                        </div>
-                                    </div>
-                                    <div className="flex justify-between items-end">
-                                        <span className="text-13px text-slate-400 font-normal">This month</span>
-                                        <div className="flex items-baseline gap-1">
-                                            <span className="text-lg font-normal text-white tracking-tighter">$124</span>
-                                            <span className="text-slate-400 text-[10px] font-normal">.50</span>
-                                        </div>
-                                    </div>
-                                    <div className="flex justify-between items-end">
-                                        <span className="text-13px text-slate-400 font-normal">24 hours</span>
-                                        <div className="flex items-baseline gap-1">
-                                            <span className="text-lg font-normal text-white tracking-tighter">$12</span>
-                                            <span className="text-slate-400 text-[10px] font-normal">.80</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Affiliate Yield */}
-                        <div className="surface-card p-8 flex flex-col justify-between space-y-8">
-                            <div>
-                                <span className="text-[10px] uppercase font-normal text-[#9333ea] tracking-[0.2em] block mb-6 border-b border-[#9333ea]/10 pb-2">Affiliate yield</span>
-                                <div className="space-y-6">
-                                    <div className="flex justify-between items-end">
-                                        <span className="text-13px text-slate-400 font-normal">Level 1 earnings</span>
-                                        <div className="flex items-baseline gap-1">
-                                            <span className="text-lg font-normal text-white tracking-tighter">$82</span>
-                                            <span className="text-slate-400 text-[10px] font-normal">.40</span>
-                                        </div>
-                                    </div>
-                                    <div className="pt-4 border-t border-white/5 flex justify-between items-baseline">
-                                        <span className="text-[10px] text-slate-500 uppercase tracking-widest">Total yield</span>
-                                        <span className="text-16px font-normal text-white">$124.50</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <ImpactCard 
-                            carbonSaved={impact.carbonSavedKg}
-                            kmAvoided={impact.equivalentKmDriven}
-                            treeDays={impact.treeDays}
-                            isActive={isHarvesting}
-                        />
-                    </div>
-
-
-
-                    {/* Earnings Graph Placeholder */}
-                    <div className="surface-card p-8 h-[400px] flex flex-col relative overflow-hidden">
-
-                        <div className="flex justify-between items-center mb-8 pb-4 border-b border-white/10">
-                            <div>
-                                <h4 className="text-lg font-normal text-white">Earnings history</h4>
-                                <p className="text-sm text-slate-400 font-normal">Revenue generated across the mesh network</p>
-
-                            </div>
-
-                            <div className="flex gap-6">
-                                <div className="flex items-center gap-2">
-                                    <div className="w-4 h-4 bg-cyber-cyan" />
-                                    <span className="text-[10px] font-normal uppercase text-white">Work</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <div className="w-4 h-4 bg-[#FFD700]" />
-                                    <span className="text-[10px] font-normal uppercase text-white">Invites</span>
-                                </div>
-
-                            </div>
-                        </div>
-
-                        {/* The Graph Visual */}
-                        <div className="flex-1 relative border-l-4 border-b-4 border-white/10 mb-6 flex items-end gap-2 px-4 pb-4">
-                            {/* Bars */}
-                            {[40, 60, 35, 80, 50, 90, 45, 70, 85, 60, 95, 110, 80, 100, 120].map((h, i) => (
-                                <div key={i} className="flex-1 flex flex-col justify-end gap-2 group">
-                                    <motion.div
-                                        initial={{ height: 0 }}
-                                        animate={{ height: `${h * 0.2}%` }}
-                                        className="w-full bg-[#FFD700] group-hover:bg-white transition-colors border-t border-black"
-                                    />
-                                    <motion.div
-                                        initial={{ height: 0 }}
-                                        animate={{ height: `${h * 0.6}%` }}
-                                        className="w-full bg-cyber-cyan group-hover:bg-white transition-colors border-t border-black"
-                                    />
+                        <div className="space-y-4">
+                            {[
+                                { label: 'CPU Cores', value: '112 Cores' },
+                                { label: 'VRAM Pool', value: '128GB' },
+                                { label: 'System RAM', value: '512GB' },
+                                { label: 'Network', value: '10 Gbps' }
+                            ].map(stat => (
+                                <div key={stat.label} className="flex justify-between items-center">
+                                    <span className="text-[11px] text-slate-500 uppercase tracking-tight font-normal">{stat.label}</span>
+                                    <span className="text-13px text-white font-mono font-bold">{stat.value}</span>
                                 </div>
                             ))}
+                        </div>
+                    </div>
 
-                            {/* Grid Lines */}
-                            <div className="absolute inset-x-0 bottom-[25%] border-t-2 border-white/5" />
-                            <div className="absolute inset-x-0 bottom-[50%] border-t-2 border-white/5" />
-                            <div className="absolute inset-x-0 bottom-[75%] border-t-2 border-white/5" />
+                    {/* Allocation Meters */}
+                    <div className="surface-card p-6 space-y-6">
+                         <div className="flex items-center gap-2 border-b border-white/5 pb-3">
+                            <Cpu className="w-3.5 h-3.5 text-cyber-cyan" />
+                            <h4 className="text-[10px] uppercase font-bold text-slate-400 tracking-widest">Mesh Allocation</h4>
+                        </div>
+                        <div className="space-y-6">
+                            {[
+                                { label: 'Processor', value: allocation.cpu, color: '#9333ea' },
+                                { label: 'Graphics', value: allocation.gpu, color: '#22d3ee' }
+                            ].map(meter => (
+                                <div key={meter.label} className="space-y-2">
+                                    <div className="flex justify-between text-[10px] uppercase font-bold tracking-widest">
+                                        <span className="text-slate-500 font-normal">{meter.label}</span>
+                                        <span className="text-white">{Math.round(meter.value)}%</span>
+                                    </div>
+                                    <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                                        <motion.div 
+                                            animate={{ width: `${meter.value}%` }}
+                                            transition={{ type: "spring", stiffness: 50 }}
+                                            className="h-full"
+                                            style={{ backgroundColor: meter.color, boxShadow: `0 0 10px ${meter.color}` }}
+                                        />
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 </div>
-
             </div>
         </div>
     );

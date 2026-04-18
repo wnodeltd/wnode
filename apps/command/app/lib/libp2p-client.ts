@@ -1,5 +1,6 @@
 import { createLibp2p } from 'libp2p'
 import { webSockets } from '@libp2p/websockets'
+import * as filters from '@libp2p/websockets/filters'
 import { webRTC } from '@libp2p/webrtc'
 import { noise } from '@chainsafe/libp2p-noise'
 import { mplex } from '@libp2p/mplex'
@@ -13,6 +14,9 @@ import { runWasmBenchmark } from './benchmark'
 let libp2p: any = null;
 
 export async function startNodlNode() {
+  // Prevent SSR execution
+  if (typeof window === "undefined") return;
+
   // 1. Tab Lock
   await acquireTabLock(
     async () => {
@@ -32,8 +36,9 @@ export async function startNodlNode() {
       try {
         libp2p = await createLibp2p({
           transports: [
-            webSockets() as any,
-            webRTC() as any
+            webSockets({
+              filter: filters.all
+            }) as any
           ],
           connectionEncryption: [noise()],
           streamMuxers: [mplex()],
@@ -41,35 +46,53 @@ export async function startNodlNode() {
         } as any);
 
         await libp2p.start();
-        console.log('libp2p started. ID:', libp2p.peerId.toString());
+        const myPeerId = libp2p.peerId.toString();
+        console.log('libp2p started. ID:', myPeerId);
+
+        // Dispatch status event for UI
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new CustomEvent('nodl-p2p-status', { 
+            detail: { peerId: myPeerId, status: 'started' } 
+          }));
+        }
 
         // 4. Connect to Anchor
-        // Example: /ip4/100.97.254.59/tcp/8080/ws/p2p/ID
-        // In a real app, this should be fetched from config or env.
-        const anchorAddr = process.env.NEXT_PUBLIC_ANCHOR_MULTIADDR || '/ip4/100.97.254.59/tcp/8080/ws/p2p/PEER_ID';
+        const anchorAddr = process.env.NEXT_PUBLIC_ANCHOR_MULTIADDR || `/ip4/127.0.0.1/tcp/10000/ws/p2p/${process.env.NEXT_PUBLIC_ANCHOR_PEER_ID || 'PEER_ID'}`;
         
-        try {
-          const ma = multiaddr(anchorAddr);
-          await libp2p.dial(ma);
-          console.log('Dialed Anchor node!');
-
-          // 5. Open stream to report DNA & Benchmarks
-          const stream = await libp2p.dialProtocol(ma, '/nodl/register/1.0.0');
-          const encoder = new TextEncoder();
-          const report = JSON.stringify({
-            dna,
-            trustScore: finalTrustScore,
-            benchmark: benchmarkOps,
-            sessionId: Math.random().toString(36).substring(7)
-          });
-          
-          const writer = stream.sink;
-          await writer([encoder.encode(report)]);
-          console.log('Hardware DNA report sent.');
-
-        } catch (dialErr) {
-          console.error("Failed to dial Anchor:", dialErr);
+        if (anchorAddr.includes('PEER_ID') || !process.env.NEXT_PUBLIC_ANCHOR_PEER_ID) {
+          console.warn("[libp2p] Anchor peer ID not configured. Skipping connection.");
+          return;
         }
+          const ma = multiaddr(anchorAddr);
+          console.log('[libp2p] Attempting to dial Anchor:', anchorAddr);
+          
+          try {
+            await libp2p.dial(ma);
+            console.log('[libp2p] ✅ Successfully dialed Anchor node!');
+            window.dispatchEvent(new CustomEvent('nodl-p2p-status', { 
+              detail: { status: 'connected', peerId: myPeerId } 
+            }));
+
+            // 5. Open stream to report DNA & Benchmarks
+            const stream = await libp2p.dialProtocol(ma, '/nodl/register/1.0.0');
+            const encoder = new TextEncoder();
+            const report = JSON.stringify({
+              dna,
+              trustScore: finalTrustScore,
+              benchmark: benchmarkOps,
+              sessionId: Math.random().toString(36).substring(7)
+            });
+            
+            const writer = stream.sink;
+            await writer([encoder.encode(report)]);
+            console.log('[libp2p] Hardware DNA report sent.');
+
+          } catch (dialErr: any) {
+            console.warn('[libp2p] ⚠️ Could not dial Anchor (acceptable in local dev):', dialErr.message);
+            window.dispatchEvent(new CustomEvent('nodl-p2p-status', { 
+              detail: { status: 'partial', peerId: myPeerId } 
+            }));
+          }
 
       } catch (err) {
         console.error('Failed to start libp2p:', err);

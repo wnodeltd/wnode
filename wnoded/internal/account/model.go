@@ -19,6 +19,7 @@ const (
 	PayoutStatusPending    PayoutStatus = "pending"
 	PayoutStatusIncomplete PayoutStatus = "incomplete"
 	PayoutStatusActive     PayoutStatus = "active"
+	PayoutStatusBlocked    PayoutStatus = "blocked"
 )
 
 // Nodlr represents a participant in the Nodl network.
@@ -26,6 +27,7 @@ type Nodlr struct {
 	ID                    string          `json:"id"`
 	Email                 string          `json:"email"`
 	StripeConnectID       string          `json:"stripeConnectId"`
+	StripeAccountID       string          `json:"stripeAccountId"`
 	PayoutStatus          PayoutStatus    `json:"payoutStatus"`
 	IntegrityScore        int             `json:"integrityScore"`        // 0-1000
 	AccruedFounderBalance int64           `json:"accruedFounderBalance"` // Cents
@@ -78,4 +80,30 @@ type Payout struct {
 	PeriodStart     time.Time       `json:"periodStart"`
 	PeriodEnd       time.Time       `json:"periodEnd"`
 	CreatedAt       time.Time       `json:"createdAt"`
+}
+
+// ComputeRecord tracks earnings from compute work.
+type ComputeRecord struct {
+	OperatorID string    `json:"operatorId"`
+	Amount     int64     `json:"amount"` // cents
+	Timestamp  time.Time `json:"timestamp"`
+}
+
+// PayoutRecord tracks a single Stripe transfer/payout event.
+type PayoutRecord struct {
+	OperatorID       string    `json:"operatorId"`
+	Amount           int64     `json:"amount"` // cents
+	StripeTransferID string    `json:"stripeTransferId"`
+	Status           string    `json:"status"` // pending, paid, failed
+	Timestamp        time.Time `json:"timestamp"`
+}
+
+// OperatorSummary provides an overview of an operator's finances.
+type OperatorSummary struct {
+	TotalCompute    int64     `json:"total_compute"`
+	TotalPaid       int64     `json:"total_paid"`
+	TotalPending    int64     `json:"total_pending"`
+	LastPayout      time.Time `json:"last_payout"`
+	StripeAccountID string    `json:"stripe_account_id"`
+	PayoutStatus    string    `json:"payout_status"`
 }

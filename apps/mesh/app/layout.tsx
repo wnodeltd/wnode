@@ -14,7 +14,7 @@ const roboto = Roboto({
 });
 
 export const metadata: Metadata = {
-    title: "Nodl Mesh — Compute Marketplace",
+    title: "Wnode Mesh — Compute Marketplace",
     description: "Access high-performance decentralized compute resources.",
 };
 

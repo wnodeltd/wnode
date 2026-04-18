@@ -11,14 +11,14 @@ interface ImpactCardProps {
 
 export default function ImpactCard({ carbonSaved, kmAvoided, treeDays, isActive }: ImpactCardProps) {
     return (
-        <div className={`card-sovereign p-6 transition-all duration-500 ${isActive ? 'border-emerald/50 shadow-[0_0_15px_rgba(16,185,129,0.1)]' : ''}`}>
+        <div className={`border border-white/5 bg-black p-6 transition-all duration-500 ${isActive ? 'border-cyber-cyan/50 shadow-[0_0_20px_rgba(0,242,255,0.1)]' : ''}`}>
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-2">
-                    <Leaf className={`w-5 h-5 ${isActive ? 'text-emerald animate-bounce' : 'text-slate-500'}`} />
-                    <span className="text-[14px] font-normal text-white uppercase-none">Green Mesh Impact</span>
+                    <Leaf className={`w-4 h-4 ${isActive ? 'text-cyber-cyan animate-pulse' : 'text-slate-600'}`} />
+                    <span className="text-[10px] font-black text-white uppercase tracking-[0.2em]">Green Mesh Impact</span>
                 </div>
                 {isActive && (
-                    <span className="px-2 py-0.5 rounded-full bg-emerald/10 text-emerald text-[10px] uppercase tracking-wider animate-pulse">
+                    <span className="px-2 py-0.5 bg-cyber-cyan/10 text-cyber-cyan text-[8px] font-black uppercase tracking-[0.3em]">
                         Active Saving
                     </span>
                 )}
@@ -26,31 +26,31 @@ export default function ImpactCard({ carbonSaved, kmAvoided, treeDays, isActive 
 
             <div className="space-y-6">
                 <div>
-                    <div className="text-[32px] font-normal text-white mb-1">
-                        {carbonSaved.toFixed(2)} <span className="text-[16px] text-slate-500">kg CO₂</span>
+                    <div className="text-4xl font-black text-white mb-2 tracking-tighter">
+                        {carbonSaved.toFixed(2)} <span className="text-sm font-bold text-slate-500 tracking-widest uppercase">kg CO₂</span>
                     </div>
-                    <p className="text-[13px] text-slate-400">
+                    <p className="text-[11px] text-slate-400 font-medium leading-relaxed">
                         Total carbon emissions prevented by using decentralized compute.
                     </p>
-                    <p className="text-[10px] text-slate-600 mt-1 uppercase tracking-tight">
+                    <p className="text-[9px] text-slate-600 mt-2 uppercase tracking-widest font-bold">
                         Source: 120W Cloud vs 12W Nodl avg.
                     </p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4 pt-2">
-                    <div className="bg-white/5 rounded-[5px] p-4 space-y-2">
-                        <div className="flex items-center gap-2 text-slate-500">
-                            <Car className="w-4 h-4" />
-                            <span className="text-[11px] uppercase tracking-wider">Car KM</span>
+                    <div className="bg-white/5 border border-white/5 rounded-none p-4 space-y-2">
+                        <div className="flex items-center gap-2 text-slate-600">
+                            <Car className="w-3 h-3" />
+                            <span className="text-[9px] font-bold uppercase tracking-widest">Car KM</span>
                         </div>
-                        <div className="text-[18px] text-white">{kmAvoided.toFixed(1)} km</div>
+                        <div className="text-xl font-black text-white tracking-tighter">{kmAvoided.toFixed(1)} KM</div>
                     </div>
-                    <div className="bg-white/5 rounded-[5px] p-4 space-y-2">
-                        <div className="flex items-center gap-2 text-slate-500">
-                            <TreePine className="w-4 h-4" />
-                            <span className="text-[11px] uppercase tracking-wider">Tree Days</span>
+                    <div className="bg-white/5 border border-white/5 rounded-none p-4 space-y-2">
+                        <div className="flex items-center gap-2 text-slate-600">
+                            <TreePine className="w-3 h-3" />
+                            <span className="text-[9px] font-bold uppercase tracking-widest">Tree Days</span>
                         </div>
-                        <div className="text-[18px] text-white">{treeDays.toFixed(0)} days</div>
+                        <div className="text-xl font-black text-white tracking-tighter">{treeDays.toFixed(0)} DAYS</div>
                     </div>
                 </div>
             </div>

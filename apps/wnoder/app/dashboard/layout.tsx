@@ -2,8 +2,11 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Cpu, Users, Settings, LogOut, Upload, DollarSign } from 'lucide-react';
-import { useState, useRef } from 'react';
+import { LayoutDashboard, Cpu, Users, Settings, LogOut, Upload, DollarSign, Plus } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { useAvatar } from '../hooks/useAvatar';
+import AddMachineModal from '../components/AddMachineModal';
 
 const navigation = [
     { name: 'Overview', href: '/dashboard', icon: LayoutDashboard },
@@ -20,7 +23,8 @@ export default function DashboardLayout({
     children: React.ReactNode;
 }) {
     const pathname = usePathname();
-    const [avatar, setAvatar] = useState<string | null>(null);
+    const { avatar, uploadAvatar } = useAvatar();
+    const [isModalOpen, setIsModalOpen] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const handlePhotoClick = () => {
@@ -29,11 +33,14 @@ export default function DashboardLayout({
         }
     };
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) {
-            const url = URL.createObjectURL(file);
-            setAvatar(url);
+            try {
+                await uploadAvatar(file);
+            } catch (e) {
+                console.error("Failed to upload avatar:", e);
+            }
         }
     };
 
@@ -41,15 +48,19 @@ export default function DashboardLayout({
         <div className="min-h-screen bg-black text-white font-sans flex">
             {/* Sidebar */}
             <aside className="fixed inset-y-0 left-0 w-64 bg-[#080808] border-r border-white/10 hidden lg:flex flex-col z-50">
-                <div className="h-20 flex flex-col items-start justify-center px-8 border-b border-white/10 shrink-0 overflow-hidden relative">
-                    <div className="absolute inset-y-0 left-8 flex items-center">
-                        <img 
-                            src="https://nodl.one/wp-content/uploads/2025/05/nodl-medium.webp" 
-                            alt="nodl logo" 
-                            className="h-4 w-auto scale-[3] transform origin-left"
-                        />
+                <div className="pt-8 pl-8 mb-6 flex flex-col items-start gap-4 shrink-0">
+                    <div className="flex flex-col items-start select-none gap-3">
+                        <div className="flex flex-col items-center justify-center w-14">
+                            <svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg" className="w-full h-auto fill-white drop-shadow-sm">
+                                <path d="M 22 110 L 22 50 A 28 28 0 0 1 78 50 L 78 110" fill="none" stroke="white" strokeWidth="26" strokeLinecap="butt" />
+                                <circle cx="50" cy="72" r="16" />
+                            </svg>
+                            <span style={{ fontFamily: "'Roboto', sans-serif", fontSize: "14pt", fontWeight: "bold", color: "white", marginTop: "12px", lineHeight: "1", letterSpacing: "0.02em" }}>wnode</span>
+                        </div>
+                        <div className="flex flex-col items-start mt-2">
+                            <span className="text-[10px] font-normal tracking-[0.4em] text-[#ffff00]">NODLR DASHBOARD</span>
+                        </div>
                     </div>
-                    <span className="text-[10px] font-normal tracking-[0.2em] text-slate-500 uppercase mt-12 w-full text-left">Dashboard</span>
                 </div>
 
 
@@ -61,13 +72,13 @@ export default function DashboardLayout({
                             <Link
                                 key={item.name}
                                 href={item.href}
-                                className={`flex items-center gap-3.5 px-6 py-3 text-sm font-normal border border-transparent rounded-[5px] transition-all group ${
+                                className={`flex items-center gap-3.5 px-6 py-3 text-sm font-bold border border-transparent rounded-[5px] transition-all group ${
                                     isActive
                                         ? 'bg-white/5 border-white/10 text-white shadow-sm'
-                                        : 'text-slate-400 hover:text-white hover:bg-white/5'
+                                        : 'text-white/80 hover:text-white hover:bg-white/5'
                                 }`}
                             >
-                                <item.icon className={`w-4 h-4 ${isActive ? 'text-cyber-cyan' : 'text-slate-500'}`} />
+                                <item.icon className={`w-4 h-4 ${isActive ? 'text-cyber-cyan' : 'text-white'}`} />
 
                                 {item.name}
                             </Link>
@@ -76,8 +87,8 @@ export default function DashboardLayout({
                 </nav>
 
                 <div className="p-5 border-t border-white/10 shrink-0">
-                    <button className="flex items-center gap-3 px-5 py-2.5 w-full text-slate-500 hover:text-red-500 transition-all text-13px font-normal">
-                        <LogOut className="w-4.5 h-4.5" /> Terminate Link
+                    <button className="flex items-center gap-3 px-5 py-2.5 w-full text-white hover:text-red-500 transition-all text-13px font-bold">
+                        <LogOut className="w-4.5 h-4.5" /> Logout
                     </button>
                 </div>
             </aside>
@@ -86,13 +97,22 @@ export default function DashboardLayout({
             <div className="flex-1 lg:pl-64 flex flex-col min-h-screen relative overflow-y-auto">
                 {/* Internal Top Bar */}
                 <header className="h-16 border-b border-white/10 flex items-center justify-between px-8 bg-[#080808]/80 backdrop-blur-md sticky top-0 z-40">
-                    <div className="flex items-center gap-2.5">
-                        <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
-                        <span className="text-[10px] font-normal text-slate-500 uppercase tracking-[0.2em]">Network online</span>
+                    <div className="flex items-center gap-2.5 w-1/3">
                     </div>
 
+                    <div className="flex-1 flex justify-center overflow-visible">
+                        <motion.button 
+                            whileHover={{ scale: 1.05, backgroundColor: "#ffffff", color: "#9333ea" }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => setIsModalOpen(true)}
+                            className="flex items-center gap-2.5 text-xs uppercase font-black bg-[#9333ea] text-white border border-[#9333ea] px-7 py-3.5 transition-all rounded-[4px] shadow-[0_0_20px_rgba(147,51,234,0.4)] relative -left-32"
+                        >
+                            <Plus className="w-4 h-4" />
+                            Add Node
+                        </motion.button>
+                    </div>
 
-                    <div className="flex items-center gap-5">
+                    <div className="flex items-center gap-5 w-1/3 justify-end">
                         <input 
                             type="file" 
                             ref={fileInputRef} 
@@ -100,25 +120,17 @@ export default function DashboardLayout({
                             accept="image/*" 
                             className="hidden" 
                         />
-                        <div className="flex flex-col items-end mr-6">
-                            <span className="text-16px text-white font-normal tracking-tight">ACC_#4492-X</span>
-                        </div>
                         <div className="flex flex-col items-end">
-                            <span className="text-16px font-normal text-white tracking-tight">Stephen Nodl</span>
-                            <button 
-                                onClick={handlePhotoClick}
-                                className="text-[10px] text-cyber-cyan hover:underline font-normal tracking-widest uppercase mt-0.5"
-                            >
-                                Update photo
-                            </button>
+                            <span className="text-16px font-bold text-white tracking-tight">Stephen Soos</span>
+                            <span className="text-[14.4px] text-blue-400 font-bold tracking-tight font-mono">100001-0426-01-AA</span>
                         </div>
 
 
-                        <div className="w-9 h-9 rounded-full border border-white/10 overflow-hidden bg-white/5 flex items-center justify-center text-cyber-cyan font-normal text-sm">
+                        <div className="w-9 h-9 rounded-full border border-white/10 overflow-hidden bg-white/5 flex items-center justify-center text-cyber-cyan font-bold text-sm">
                             {avatar ? (
                                 <img src={avatar} alt="avatar" className="w-full h-full object-cover" />
                             ) : (
-                                "SN"
+                                "SS"
                             )}
                         </div>
                     </div>
@@ -129,6 +141,12 @@ export default function DashboardLayout({
                 <main className="flex-1 p-8">
                     {children}
                 </main>
+
+                <AddMachineModal 
+                    isOpen={isModalOpen} 
+                    onClose={() => setIsModalOpen(false)} 
+                    apiBase="http://127.0.0.1:8082" 
+                />
             </div>
         </div>
     );
