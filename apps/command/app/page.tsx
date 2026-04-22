@@ -11,7 +11,11 @@ import {
 import "leaflet/dist/leaflet.css";
 
 import NodlInspector from "./components/NodlInspector";
-import FleetMap from "@shared/components/FleetMap";
+import dynamic from 'next/dynamic';
+
+const FleetMap = dynamic(() => import("@shared/components/FleetMap"), {
+    ssr: false,
+});
 import MetricCard from "@shared/components/MetricCard";
 import IdentityHeader from "@shared/components/IdentityHeader";
 
