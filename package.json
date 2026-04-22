@@ -1,6 +1,7 @@
 {
     "name": "wnode-root",
     "version": "1.0.0",
+    "packageManager": "npm@10.9.4",
   "private": true,
   "workspaces": [
     "apps/*"
