@@ -4,6 +4,11 @@ import { useState, useEffect } from "react";
 import { UserCheck } from "lucide-react";
 import FounderAdmin from "./FounderAdmin";
 
+const OWNER_HEADERS = {
+    "X-Owner-Email": "stephen@nodl.one",
+    "X-Owner-ID": "100001-0426-01-AA"
+};
+
 export default function BusinessProfile() {
     return (
         <div className="space-y-10">
