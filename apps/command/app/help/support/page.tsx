@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { ChevronLeft, Info, LifeBuoy, Terminal, Mail, MessageSquareText } from "lucide-react";
+import { ChevronLeft, Info, LifeBuoy, Terminal, Mail, MessageSquareText, Activity } from "lucide-react";
 import { usePageTitle } from "../../components/PageTitleContext";
 
 export default function HelpSupportPage() {
