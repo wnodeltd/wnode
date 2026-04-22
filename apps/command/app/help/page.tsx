@@ -87,32 +87,35 @@ export default function HelpPage() {
     return (
         <main className="flex-1 p-8 overflow-y-auto pb-24">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-6xl mx-auto">
-                {sections.map((section, idx) => (
-                    <Link 
-                        key={idx} 
-                        href={section.href}
-                        className="bg-white/[0.02] border border-white/10 rounded-[5px] p-8 hover:bg-white/[0.04] hover:border-cyan-400/30 transition-all group block"
-                    >
-                        <div className="flex items-center gap-4 mb-6">
-                            <div className={`p-3 rounded-[5px] bg-white/5 border border-white/10 ${section.iconColor || 'text-slate-400'} group-hover:bg-cyan-400 group-hover:text-black group-hover:border-cyan-400 transition-all shrink-0`}>
-                                <section.icon className="w-5 h-5" />
-                            </div>
-                            <div className="flex-1">
-                                <h2 className="text-[14px] font-bold uppercase tracking-widest text-white group-hover:text-cyan-400 transition-colors">{section.title}</h2>
-                            </div>
-                            <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-cyan-400 transition-colors" />
-                        </div>
-                        
-                        <div className="space-y-4 text-slate-400">
-                            {section.items.map((item, i) => (
-                                <div key={i} className="flex gap-3 text-[13px] leading-relaxed">
-                                    <div className="w-1 h-1 rounded-full bg-cyan-400/20 mt-2 shrink-0 group-hover:bg-cyan-400/40 transition-colors" />
-                                    <span>{item}</span>
+                {sections.map((section, idx) => {
+                    const Icon = section.icon;
+                    return (
+                        <Link 
+                            key={idx} 
+                            href={section.href}
+                            className="bg-white/[0.02] border border-white/10 rounded-[5px] p-8 hover:bg-white/[0.04] hover:border-cyan-400/30 transition-all group block"
+                        >
+                            <div className="flex items-center gap-4 mb-6">
+                                <div className={`p-3 rounded-[5px] bg-white/5 border border-white/10 ${section.iconColor || 'text-slate-400'} group-hover:bg-cyan-400 group-hover:text-black group-hover:border-cyan-400 transition-all shrink-0`}>
+                                    <Icon className="w-5 h-5" />
                                 </div>
-                            ))}
-                        </div>
-                    </Link>
-                ))}
+                                <div className="flex-1">
+                                    <h2 className="text-[14px] font-bold uppercase tracking-widest text-white group-hover:text-cyan-400 transition-colors">{section.title}</h2>
+                                </div>
+                                <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-cyan-400 transition-colors" />
+                            </div>
+                            
+                            <div className="space-y-4 text-slate-400">
+                                {section.items.map((item, i) => (
+                                    <div key={i} className="flex gap-3 text-[13px] leading-relaxed">
+                                        <div className="w-1 h-1 rounded-full bg-cyan-400/20 mt-2 shrink-0 group-hover:bg-cyan-400/40 transition-colors" />
+                                        <span>{item}</span>
+                                    </div>
+                                ))}
+                            </div>
+                        </Link>
+                    );
+                })}
             </div>
 
             <div className="mt-12 pt-8 border-t border-white/5 max-w-6xl mx-auto flex flex-col items-center gap-4">
