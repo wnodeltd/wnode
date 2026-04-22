@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect } from 'react';
 import { CreditCard, Plus, ArrowUpRight, ArrowDownLeft, FileText, Download, Loader2, ShieldCheck, ExternalLink, History, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
