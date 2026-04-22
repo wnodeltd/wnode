@@ -202,6 +202,7 @@ export default function CommandCentrePage() {
                 {/* Full-Width Map Panel */}
                 <FleetMap
                     nodes={nodes}
+                    nodlrs={nodlrs}
                     loading={loading}
                     onNodeSelect={handleNodeSelect}
                 />
