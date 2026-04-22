@@ -15,13 +15,17 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
+	"github.com/google/uuid"
 	"go.uber.org/zap"
 
+	"github.com/obregan/nodl/nodld/internal/buffer"
 	"github.com/obregan/nodl/nodld/internal/jobs"
 	"github.com/obregan/nodl/nodld/internal/p2p"
 	"github.com/obregan/nodl/nodld/internal/pricing"
 	"github.com/obregan/nodl/nodld/internal/account"
 	"github.com/obregan/nodl/nodld/internal/impact"
+	"github.com/gofiber/fiber/v2/middleware/proxy"
+	stripeService "github.com/obregan/nodl/nodld/internal/stripe"
 )
 
 // Server is the Fiber-based HTTP/WebSocket API server.
@@ -29,10 +33,12 @@ type Server struct {
 	app          *fiber.App
 	dispatcher   *jobs.Dispatcher
 	store        *jobs.Store
+	bufferMgr    *buffer.Manager
 	host         *p2p.Host
 	hub          *wsHub
 	pricingStore *pricing.Store
 	accountStore *account.Store
+	stripeSvc    *stripeService.Service
 	log          *zap.Logger
 	startTime    time.Time
 }
@@ -68,15 +74,20 @@ func (h *wsHub) broadcast(msg []byte) {
 }
 
 // New constructs the API server and registers all routes.
-func New(dispatcher *jobs.Dispatcher, store *jobs.Store, pricingStore *pricing.Store, accountStore *account.Store, host *p2p.Host, log *zap.Logger, startTime time.Time) *Server {
+func New(dispatcher *jobs.Dispatcher, store *jobs.Store, bufMgr *buffer.Manager, pricingStore *pricing.Store, accountStore *account.Store, stripeSvc *stripeService.Service, host *p2p.Host, log *zap.Logger, startTime time.Time) *Server {
 	hub := newWSHub()
 
 	app := fiber.New(fiber.Config{
-		ReadTimeout:  10 * time.Second,
-		WriteTimeout: 10 * time.Second,
+		ReadTimeout:  30 * time.Second,
+		WriteTimeout: 30 * time.Second,
+		BodyLimit:    50 * 1024 * 1024, // 50MB for job payloads
 		// Return structured JSON on panics
 		ErrorHandler: func(c *fiber.Ctx, err error) error {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			code := fiber.StatusInternalServerError
+			if e, ok := err.(*fiber.Error); ok {
+				code = e.Code
+			}
+			return c.Status(code).JSON(fiber.Map{
 				"error": err.Error(),
 			})
 		},
@@ -84,8 +95,8 @@ func New(dispatcher *jobs.Dispatcher, store *jobs.Store, pricingStore *pricing.S
 
 	app.Use(recover.New())
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: "https://cmd.nodl.one, https://nodl.one, https://mesh.nodl.one, https://nodlr.nodl.one, http://localhost:3000, http://localhost:3001, http://localhost:3002, http://localhost:3003, http://localhost:3004",
-		AllowHeaders: "Origin, Content-Type, Accept",
+		AllowOrigins: "*",
+		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
 	}))
 	app.Use(logger.New())
 
@@ -93,8 +104,10 @@ func New(dispatcher *jobs.Dispatcher, store *jobs.Store, pricingStore *pricing.S
 		app:          app,
 		dispatcher:   dispatcher,
 		store:        store,
+		bufferMgr:    bufMgr,
 		pricingStore: pricingStore,
 		accountStore: accountStore,
+		stripeSvc:    stripeSvc,
 		host:         host,
 		hub:          hub,
 		log:          log,
@@ -114,46 +127,79 @@ func (s *Server) registerRoutes() {
 		return fiber.ErrUpgradeRequired
 	})
 
-	// Liveness probe
+	// Liveness probe (at root)
 	s.app.Get("/health", s.handleHealth)
 
-	// Phase 3: Vertical Slice - Real Metrics
-	s.app.Get("/stats", s.handleStats)
+	// API V1 Group (Nodlr & Command Portals)
+	v1 := s.app.Group("/api/v1")
+
+	// Stats & Pulse
+	v1.Get("/stats", s.handleStats)
+	s.app.Get("/stats", s.handleStats) // Legacy Alias
 
 	// Peer information
-	s.app.Get("/peers", s.handlePeers)
+	v1.Get("/peers", s.handlePeers)
 
 	// Job CRUD
-	s.app.Get("/jobs", s.handleListJobs)
-	s.app.Post("/jobs", s.handleSubmitJob)
-	s.app.Get("/jobs/:id", s.handleGetJob)
+	v1.Get("/jobs", s.handleListJobs)
+	v1.Post("/jobs", s.handleSubmitJob)
+	v1.Get("/jobs/:id", s.handleGetJob)
+	v1.Get("/jobs/:id/status", s.handleGetJobStatus)
+	v1.Get("/jobs/:id/payload", s.handleStreamJobPayload)
+
+	// Buffer Health & Stats
+	v1.Get("/buffer/stats", s.handleBufferStats)
 
 	// Pricing
-	s.app.Get("/pricing", s.handleGetPricing)
-	s.app.Post("/pricing/override", s.handleUpdatePricingRule)
-	s.app.Get("/pricing/history/:tier", s.handleGetPricingHistory)
-	s.app.Get("/pricing/alerts", s.handleGetPricingAlerts)
+	v1.Get("/pricing", s.handleGetPricing)
+	v1.Post("/pricing/override", s.handleUpdatePricingRule)
+	v1.Get("/pricing/history/:tier", s.handleGetPricingHistory)
+	v1.Get("/pricing/alerts", s.handleGetPricingAlerts)
+
+	// Auth & Onboarding (New Flow)
+	v1.Post("/auth/signup", s.handleAuthSignup)
+	v1.Post("/auth/stripe/callback", s.handleAuthStripeCallback)
 
 	// Account & Affiliates
-	s.app.Get("/account/me", s.handleGetMyAccount)
-	s.app.Get("/account/:id", s.handleGetAccount)
-	s.app.Put("/account/:id", s.handleUpdateAccount)
-	s.app.Post("/account/onboard", s.handleOnboardAccount)
-	s.app.Get("/affiliates/tree/:id", s.handleGetAffiliateTree)
-	s.app.Post("/affiliates/transfer", s.handleTransferAffiliate)
-	s.app.Post("/affiliates/genesis/swap", s.handleSwapGenesisSlot) // RBAC Lvl 4
+	v1.Get("/account/me", s.handleGetMyAccount)
+	v1.Get("/account/:id", s.handleGetAccount)
+	v1.Put("/account/:id", s.handleUpdateAccount)
+	v1.Post("/account/onboard", s.handleOnboardAccount)
+	v1.Get("/affiliates/tree/:id", s.handleGetAffiliateTree)
+	v1.Post("/affiliates/transfer", s.handleTransferAffiliate)
+	v1.Post("/affiliates/genesis/swap", s.handleSwapGenesisSlot)
 	
-	// Global Tier Controller (Master Directive)
-	s.app.Get("/v1/meta/tiers", s.handleGetMetaTiers)
-	s.app.Patch("/v1/admin/tiers/:id", s.handleUpdateAdminTier)
+	// Money Proxy (Forward to Canonical 8080)
+	v1.All("/money/*", proxy.Balancer(proxy.Config{
+		Servers: []string{"http://127.0.0.1:8080"},
+	}))
+
+	// Acquisition Proxy (Forward to Canonical 8080)
+	v1.All("/acquisition/*", proxy.Balancer(proxy.Config{
+		Servers: []string{"http://127.0.0.1:8080"},
+	}))
+
+	// Institutional Proxy (Forward to Canonical 8080)
+	v1.All("/institutional/*", proxy.Balancer(proxy.Config{
+		Servers: []string{"http://127.0.0.1:8080"},
+	}))
+
+	// Global Tier Controller
+	v1.Get("/meta/tiers", s.handleGetMetaTiers)
+	v1.Patch("/admin/tiers/:id", s.handleUpdateAdminTier)
 
 	// Hardware Registry
-	s.app.Get("/registry", s.handleGetRegistry)
-	s.app.Post("/registry/register", s.handleRegisterHardware)
-	s.app.Post("/registry/release", s.handleReleaseHardware)
-	s.app.Post("/api/admin/resolve-flag", s.handleResolveFlag)
+	v1.Get("/registry", s.handleGetRegistry)
+	v1.Post("/registry/register", s.handleRegisterHardware)
+	v1.Post("/registry/release", s.handleReleaseHardware)
+	v1.Post("/admin/resolve-flag", s.handleResolveFlag)
+	v1.Get("/system/pulse", s.handleGetSystemPulse)
+	v1.Get("/impact", s.handleGetImpact)
+
+	// Legacy System Aliases (Avoid breaking existing CMD tools)
 	s.app.Get("/api/system/pulse", s.handleGetSystemPulse)
 	s.app.Get("/api/impact", s.handleGetImpact)
+	s.app.Get("/api/account/me", s.handleGetMyAccount)
 
 	// Real-time event stream
 	s.app.Get("/ws", websocket.New(s.handleWebSocket))
@@ -178,6 +224,22 @@ func (s *Server) App() *fiber.App {
 func (s *Server) Broadcast(event map[string]any) {
 	b, _ := json.Marshal(event)
 	s.hub.broadcast(b)
+}
+
+// validateMeshClientID is a middleware that enforces the M{bucket}-{sequence}-{MMYY} format.
+func (s *Server) validateMeshClientID() fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		id := c.Params("meshClientId")
+		if id == "" {
+			return c.Next()
+		}
+		if !account.MeshClientIDRegex.MatchString(id) {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "invalid mesh client ID format",
+			})
+		}
+		return c.Next()
+	}
 }
 
 // --- Handlers ---
@@ -247,12 +309,14 @@ type JobSubmitRequest struct {
 	TargetCycles int64   `json:"targetCycles"`
 }
 
+// handleSubmitJob handles POST /api/v1/jobs.
+// Submit a compute job bundle (code + config + optional data).
 func (s *Server) handleSubmitJob(c *fiber.Ctx) error {
-	// Read WASM file from multipart
+	// 1. Read job bundle from multipart job upload
 	file, err := c.FormFile("wasm")
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": "missing 'wasm' file in multipart form",
+			"error": "missing 'wasm' file in multipart job upload",
 		})
 	}
 
@@ -267,7 +331,14 @@ func (s *Server) handleSubmitJob(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
-	// Parse the JSON manifest from form field
+	// Immediate cleanup of the compute job payload from RAM after processing
+	defer func() {
+		for i := range wasmBytes {
+			wasmBytes[i] = 0
+		}
+	}()
+
+	// 2. Parse the JSON manifest from form field
 	var req JobSubmitRequest
 	if manifestStr := c.FormValue("manifest"); manifestStr != "" {
 		if err := json.Unmarshal([]byte(manifestStr), &req); err != nil {
@@ -275,8 +346,16 @@ func (s *Server) handleSubmitJob(c *fiber.Ctx) error {
 		}
 	}
 
-	job, err := s.dispatcher.Submit(c.Context(), wasmBytes, req.Budget, req.TargetCycles)
+	// 3. Generate JobID and store in RAM buffer
+	jobID := uuid.New().String()
+	if err := s.bufferMgr.Store(jobID, wasmBytes); err != nil {
+		return c.Status(fiber.StatusInsufficientStorage).JSON(fiber.Map{"error": "RAM buffer allocation failed: " + err.Error()})
+	}
+
+	// 4. Create job metadata entry (no payload stored here)
+	job, err := s.dispatcher.Submit(c.Context(), jobID, int64(len(wasmBytes)), req.Budget, req.TargetCycles)
 	if err != nil {
+		s.bufferMgr.Wipe(jobID)
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
 
@@ -284,6 +363,51 @@ func (s *Server) handleSubmitJob(c *fiber.Ctx) error {
 	s.Broadcast(fiber.Map{"event": "job.submitted", "jobID": job.ID})
 
 	return c.Status(fiber.StatusCreated).JSON(jobToMap(job))
+}
+
+// handleStreamJobPayload handles GET /api/v1/jobs/:id/payload.
+// Stream the job bundle to an assigned node.
+func (s *Server) handleStreamJobPayload(c *fiber.Ctx) error {
+	id := c.Params("id")
+
+	// Verify job exists
+	job := s.store.Get(id)
+	if job == nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "job not found"})
+	}
+
+	// Verify buffer exists
+	if !s.bufferMgr.Has(id) {
+		return c.Status(fiber.StatusGone).JSON(fiber.Map{"error": "payload expired or already delivered"})
+	}
+
+	// Stream from RAM
+	reader, cleanup, err := s.bufferMgr.Stream(id)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+	defer cleanup()
+
+	// Update job status
+	s.store.UpdateStatus(id, jobs.StatusAssigned)
+
+	c.Set("Content-Type", "application/octet-stream")
+	c.Set("Content-Length", fmt.Sprintf("%d", job.PayloadSize))
+	
+	return c.SendStream(reader)
+}
+
+func (s *Server) handleGetJobStatus(c *fiber.Ctx) error {
+	id := c.Params("id")
+	job := s.store.Get(id)
+	if job == nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "job not found"})
+	}
+	return c.JSON(jobToMap(job))
+}
+
+func (s *Server) handleBufferStats(c *fiber.Ctx) error {
+	return c.JSON(s.bufferMgr.Stats())
 }
 
 func (s *Server) handleGetJob(c *fiber.Ctx) error {
@@ -373,12 +497,38 @@ func (s *Server) handleGetPricingAlerts(c *fiber.Ctx) error {
 }
 
 func (s *Server) handleGetMyAccount(c *fiber.Ctx) error {
-	// For testing, we return the seeded owner account
-	acc, ok := s.accountStore.GetNodlr("0xFD-OWNER-SYSTEM")
-	if !ok {
+	// For testing, we return the seeded owner account or the last active user
+	// In a real system, we'd use the JWT subject
+	nodlrs := s.accountStore.ListNodlrs()
+	var acc *account.Nodlr
+	for _, n := range nodlrs {
+		if n.Status == "active" {
+			acc = n
+			break
+		}
+	}
+
+	if acc == nil {
+		// Fallback to seeded owner
+		acc, _ = s.accountStore.GetNodlr("0xFD-OWNER-SYSTEM")
+	}
+
+	if acc == nil {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "my account not found"})
 	}
-	return c.JSON(acc)
+
+	// Return strictly the CRM structure
+	return c.JSON(fiber.Map{
+		"nodlrId":         acc.NodlrID,
+		"meshClientId":    acc.MeshClientID,
+		"name":            acc.Name,
+		"email":           acc.Email,
+		"stripeAccountId": acc.StripeAccountID,
+		"status":          acc.Status,
+		"nodes":           acc.Nodes,
+		"affiliates":      acc.Affiliates,
+		"createdAt":       acc.CreatedAt,
+	})
 }
 
 func (s *Server) handleGetAccount(c *fiber.Ctx) error {
@@ -650,4 +800,80 @@ func (s *Server) handleUpdateAdminTier(c *fiber.Ctx) error {
 	})
 
 	return c.JSON(tier)
+}
+
+func (s *Server) handleAuthSignup(c *fiber.Ctx) error {
+	var req struct {
+		Email string `json:"email"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request"})
+	}
+
+	// 1. Create pending user
+	acc, err := s.accountStore.CreateNodlr(req.Email, "")
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	// 2. Generate Stripe link
+	url, stripeID, err := s.stripeSvc.CreateOnboardingLink(req.Email)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "stripe link failed: " + err.Error()})
+	}
+
+	// Link stripe ID immediately
+	acc.StripeConnectID = stripeID
+
+	return c.JSON(fiber.Map{
+		"onboardingUrl": url,
+		"email":         req.Email,
+	})
+}
+
+func (s *Server) handleAuthStripeCallback(c *fiber.Ctx) error {
+	var req struct {
+		Email           string `json:"email"`
+		StripeAccountID string `json:"stripe_account_id"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request"})
+	}
+
+	// 1. Verify Stripe Onboarding
+	complete, err := s.stripeSvc.CheckOnboardingStatus(req.StripeAccountID)
+	if err != nil || !complete {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "onboarding incomplete or verification failed"})
+	}
+
+	// 2. Activate User & Create CRM Record (Finalize)
+	nodlrs := s.accountStore.ListNodlrs()
+	var acc *account.Nodlr
+	for _, n := range nodlrs {
+		if n.Email == req.Email {
+			acc = n
+			break
+		}
+	}
+
+	if acc == nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "account not found"})
+	}
+
+	acc.StripeAccountID = req.StripeAccountID
+	acc.Status = "active"
+	acc.PayoutStatus = account.PayoutStatusActive
+
+	// 3. Return session token (Mock JWT for now as per plan)
+	token := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6I" + acc.Email + "Iiwicm9sZSI6Im5vZGxyIn0.mock-signature"
+
+	return c.JSON(fiber.Map{
+		"token": token,
+		"user": fiber.Map{
+			"nodlrId":         acc.NodlrID,
+			"email":           acc.Email,
+			"stripeAccountId": acc.StripeAccountID,
+			"status":          acc.Status,
+		},
+	})
 }

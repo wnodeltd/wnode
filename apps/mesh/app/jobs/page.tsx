@@ -18,22 +18,22 @@ import {
     Database, 
     Trash2, 
     FileCode, 
-    ExternalLink,
-    Play
+    ExternalLink
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useJobs, Job, WasmBundle } from '../components/JobsProvider';
+import { useJobs, Job } from '../components/JobsProvider';
 import { useBasket } from '../components/BasketContext';
 
 export default function JobsPage() {
-    const { jobs, bundles, addBundle, deleteBundle } = useJobs();
+    const { jobs, bundles, submitJob, deleteBundle } = useJobs();
     const { addItem } = useBasket();
     const [selectedJob, setSelectedJob] = useState<Job | null>(null);
     const [searchTerm, setSearchTerm] = useState('');
     const [isUploading, setIsUploading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     // Filter Logic
-    const runningJobs = jobs.filter(j => j.status === 'Running');
+    const runningJobs = jobs.filter(j => ['Running', 'Assigned', 'Pending'].includes(j.status));
     const queuedJobs = jobs.filter(j => j.status === 'Queued');
     const completedJobs = jobs.filter(j => j.status === 'Completed');
 
@@ -43,15 +43,20 @@ export default function JobsPage() {
         job.tier.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
         setIsUploading(true);
-        setTimeout(() => {
-            addBundle(file);
+        setError(null);
+        try {
+            await submitJob(file, { budget: 5.0, targetCycles: 1000000 });
             setIsUploading(false);
-        }, 1500);
+        } catch (err: any) {
+            console.error('Upload failed:', err);
+            setError(err.message || 'Upload failed');
+            setIsUploading(false);
+        }
     };
 
     const handleUseAgain = (job: Job) => {
@@ -79,9 +84,16 @@ export default function JobsPage() {
                 </div>
             </div>
 
+            {error && (
+                <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 text-xs font-bold tracking-widest flex items-center gap-3 animate-in slide-in-from-top-2">
+                    <Shield className="w-4 h-4" />
+                    {error}
+                </div>
+            )}
+
             {/* Grid Layout: Storage, Active, Queues */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* 01: WASM Storage */}
+                {/* 01: Compute Job Storage */}
                 <div className="space-y-6 border border-white/40 rounded-2xl p-6 bg-white/[0.01]">
                     <div className="flex items-center justify-between border-b border-white/20 pb-4">
                         <div className="flex items-center gap-2">
@@ -92,7 +104,7 @@ export default function JobsPage() {
                             <input type="file" className="hidden" accept=".wasm" onChange={handleFileUpload} />
                             <div className="flex items-center gap-2">
                                 <Upload className={`w-3.5 h-3.5 ${isUploading ? 'animate-bounce text-mesh-emerald' : 'text-slate-400 group-hover:text-white'}`} />
-                                <span className="text-[10px] font-bold text-slate-400 group-hover:text-white tracking-widest">Upload</span>
+                                <span className="text-[10px] font-bold text-slate-400 group-hover:text-white tracking-widest">{isUploading ? 'Uploading...' : 'Upload'}</span>
                             </div>
                         </label>
                     </div>
@@ -126,14 +138,14 @@ export default function JobsPage() {
                     </div>
                 </div>
 
-                {/* 02: Active Jobs (Running) */}
+                {/* 02: Active Jobs (Running/Assigned/Pending) */}
                 <div className="space-y-6 border border-white/40 rounded-2xl p-6 bg-white/[0.01]">
                     <div className="flex items-center justify-between border-b border-white/20 pb-4">
                         <div className="flex items-center gap-2">
                             <Zap className="w-4 h-4 text-mesh-emerald" />
                             <h2 className="text-xs font-bold text-white tracking-widest">Active Jobs</h2>
                         </div>
-                        <span className="text-[10px] font-bold text-mesh-emerald/50 tracking-[0.2em] animate-pulse">Running</span>
+                        <span className="text-[10px] font-bold text-mesh-emerald/50 tracking-[0.2em] animate-pulse">Mesh Live</span>
                     </div>
 
                     <div className="space-y-3 max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
@@ -147,16 +159,18 @@ export default function JobsPage() {
                                 <div key={job.id} onClick={() => setSelectedJob(job)} className="bg-white/[0.02] border border-white/20 hover:border-mesh-emerald/30 p-4 rounded-xl cursor-pointer transition-all">
                                     <div className="flex items-center justify-between mb-3">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-2 h-2 rounded-full bg-mesh-emerald animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-                                            <span className="text-[10px] font-black text-white uppercase tracking-widest">{job.id}</span>
+                                            <div className={`w-2 h-2 rounded-full ${job.status === 'Pending' ? 'bg-amber-500 animate-pulse' : 'bg-mesh-emerald animate-pulse shadow-[0_0_8px_rgba(16,185,129,0.5)]'}`} />
+                                            <span className="text-[10px] font-black text-white uppercase tracking-widest">{job.id.slice(0, 8)}</span>
                                         </div>
-                                        <span className="text-[10px] font-black text-mesh-emerald uppercase tracking-widest">In Progress</span>
+                                        <span className={`text-[10px] font-black uppercase tracking-widest ${job.status === 'Pending' ? 'text-amber-500' : 'text-mesh-emerald'}`}>
+                                            {job.status === 'Pending' ? 'Buffering' : job.status}
+                                        </span>
                                     </div>
                                     <h3 className="text-xs font-black text-white uppercase tracking-tight mb-1">{job.name}</h3>
                                     <div className="mt-3 h-1 bg-white/5 rounded-full overflow-hidden">
                                         <motion.div 
                                             initial={{ width: 0 }}
-                                            animate={{ width: '65%' }}
+                                            animate={{ width: job.status === 'Pending' ? '33%' : job.status === 'Assigned' ? '66%' : '90%' }}
                                             className="h-full bg-mesh-emerald"
                                         />
                                     </div>
@@ -188,7 +202,7 @@ export default function JobsPage() {
                                     <div className="flex items-center justify-between mb-3">
                                         <div className="flex items-center gap-3">
                                             <div className="w-2 h-2 rounded-full bg-amber-500" />
-                                            <span className="text-[10px] font-black text-white uppercase tracking-widest">{job.id}</span>
+                                            <span className="text-[10px] font-black text-white uppercase tracking-widest">{job.id.slice(0, 8)}</span>
                                         </div>
                                         <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Pending</span>
                                     </div>
@@ -241,7 +255,7 @@ export default function JobsPage() {
                                     </div>
                                     <div>
                                         <div className="flex items-center gap-2">
-                                            <span className="text-[9px] font-bold text-slate-500 tracking-widest">{job.id}</span>
+                                            <span className="text-[9px] font-bold text-slate-500 tracking-widest">{job.id.slice(0, 8)}</span>
                                             <span className="text-[8px] font-bold px-2 py-0.5 rounded bg-mesh-emerald/10 text-mesh-emerald">Completed</span>
                                         </div>
                                         <h3 className="text-lg font-bold tracking-tight text-white mt-1 group-hover:text-mesh-emerald transition-colors">{job.name}</h3>
@@ -287,7 +301,7 @@ export default function JobsPage() {
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <span className="text-[10px] font-black text-mesh-emerald uppercase tracking-[0.3em]">Job Analytics & Verification</span>
-                                        <h2 className="text-2xl font-black text-white uppercase tracking-tighter mt-1 italic">{selectedJob.id}</h2>
+                                        <h2 className="text-2xl font-black text-white uppercase tracking-tighter mt-1 italic">{selectedJob.id.slice(0, 12)}</h2>
                                     </div>
                                     <button 
                                         onClick={() => setSelectedJob(null)}
@@ -369,3 +383,4 @@ export default function JobsPage() {
         </div>
     );
 }
+

@@ -72,9 +72,33 @@ func TestDispatcher_Submit(t *testing.T) {
 	d := jobs.NewDispatcher(s, nil, nil, log)
 
 	ctx := context.Background()
-	job, err := d.Submit(ctx, []byte{0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00}, 2.5, 1000)
+	job, err := d.Submit(ctx, "test-job-001", 1024, 2.5, 1000)
 	if err != nil {
 		t.Fatalf("Submit failed: %v", err)
+	}
+	if job.ID != "test-job-001" {
+		t.Errorf("expected ID=test-job-001, got %s", job.ID)
+	}
+	if job.PayloadRef != "test-job-001" {
+		t.Errorf("expected PayloadRef=test-job-001, got %s", job.PayloadRef)
+	}
+	if job.PayloadSize != 1024 {
+		t.Errorf("expected PayloadSize=1024, got %d", job.PayloadSize)
+	}
+	if job.Status != jobs.StatusPending {
+		t.Errorf("expected StatusPending, got %s", job.Status)
+	}
+}
+
+func TestDispatcher_SubmitLegacy(t *testing.T) {
+	log, _ := zap.NewDevelopment()
+	s := jobs.NewStore()
+	d := jobs.NewDispatcher(s, nil, nil, log)
+
+	ctx := context.Background()
+	job, err := d.SubmitLegacy(ctx, []byte{0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00}, 2.5, 1000)
+	if err != nil {
+		t.Fatalf("SubmitLegacy failed: %v", err)
 	}
 	if job.ID == "" {
 		t.Error("expected non-empty job ID")
@@ -90,7 +114,8 @@ func TestDispatcher_RecordProof_CompletesJob(t *testing.T) {
 	d := jobs.NewDispatcher(s, nil, nil, log)
 
 	ctx := context.Background()
-	job, _ := d.Submit(ctx, []byte{0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00}, 1.0, 100)
+	job, _ := d.Submit(ctx, "proof-test-job", 8, 1.0, 100)
+	_ = s.UpdateStatus(job.ID, jobs.StatusActive)
 
 	receipt := jobs.ProofReceipt{
 		JobID:      job.ID,
@@ -104,5 +129,18 @@ func TestDispatcher_RecordProof_CompletesJob(t *testing.T) {
 	updated := s.Get(job.ID)
 	if updated.Status != jobs.StatusComplete {
 		t.Errorf("expected StatusComplete, got %s", updated.Status)
+	}
+}
+
+func TestStore_UpdateStatus_Expired(t *testing.T) {
+	s := jobs.NewStore()
+	j := &jobs.Job{ID: "job-ttl", Status: jobs.StatusPending, CreatedAt: time.Now(), UpdatedAt: time.Now()}
+	s.Add(j)
+
+	if err := s.UpdateStatus("job-ttl", jobs.StatusExpired); err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if s.Get("job-ttl").Status != jobs.StatusExpired {
+		t.Error("expected status Expired")
 	}
 }

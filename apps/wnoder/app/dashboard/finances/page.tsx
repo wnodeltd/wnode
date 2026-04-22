@@ -61,14 +61,11 @@ export default function FinancesPage() {
             <div className="flex justify-between items-end border-b border-white/10 pb-6">
                 <div>
                     <h2 className="text-3xl font-normal tracking-tight text-white mb-1.5">Financial management</h2>
-                    <p className="text-16px text-slate-400 font-normal">Manage your revenue streams, payouts, and ledger</p>
+                    <p className="text-16px text-slate-400 font-normal">Manage your revenue streams and ledger</p>
                 </div>
                 <div className="flex gap-4">
                     <button className="flex items-center gap-2 bg-white/5 hover:bg-white/10 text-white px-5 py-2.5 rounded-[5px] border border-white/10 text-16px font-normal transition-all">
                         <Download className="w-4 h-4" /> Export CSV
-                    </button>
-                    <button className="flex items-center gap-2 bg-[#9333ea] hover:bg-[#a855f7] text-white px-6 py-2.5 rounded-[5px] text-16px font-normal transition-all shadow-lg active:scale-95">
-                        Withdraw funds
                     </button>
                 </div>
             </div>
@@ -109,18 +106,6 @@ export default function FinancesPage() {
                                     <ArrowUpRight className="w-4 h-4 text-slate-700 group-hover:text-white transition-colors" />
                                 </div>
 
-                                <div className="p-5 border border-white/5 bg-white/[0.02] flex items-center justify-between group cursor-pointer hover:border-white/10 transition-all rounded-[5px] opacity-60">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-10 h-10 rounded-[5px] bg-white/5 flex items-center justify-center">
-                                            <Building className="w-6 h-6 text-slate-400" />
-                                        </div>
-                                        <div>
-                                            <span className="block text-16px text-white font-normal">Bank account</span>
-                                            <span className="text-16px text-slate-500 font-normal">Not connected</span>
-                                        </div>
-                                    </div>
-                                    <Plus className="w-4 h-4 text-slate-700 hover:text-white transition-colors" />
-                                </div>
 
                             </div>
                         </div>
@@ -146,24 +131,24 @@ export default function FinancesPage() {
 
                         <div className="overflow-x-auto">
                             <table className="w-full text-left font-normal text-16px">
-                                <thead>
-                                    <tr className="border-b border-white/5 text-16px text-slate-500">
-                                        <th className="pb-6 font-normal">Timeframe</th>
-                                        <th className="pb-6 font-normal text-right">Total revenue</th>
-                                        <th className="pb-6 font-normal text-right">Status</th>
+                                <thead className="border-b border-white/10 bg-white/[0.01]">
+                                    <tr className="text-[12px] text-slate-500 uppercase tracking-widest font-bold">
+                                        <th className="px-8 py-5 font-bold">Timeframe</th>
+                                        <th className="px-8 py-5 font-bold text-right">Total revenue</th>
+                                        <th className="px-8 py-5 font-bold text-right">Status</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-white/5">
                                     {SUMMARY_LEDGER.map((row) => (
                                         <tr 
                                             key={row.timeframe} 
-                                            className="group hover:bg-white/[0.01] transition-colors cursor-pointer"
+                                            className="group hover:bg-white/[0.04] transition-colors cursor-pointer"
                                             onClick={() => setSelectedTimeframe(row)}
                                         >
-                                            <td className="py-6 text-slate-400">{row.timeframe}</td>
-                                            <td className="py-6 text-right text-white font-normal">{row.total}</td>
-                                            <td className="py-6 text-right">
-                                                <span className={`text-16px px-3 py-1 rounded-[5px] border ${row.status === 'Settled' ? 'border-green-500/20 text-green-500 bg-green-500/5' : 'border-yellow-500/20 text-yellow-500 bg-yellow-500/5'}`}>
+                                            <td className="px-8 py-6 text-slate-400 font-mono italic">{row.timeframe}</td>
+                                            <td className="px-8 py-6 text-right text-white font-bold font-mono">{row.total}</td>
+                                            <td className="px-8 py-6 text-right">
+                                                <span className={`text-[12px] px-3 py-1.5 rounded-[3px] border font-bold uppercase tracking-widest ${row.status === 'Settled' ? 'border-green-500/20 text-green-500 bg-green-500/5' : 'border-yellow-500/20 text-yellow-500 bg-yellow-500/5'}`}>
                                                     {row.status}
                                                 </span>
                                             </td>

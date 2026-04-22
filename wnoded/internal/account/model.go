@@ -1,8 +1,11 @@
 package account
 
 import (
+	"regexp"
 	"time"
 )
+
+var MeshClientIDRegex = regexp.MustCompile(`^M[0-9]-[0-9]{6}-[0-9]{4}$`)
 
 // PayoutFrequency defines how often a nodlr receives funds.
 type PayoutFrequency string
@@ -16,23 +19,31 @@ const (
 type PayoutStatus string
 
 const (
-	PayoutStatusPending    PayoutStatus = "pending"
-	PayoutStatusIncomplete PayoutStatus = "incomplete"
 	PayoutStatusActive     PayoutStatus = "active"
+	PayoutStatusBlocked    PayoutStatus = "blocked"
+	PayoutStatusPending    PayoutStatus = "pending_stripe"
 )
 
 // Nodlr represents a participant in the Nodl network.
 type Nodlr struct {
 	ID                    string          `json:"id"`
+	NodlrID               string          `json:"nodlrId"`
+	MeshClientID          string          `json:"meshClientId"`
+	Name                  string          `json:"name"`
 	Email                 string          `json:"email"`
+	AvatarURL             string          `json:"avatar_url"`
 	StripeConnectID       string          `json:"stripeConnectId"`
+	StripeAccountID       string          `json:"stripeAccountId"`
+	Status                string          `json:"status"` // pending_stripe, active
 	PayoutStatus          PayoutStatus    `json:"payoutStatus"`
 	IntegrityScore        int             `json:"integrityScore"`        // 0-1000
 	AccruedFounderBalance int64           `json:"accruedFounderBalance"` // Cents
 	IsFounder             bool            `json:"isFounder"`
 	FounderIndex          int             `json:"founderIndex,omitempty"` // 1-5
 	PayoutFrequency       PayoutFrequency `json:"payoutFrequency"`
-	ParentID              string          `json:"parentId,omitempty"`     // Direct sponsor
+	ParentID              string          `json:"parentId,omitempty"` // Direct sponsor
+	Nodes                 []string        `json:"nodes"`              // CRM requirement
+	Affiliates            []string        `json:"affiliates"`         // CRM requirement
 	CreatedAt             time.Time       `json:"createdAt"`
 }
 
@@ -78,4 +89,30 @@ type Payout struct {
 	PeriodStart     time.Time       `json:"periodStart"`
 	PeriodEnd       time.Time       `json:"periodEnd"`
 	CreatedAt       time.Time       `json:"createdAt"`
+}
+
+// ComputeRecord tracks earnings from compute work.
+type ComputeRecord struct {
+	OperatorID string    `json:"operatorId"`
+	Amount     int64     `json:"amount"` // cents
+	Timestamp  time.Time `json:"timestamp"`
+}
+
+// PayoutRecord tracks a single Stripe transfer/payout event.
+type PayoutRecord struct {
+	OperatorID       string    `json:"operatorId"`
+	Amount           int64     `json:"amount"` // cents
+	StripeTransferID string    `json:"stripeTransferId"`
+	Status           string    `json:"status"` // pending, paid, failed
+	Timestamp        time.Time `json:"timestamp"`
+}
+
+// OperatorSummary provides an overview of an operator's finances.
+type OperatorSummary struct {
+	TotalCompute    int64     `json:"total_compute"`
+	TotalPaid       int64     `json:"total_paid"`
+	TotalPending    int64     `json:"total_pending"`
+	LastPayout      time.Time `json:"last_payout"`
+	StripeAccountID string    `json:"stripe_account_id"`
+	PayoutStatus    string    `json:"payout_status"`
 }

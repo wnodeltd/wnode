@@ -1,5 +1,4 @@
-// nodld — the Nodl mesh daemon.
-// It bootstraps the libp2p host, starts the WASM runner,
+// It bootstraps the libp2p host, starts the compute runner,
 // initialises the job dispatcher, registers Stripe routes,
 // and starts the Fiber HTTP/WebSocket API server.
 package main
@@ -23,6 +22,7 @@ import (
 	stripeService "github.com/obregan/nodl/nodld/internal/stripe"
 	"github.com/obregan/nodl/nodld/internal/wasm"
 	"github.com/obregan/nodl/nodld/internal/account"
+	"github.com/obregan/nodl/nodld/internal/buffer"
 )
 
 func main() {
@@ -67,17 +67,17 @@ func main() {
 	log.Info("libp2p host online", zap.String("peerID", p2pHost.ID()))
 
 	// ── Account & Affiliate Store ─────────────────────────────────────────────
-	accountStore := account.NewStore()
+	accountStore := account.NewStore("state/account.json")
 
 	// ── Job Store + Dispatcher ────────────────────────────────────────────────
 	store := jobs.NewStore()
 	dispatcher := jobs.NewDispatcher(store, p2pHost.Registry(), accountStore, log)
 	go dispatcher.Run(ctx)
 
-	// ── WASM Runner ───────────────────────────────────────────────────────────
+	// ── Compute Runner ───────────────────────────────────────────────────────────
 	_, err = wasm.NewRunner(ctx, p2pHost.ID(), log)
 	if err != nil {
-		log.Fatal("WASM runner failed to start", zap.Error(err))
+		log.Fatal("Compute runner failed to start", zap.Error(err))
 	}
 	log.Info("Wazero runtime online", zap.String("status", "ready"))
 
@@ -106,12 +106,20 @@ func main() {
 	accountStore.SetFounder(1, ownerID)
 	owner := &account.Nodlr{
 		ID:              ownerID,
+		NodlrID:         "100001-0420-01-AA",
+		MeshClientID:    "M0-000001-0420",
+		Name:            "Stephen Soos",
 		Email:           "stephen@nodl.one",
+		AvatarURL:       "https://ui-avatars.com/api/?name=Stephen+Soos&background=0D8ABC&color=fff&size=128",
+		Status:          "active",
 		PayoutFrequency: account.PayoutDaily,
 		PayoutStatus:    account.PayoutStatusActive,
 		StripeConnectID: "acct_1test",
+		StripeAccountID: "acct_1test",
 		IsFounder:       true,
 		FounderIndex:    1,
+		Nodes:           []string{},
+		Affiliates:      []string{},
 		CreatedAt:       time.Now(),
 	}
 	accountStore.AddNodlr(owner) // I need to add this method or use a workaround
@@ -125,9 +133,13 @@ func main() {
 	}
 
 	log.Info("account store online with seeded data", zap.String("ownerID", ownerID))
+	
+	// ── Buffer Manager (RAM-Only) ─────────────────────────────────────────────
+	bufMgr := buffer.NewManager(buffer.DefaultConfig(), log)
+	go bufMgr.RunReaper(ctx)
 
 	// ── API Server ────────────────────────────────────────────────────────────
-	srv := api.New(dispatcher, store, pricingStore, accountStore, p2pHost, log, startTime)
+	srv := api.New(dispatcher, store, bufMgr, pricingStore, accountStore, stripeSvc, p2pHost, log, startTime)
 
 	// ── Settlement Scheduler ──────────────────────────────────────────────────
 	scheduler := account.NewScheduler(accountStore, stripeSvc, log)

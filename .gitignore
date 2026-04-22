@@ -43,6 +43,7 @@ Thumbs.db
 .~lock.*
 
 # Project specific logs and status files
+heartbeat.json
 *.txt
 *.log
 *.pid
@@ -62,3 +63,9 @@ nodld/nodld*
 !nodld/nodld/.env.example
 nodld/go_build_output.txt
 nodld/nodld/nodld
+wnoded/stripe.env
+wnoded/stripe.env
+.git_token
+.git_askpass.sh
+*.key
+*.env

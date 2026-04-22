@@ -1,19 +1,29 @@
 import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { Inter, Roboto } from "next/font/google";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"], variable: "--" });
-const jetbrainsMono = JetBrains_Mono({ subsets: ["latin"], variable: "--" });
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const roboto = Roboto({ 
+    weight: ["400", "500", "700"],
+    subsets: ["latin"], 
+    variable: "--font-roboto" 
+});
 
 export const metadata: Metadata = {
-    title: "Nodl — Harvesting the Idle",
-    description: "A global, decentralized compute marketplace designed to democratize access to processing power.",
+    title: "Wnode — Own Your Network. Own Your Future.",
+    description: "Wnode is a sovereign mesh economy platform that lets you create, grow, and monetise your own network. Join the beta or get on the waitlist.",
+    openGraph: {
+        title: "Wnode — Own Your Network. Own Your Future.",
+        description: "The sovereign mesh economy platform.",
+        type: "website",
+        url: "https://wnode.one",
+    }
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     return (
         <html lang="en" className="dark scroll-smooth">
-            <body data-portal="web" className={`${inter.variable} ${jetbrainsMono.variable} antialiased bg-obsidian text-slate-300`} style={{ "--web-portal-glow-color": "#00f2ff" } as any}>
+            <body suppressHydrationWarning className={`${inter.variable} ${roboto.variable} antialiased bg-black text-slate-50 font-sans`}>
                 {children}
             </body>
         </html>

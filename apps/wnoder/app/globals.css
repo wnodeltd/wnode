@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    --background: #080808;
+    --background: #000000;
     --foreground: #ffffff;
     --surface: #111111;
     --font-roboto: 'Roboto', sans-serif;
@@ -50,11 +50,15 @@
   font-weight: 400 !important;
   font-style: normal !important;
   font-variant: normal !important;
-  border-radius: inherit;
+  border-radius: 5px !important;
   margin-top: calc(attr(margin-top) * 0.8);
   margin-bottom: calc(attr(margin-bottom) * 0.8);
   padding-top: calc(attr(padding-top) * 0.8);
   padding-bottom: calc(attr(padding-bottom) * 0.8);
+}
+
+div, button, input, section, aside, header, nav, img {
+  border-radius: 5px !important;
 }
 
 body {
@@ -107,7 +111,7 @@ body::before {
   width: 100vw;
   height: 100vh;
   pointer-events: none;
-  z-index: 9999;
+  z-index: -1;
   background: 
     radial-gradient(circle at 0% 0%, var(--nodlr-portal-glow-color, #22D3EE) 0%, transparent 40%),
     radial-gradient(circle at 100% 0%, var(--nodlr-portal-glow-color, #22D3EE) 0%, transparent 40%),

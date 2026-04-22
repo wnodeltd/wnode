@@ -21,15 +21,22 @@
       {
         "name": "next"
       }
-    ]
+    ],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./*"],
+      "@shared/*": ["../shared/*"]
+    }
   },
   "include": [
     "next-env.d.ts",
     ".next/types/**/*.ts",
     "**/*.ts",
-    "**/*.tsx"
+    "**/*.tsx",
+    "../../types/**/*"
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "../../types/multiformats-deep.d.ts"
   ]
 }

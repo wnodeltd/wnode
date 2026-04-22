@@ -9,10 +9,10 @@ export function TopNav() {
     if (pathname === '/login') return null;
 
     const navItems = [
-        { name: 'Overview', href: '/', icon: LayoutGrid },
-        { name: 'Catalog', href: '/catalog', icon: Database },
-        { name: 'Task Composer', href: '/tasks/new', icon: Cpu },
-        { name: 'Billing', href: '/billing', icon: CreditCard },
+        { name: 'Overview', href: '/', icon: LayoutGrid, color: 'text-[#22d3ee]' },
+        { name: 'Catalog', href: '/catalog', icon: Database, color: 'text-[#a855f7]' },
+        { name: 'Task Composer', href: '/tasks/new', icon: Cpu, color: 'text-[#3b82f6]' },
+        { name: 'Billing', href: '/billing', icon: CreditCard, color: 'text-[#10b981]' },
     ];
 
     return (
@@ -46,16 +46,10 @@ export function TopNav() {
                     {/* Identity Header (Snag 13) */}
                     <div className="flex items-center gap-3 pl-6 border-l border-white/10">
                         <div className="flex flex-col items-end">
-                            <span className="text-[11px] font-bold text-white uppercase tracking-tight">Stephen O'Regan</span>
-                            <span className="text-[9px] text-slate-500 uppercase tracking-widest font-normal">ACC# 0XFD-99-C2</span>
+                            <span className="text-[11px] font-bold text-white uppercase tracking-tight">Stephen Soos</span>
+                            <span className="text-[9px] text-[#3B82F6] uppercase tracking-widest font-normal">ACC# M0-000001-0420</span>
                         </div>
-                        <div className="w-9 h-9 rounded-full border border-white/10 bg-white/5 flex items-center justify-center overflow-hidden">
-                            <img 
-                                src="https://api.dicebear.com/7.x/avataaars/svg?seed=Stephen" 
-                                alt="avatar"
-                                className="w-full h-full object-cover"
-                            />
-                        </div>
+
                     </div>
                 </div>
             </div>

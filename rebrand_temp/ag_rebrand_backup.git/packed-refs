@@ -1,0 +1,15 @@
+# pack-refs with: peeled fully-peeled sorted 
+4cc19faeef52a9a0177fc33b91872eb5da867cff refs/heads/main
+e33c7df23e44eb99b10d9808645d7f4186d8c3fa refs/heads/security/runbook
+d7c3814c3e05011cf5a4985d6546e5b191538d3a refs/pull/1/head
+12346b0cf5ce2e42e4c52043009a94f0455a5d67 refs/pull/2/head
+5340adaecd65dfdf68ad21cb4c445a4e2e7850ee refs/tags/checkpoint-phase-b3-20260404
+ce9eee04339f98edaf4194c935eff813f345b3ad refs/tags/pre-dashboard-rebuild-20260403-0530
+^c4fa9c7d7f2a211bb5c5a8da97ad4579689dd1a5
+680114041001cf3e109af4e41b05760b5a8205fb refs/tags/pre-merge-api-nodls-20260403
+8789c93878e92c99103308a57b3824bb8c9794ad refs/tags/pre-merge-dashboard-diagnostics-20260403
+cf83499f5073f22f4ab874038edc14e471c71ec9 refs/tags/pre-merge-dashboard-ui-final-20260403
+935cbcd333a7e9352ed358702ff715bbcdbf9b4a refs/tags/pre-merge-header-protocolid-20260403
+218c6af9dc1f7580bf21d46dc1bc192db6e0b442 refs/tags/pre-merge-header-restore-layout-20260403
+471058803085af403ca8538286b86060803127f1 refs/tags/pre-merge-identity-top-right-20260403
+37f677ba92ba98de34d254a99148dfb934ff20a4 refs/tags/pre-merge-map-data-20260403

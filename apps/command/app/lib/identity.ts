@@ -1,0 +1,36 @@
+import { NextRequest } from 'next/server';
+
+/**
+ * Resolves identity metadata from the Authorization header (JWT).
+ * This is used to hydrate the backend with required X-Header identity context
+ * during Phase 4 development where mock JWTs are in use.
+ */
+export function resolveIdentityHeaders(req: NextRequest): Record<string, string> {
+    const authHeader = req.headers.get('Authorization') || '';
+    const token = authHeader.replace('Bearer ', '');
+    const headers: Record<string, string> = { 'Authorization': authHeader };
+
+    if (!token) return headers;
+
+    try {
+        const payloadStr = token.split('.')[1];
+        if (!payloadStr) return headers;
+
+        const payload = JSON.parse(Buffer.from(payloadStr, 'base64').toString());
+        
+        // Canonical Owner Resolution
+        if (payload.email === 'stephen@nodl.one' || payload.email === 'stephen@wnode.one') {
+            headers['X-Owner-Email'] = 'stephen@nodl.one';
+            headers['X-Owner-ID'] = '100001-0426-01-AA';
+        }
+
+        // Standard RBAC Resolution
+        headers['X-User-ID'] = payload.sub || payload.email;
+        headers['X-User-Role'] = payload.role || 'visitor';
+        
+    } catch (e) {
+        console.error('[Identity Resolver] Failed to decode JWT:', e);
+    }
+
+    return headers;
+}

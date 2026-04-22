@@ -4,12 +4,20 @@ const config: Config = {
     content: [
         "./app/**/*.{js,ts,jsx,tsx,mdx}",
         "./components/**/*.{js,ts,jsx,tsx,mdx}",
+        "../shared/components/**/*.{js,ts,jsx,tsx,mdx}",
     ],
     theme: {
         extend: {
             colors: {
-                background: "#000000",
-                foreground: "#ffffff",
+                background: "var(--nodl-bg)",
+                foreground: "var(--nodl-text-primary)",
+                nodl: {
+                    cyan: "var(--nodl-cyan)",
+                    "cyan-dim": "var(--nodl-cyan-dim)",
+                    card: "var(--nodl-card-bg)",
+                    border: "var(--nodl-border)",
+                    "text-secondary": "var(--nodl-text-secondary)",
+                },
                 cyber: {
                     cyan: "#00f2ff",
                     violet: "#9d00ff",
@@ -21,6 +29,9 @@ const config: Config = {
                 sans: ["Roboto", "sans-serif"],
                 mono: ["Roboto", "monospace"],
             },
+            borderRadius: {
+                '5px': 'var(--nodl-radius)',
+            }
         },
     },
     plugins: [],

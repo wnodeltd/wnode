@@ -27,10 +27,10 @@ export default function SettingsPage() {
         name: globalProfile?.full_name || 'Stephen Nodl',
         companyName: 'Nodl Global',
         contact: globalProfile?.full_name || 'Stephen Nodl',
-        email: 'stephen@nodl.one',
+        email: 'stephen@wnode.one',
         phone: '+1 (555) 000-0000',
         address: '123 Mesh Lane, Cloud City, CC 10101',
-        avatar: globalProfile?.avatar || 'https://nodl.one/wp-content/uploads/2025/05/nodl-medium.webp',
+        avatar: globalProfile?.avatar || 'https://wnode.one/wp-content/uploads/2025/05/nodl-medium.webp',
         password: '••••••••••••'
     });
 
@@ -113,36 +113,7 @@ export default function SettingsPage() {
                         </div>
                     </div>
                     
-                    {/* Avatar Upload */}
-                    <div className="flex flex-col gap-6 bg-white/3 p-6 rounded-2xl border border-white/5">
-                        <div className="flex items-center gap-8">
-                            <div className="relative group cursor-pointer" onClick={handleAvatarClick}>
-                                <div className="w-24 h-24 rounded-2xl border-2 border-white/10 overflow-hidden bg-[#111] object-cover relative shadow-[0_0_20px_rgba(0,0,0,0.4)] group-hover:shadow-[0_0_30px_rgba(16,185,129,0.15)] transition-all">
-                                    <img src={profile.avatar} alt="Avatar" className="w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity" />
-                                    <div className="absolute inset-0 bg-black/30 group-hover:bg-black/60 flex items-center justify-center transition-all">
-                                        <Camera className="w-6 h-6 text-white/40 group-hover:text-white transition-colors" />
-                                    </div>
-                                </div>
-                                <button className="absolute -bottom-2 -right-2 p-2.5 bg-white text-black rounded-lg shadow-xl hover:scale-110 transition-transform z-10">
-                                    <Camera className="w-4 h-4" />
-                                </button>
-                            </div>
-                            <div className="space-y-1.5 flex-1">
-                                <span className="text-[10px] text-slate-500 tracking-widest font-bold">Profile Avatar</span>
-                                <p className="text-[11px] text-slate-400 leading-relaxed max-w-[200px]">Click the image to upload a new profile photo.</p>
-                            </div>
-                            {hasUnsavedAvatar && (
-                                <button 
-                                    onClick={handleSaveAvatar}
-                                    disabled={savingAvatar}
-                                    className="px-6 py-3 bg-white text-black rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/80 transition-all shadow-xl flex items-center gap-2"
-                                >
-                                    {savingAvatar ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-                                    Save Photo
-                                </button>
-                            )}
-                        </div>
-                    </div>
+
 
                     <div className="grid gap-6">
                         <div className="grid grid-cols-2 gap-6">

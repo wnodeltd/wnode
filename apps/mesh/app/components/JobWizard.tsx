@@ -1,20 +1,22 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Cpu, Upload, ShieldCheck, Zap, Loader2, Info, ChevronRight, CheckCircle2, AlertCircle, Play } from 'lucide-react';
+import React, { useState } from 'react';
+import { Upload, Zap, Loader2, Info, CheckCircle2, AlertCircle, Play } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useJobs } from './JobsProvider';
 import { useBilling } from './BillingProvider';
 
 export default function JobWizard() {
-    const { addBundle, addJob } = useJobs();
+    const { submitJob } = useJobs();
     const { balance } = useBilling();
     const fileInputRef = React.useRef<HTMLInputElement>(null);
     const [step, setStep] = useState(1);
     const [isUploading, setIsUploading] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
     const [jobDetails, setJobDetails] = useState({
-        name: 'UNNAMED_TASK_' + Math.floor(Math.random() * 10000),
+        name: '',
         complexity: 'Moderate',
         parallelism: 8,
     });
@@ -36,30 +38,29 @@ export default function JobWizard() {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        setIsUploading(true);
-        // Mocking the "storage" part but calling the real context logic
-        setTimeout(() => {
-            addBundle(file);
-            setJobDetails(prev => ({ ...prev, name: file.name.split('.')[0].toUpperCase() }));
-            setIsUploading(false);
-            setStep(2);
-        }, 1500);
+        setError(null);
+        setSelectedFile(file);
+        setJobDetails(prev => ({ ...prev, name: file.name.split('.')[0].toUpperCase() }));
+        setStep(2);
     };
 
-    const handleProcess = () => {
+    const handleProcess = async () => {
+        if (!selectedFile) return;
+
         setIsProcessing(true);
-        setTimeout(() => {
-            addJob({
-                name: jobDetails.name,
-                tier: 'Standard',
-                cost: '$12.50',
-                cpu_cores: 16,
-                ram_gb: 32,
-                gpu_model: 'T4 GPU'
+        setError(null);
+
+        try {
+            await submitJob(selectedFile, {
+                budget: estimate.total,
+                targetCycles: 5000000 // Mock cycles
             });
             setIsProcessing(false);
             setStep(3);
-        }, 2000);
+        } catch (err: any) {
+            setError(err.message || 'Submission failed');
+            setIsProcessing(false);
+        }
     };
 
     return (
@@ -85,12 +86,12 @@ export default function JobWizard() {
                             className="w-full max-w-md aspect-video border-2 border-dashed border-white/10 hover:border-mesh-emerald/40 bg-white/[0.02] hover:bg-mesh-emerald/5 transition-all cursor-pointer flex flex-col items-center justify-center group rounded-[8px]"
                         >
                             <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
-                                {isUploading ? <Loader2 className="w-8 h-8 text-mesh-emerald animate-spin" /> : <Upload className="w-8 h-8 text-slate-500 group-hover:text-mesh-emerald" />}
+                                <Upload className="w-8 h-8 text-slate-500 group-hover:text-mesh-emerald" />
                             </div>
-                            <span className="text-xs font-bold text-white tracking-widest">Upload WASM Compute Bundle</span>
+                            <span className="text-xs font-bold text-white tracking-widest">Upload Compute Job Bundle</span>
                             <p className="text-[10px] text-slate-500   mt-2">Drag & Drop or Click to Browse</p>
                         </div>
-                        <p className="text-[11px] text-slate-500 tracking-widest max-w-sm">Nodl Mesh securely distributes your signed WASM modules across verified TEE/DECC nodes.</p>
+                        <p className="text-[11px] text-slate-500 tracking-widest max-w-sm">Nodl Mesh securely distributes your compute job bundles to eligible nodes in the global mesh for execution.</p>
                     </motion.div>
                 )}
 
@@ -107,7 +108,18 @@ export default function JobWizard() {
                         </div>
                         
                         <div className="p-8 space-y-10 flex-1">
-                            {/* Tier Splitting Logic Visualization (Snag 21) */}
+                            {/* File Info */}
+                            <div className="flex items-center gap-4 p-4 bg-white/5 border border-white/10 rounded-lg">
+                                <div className="p-2 bg-mesh-emerald/10 rounded">
+                                    <Zap className="w-4 h-4 text-mesh-emerald" />
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-[10px] font-bold text-white uppercase">{selectedFile?.name}</p>
+                                    <p className="text-[8px] text-slate-500 uppercase">Ready for zero-persistence RAM streaming</p>
+                                </div>
+                            </div>
+
+                            {/* Tier Splitting Logic Visualization */}
                             <div className="space-y-4">
                                 <div className="flex justify-between items-end">
                                     <span className="text-[10px]   font-bold text-slate-500 tracking-widest">Optimized Tier Splitting</span>
@@ -127,20 +139,9 @@ export default function JobWizard() {
                                         </div>
                                     ))}
                                 </div>
-                                <div className="grid grid-cols-3 gap-2">
-                                    {estimate.breakdown.map((item, i) => (
-                                        <div key={i} className="flex flex-col gap-1">
-                                            <div className="flex items-center gap-1.5">
-                                                <div className={`w-1.5 h-1.5 rounded-full ${item.tier === 'Boost' ? 'bg-[#8b5cf6]' : item.tier === 'Standard' ? 'bg-[#10b981]' : 'bg-[#94a3b8]'}`} />
-                                                <span className="text-[9px] text-white font-bold  ">{item.tier} ({item.percent}%)</span>
-                                            </div>
-                                            <span className="text-[8px] text-slate-500   ml-3">{item.reason}</span>
-                                        </div>
-                                    ))}
-                                </div>
                             </div>
 
-                            {/* Price Estimate (Snag 19, 20) */}
+                            {/* Price Estimate */}
                             <div className="p-8 surface-card bg-mesh-emerald/5 border-mesh-emerald/20 flex justify-between items-center rounded-[8px]">
                                 <div>
                                     <span className="text-[10px]   font-bold text-mesh-emerald tracking-widest">Estimated Execution Fee</span>
@@ -157,21 +158,28 @@ export default function JobWizard() {
                                     <p className="text-[10px] text-slate-600  ">Includes redundancy nodes (3x)</p>
                                 </div>
                             </div>
+
+                            {error && (
+                                <div className="flex items-center gap-3 p-4 bg-red-500/10 border border-red-500/20 rounded-lg text-red-500">
+                                    <AlertCircle className="w-4 h-4" />
+                                    <span className="text-[10px] font-bold uppercase tracking-widest">{error}</span>
+                                </div>
+                            )}
                         </div>
 
                         <div className="p-8 border-t border-white/5 bg-white/[0.01] flex justify-end gap-4">
                             <button 
-                                onClick={() => setStep(1)}
+                                onClick={() => { setStep(1); setSelectedFile(null); }}
                                 className="px-6 py-4 text-[10px] font-bold tracking-widest text-slate-500 hover:text-white transition-all"
                             >
-                                Re-upload
+                                Cancel
                             </button>
                             <button 
                                 onClick={handleProcess}
                                 disabled={isProcessing}
                                 className="bg-mesh-emerald hover:bg-mesh-emerald/80 text-black px-10 py-4 font-bold text-xs   tracking-[0.2em] transition-all shadow-lg shadow-mesh-emerald/20 flex items-center gap-3 rounded-[4px]"
                             >
-                                {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4 fill-current" />} Process
+                                {isProcessing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4 fill-current" />} Dispatch to Mesh
                             </button>
                         </div>
                     </motion.div>
@@ -203,7 +211,7 @@ export default function JobWizard() {
                             </div>
                         </div>
                         <button 
-                            onClick={() => setStep(1)}
+                            onClick={() => { setStep(1); setSelectedFile(null); }}
                             className="mt-10 px-6 py-3 border border-white/10 hover:border-white/30 text-[10px] font-bold tracking-widest text-slate-500 hover:text-white transition-all rounded-[4px]"
                         >
                             Return to Composer
@@ -214,3 +222,4 @@ export default function JobWizard() {
         </div>
     );
 }
+

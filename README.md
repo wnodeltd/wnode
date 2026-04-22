@@ -1,148 +1,148 @@
-# Nodl — Decentralized Compute Marketplace
+# wnode: The Decentralized Compute Fabric
 
-> **Harvest the Idle.** Turn unused CPU/GPU cycles on consumer devices into liquid compute.
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/wnode-one/wnode)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Audit Status](https://img.shields.io/badge/Audit-99%2F100-gold)](docs/steward-metrics.md)
 
-> [!IMPORTANT]
-> **Migration Notice:** This repository has been rebranded to **Wnode**. Please see [MIGRATION.md](docs/MIGRATION.md) for details on the transition from `Nodlshire/nodl` to `Nodlshire/wnode`.
+**Harvest the Idle.** Turn unused CPU/GPU cycles on consumer devices into a global, sustainable, and confidentiality-preserving compute mesh.
 
 ---
 
-## Architecture
+## 🌐 Vision
 
-```
-┌─────────────────────────────────────────────────────────┐
-│                      Nodl Ecosystem                     │
-│                                                         │
-│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌────────┐  │
-│  │  Mesh    │  │  Nodlr   │  │ Command  │  │  Web   │  │
-│  │ (Buyers) │  │(Providers│  │  (Admin) │  │ (Mktg) │  │
-│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └────────┘  │
-│       │              │              │                    │
-│       └──────────────┴──────────────┘                   │
-│                       │                                  │
-│              ┌─────────▼──────────┐                     │
-│              │       wnoded        │                     │
-│              │  Go Daemon / API   │                     │
-│              └─────────┬──────────┘                     │
-│                        │                                │
-│          ┌─────────────┼─────────────┐                  │
-│          │             │             │                  │
-│     ┌────▼────┐  ┌─────▼────┐  ┌────▼────┐             │
-│     │  libp2p │  │  Wazero  │  │ Stripe  │             │
-│     │  Mesh   │  │  WASM    │  │ Connect │             │
-│     └─────────┘  └──────────┘  └─────────┘             │
-└─────────────────────────────────────────────────────────┘
+wnode is a **Sovereign DePIN (Decentralized Physical Infrastructure Network)** designed to democratize high-performance compute. By activating existing idle resources in homes and offices, we eliminate the need for new hyperscale datacenters, reducing carbon footprints while providing enterprise-grade, RAM-only execution for sensitive workloads.
+
+### The Three Pillars
+1.  **Zero-Storage**: No user data ever touches a physical disk.
+2.  **RAM-Only Execution**: Workloads exist only in volatile memory and are wiped instantly.
+3.  **Economic Neutrality**: A hardcoded 80/20 revenue split ensures participants—not the platform—capture the value.
+
+---
+
+## 📚 Canonical Documentation
+
+Our documentation is the **Sovereign Source of Truth** for the network's architecture, economics, and governance.
+
+- **[Vision & Architecture](docs/vision-and-architecture.md)**: The "Why" and "How" of wnode.
+- **[Governance & Economics](docs/governance-and-economics.md)**: Payout splits and constitutional locks.
+- **[Steward Constitution](docs/steward-constitution.md)**: The rules that bind the network authority.
+- **[Economic Safeguards](docs/economic-safeguards.md)**: 120-Day holds, Ghost Protocol, and Honeypots.
+- **[RAM Execution Model](docs/ram-execution-model.md)**: Technical security guarantees.
+- **[Compute Tiers](docs/compute-tiers.md)**: Hardware specs from Tiny to Ultra GPU.
+
+---
+
+## 🏗️ Architecture
+
+```mermaid
+graph TD
+    subgraph Clients
+        Mesh[Mesh Portal: Compute Buyers]
+        Command[Command: Network Admin]
+    end
+
+    subgraph "The Steward (nodld)"
+        API[Fiber API / WebSockets]
+        Dispatcher[Job Dispatcher]
+        Registry[P2P Hardware Registry]
+        Stripe[Stripe Connect Payouts]
+    end
+
+    subgraph "The Mesh (Nodlrs)"
+        WASM[Wazero RAM-Only Sandbox]
+        Peer1[Node A: Class A+]
+        Peer2[Node B: Class B]
+        Peer3[Node C: Class C]
+    end
+
+    Mesh --> API
+    API --> Dispatcher
+    Dispatcher --> Peer1
+    Dispatcher --> Peer2
+    Dispatcher --> Peer3
+    Peer1 --> WASM
+    Peer2 --> WASM
+    Peer3 --> WASM
+    Dispatcher --> Stripe
 ```
 
-## Quick Start
+---
+
+## 🚀 Quick Start
 
 ### Prerequisites
-- Go 1.22+
-- (Optional) Docker & Docker Compose for containerised dev
+- **Go 1.22+**
+- **Node.js 18+** (for frontend portals)
+- **Stripe Account** (for Nodlr payouts)
 
-### Run Locally
-
+### Run the Backend (Steward)
 ```bash
-cd wnoded
-
-# Copy and fill in your credentials
+cd nodld
 cp .env.example .env
-
-# Install dependencies
 go mod tidy
-
-# Run all tests
-go test -race -v ./...
-
-# Start the daemon
-go run ./cmd/wnoded
+go run ./cmd/nodld
 ```
 
-### With Docker Compose
-
+### Run the Command Dashboard
 ```bash
-# From the repo root
-cp wnoded/.env.example wnoded/.env
-docker compose up --build
+cd apps/command
+npm install
+npm run dev
 ```
 
-Endpoints:
+---
 
-| Route | Method | Description |
-|---|---|---|
-| `/health` | GET | Liveness probe |
-| `/peers` | GET | Connected libp2p peers |
-| `/jobs` | GET | All jobs + status |
-| `/jobs` | POST | Submit a WASM compute job |
-| `/jobs/:id` | GET | Single job status |
-| `/ws` | WS | Real-time event stream |
-| `/api/v1/stripe/connect/account` | POST | Create Nodlr Express account |
-| `/api/v1/stripe/connect/onboard` | POST | Generate Stripe onboarding link |
-| `/api/v1/stripe/payment/create` | POST | Create Buyer PaymentIntent |
-| `/api/v1/stripe/transfer` | POST | Transfer to Nodlr (post Proof-of-Work) |
-| `/api/v1/stripe/webhook` | POST | Stripe webhook receiver |
+## 🛠️ Project Structure
 
-### Submitting a WASM Job
+| Directory | Description |
+| :--- | :--- |
+| **`/nodld`** | Core Go daemon handling P2P, Jobs, and Payments. |
+| **`/docs`** | Canonical documentation library. |
+| **`/apps/command`** | Admin control plane for network oversight. |
+| **`/apps/mesh`** | Buyer marketplace for compute procurement. |
+| **`/apps/nodlr`** | Provider portal for node management and earnings. |
+| **`/apps/shared`** | Shared UI components and logic. |
 
-```bash
-curl -X POST http://localhost:8080/jobs \
-  -F "wasm=@your_task.wasm" \
-  -F 'manifest={"budget":2.50,"targetCycles":100000}'
-```
+---
 
-## Project Structure
+## ⚖️ Economics (80/20 Rule)
 
-```
-wnode/
-├── wnoded/                  # Go backend daemon
-│   ├── cmd/wnoded/main.go   # Entry point
-│   ├── internal/
-│   │   ├── config/         # Env loading
-│   │   ├── p2p/            # libp2p host (WebRTC+WebTransport+DHT)
-│   │   ├── wasm/           # Wazero sandbox runner
-│   │   ├── jobs/           # Job lifecycle + dispatcher
-│   │   ├── api/            # Fiber HTTP + WebSocket
-│   │   └── stripe/         # Stripe Connect service
-│   ├── Dockerfile
-│   └── .env.example
-├── apps/                   # Next.js dashboards (Phase 2+)
-│   ├── wnoder/              # Provider dashboard
-│   ├── mesh/               # Buyer marketplace
-│   └── command/            # Admin control plane
-├── docker-compose.yml
-└── README.md
-```
+wnode is built for fairness. Every job follows a hardcoded commission waterfall:
 
-## WASM Module ABI
+- **Operator**: 80% (Direct to Nodlr)
+- **Steward**: 7% (Platform Maintenance)
+- **Affiliate Tree**: 10% (Growth Incentive: 2% L1, 8% L2)
+- **Founder**: 3% (Genesis Override)
 
-Nodl expects compute modules to export two functions:
+*Note: All withdrawals are subject to a **120-Day Compliance Hold** to ensure network integrity.*
 
-```wat
-(func (export "alloc") (param i32) (result i32))   ;; alloc(size) -> ptr
-(func (export "run") (param i32 i32) (result i32 i32))  ;; run(ptr, len) -> (out_ptr, out_len)
-```
+---
 
-Modules without these exports are executed via `_start` (WASI command modules).
+## 🔐 Security & Integrity
 
-## Environment Variables
+- **libp2p Mesh**: Uses WebRTC Direct, WebTransport, and Noise-encrypted channels.
+- **Hardware DNA**: Enforces the **1M1N (One Machine One Node)** rule to prevent virtualization farms.
+- **Ghost Protocol**: Automatically shadow-benches compromised or malicious nodes.
+- **Honeypot Checks**: Periodic timing-based audits to detect VMs via hardware jitter.
 
-See [`.env.example`](wnoded/.env.example) for full documentation.
+---
 
-## Technology Stack
+## 🤝 Contributing
 
-| Layer | Technology |
-|---|---|
-| Backend daemon | Go 1.22 |
-| P2P mesh | go-libp2p (WebRTC Direct, WebTransport, Kademlia DHT) |
-| WASM runtime | Wazero (pure Go, zero CGO) |
-| HTTP/WS server | Fiber v2 |
-| Payments | Stripe Connect (Separate Charges & Transfers) |
-| Frontends | Next.js (TypeScript) |
+We welcome community participation. Please review our **[Steward Update Policy](docs/steward-update-policy.md)** before submitting pull requests.
 
-## License
+## 📄 License
 
-MIT — see LICENSE
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
 
-## Integration Updates Reminder
-Ensure Docker tags, CI Provider targets, and Package Registries are correctly synced to the `wnode` namespaces externally.
+---
 
+© 2026 wnode Ltd (UK). The sovereign compute marketplace.
+
+## Community
+
+Join the Wnode developer community on Discord:
+
+<a href="https://discord.gg/EUXJMZsFCt">
+  <img src="https://img.shields.io/badge/Join%20Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" />
+</a>

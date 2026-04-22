@@ -13,9 +13,16 @@ interface Step {
     icon: any;
 }
 
-export default function OnboardingWizard() {
+interface OnboardingWizardProps {
+    account?: any;
+    onSkip?: () => void;
+}
+
+export default function OnboardingWizard({ account, onSkip }: OnboardingWizardProps) {
     const [currentStep, setCurrentStep] = useState(1);
+    const [name, setName] = useState(account?.name || '');
     const [isConnecting, setIsConnecting] = useState(false);
+    const [showStripeHelp, setShowStripeHelp] = useState(false);
 
     const steps: Step[] = [
         { id: 1, title: "Profile Setup", description: "Identity and Preferences", icon: User },
@@ -26,11 +33,11 @@ export default function OnboardingWizard() {
     const handleConnectStripe = async () => {
         setIsConnecting(true);
         try {
-            const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://api.nodl.one';
+            const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://api.wnode.one';
             const res = await fetch(`${apiBase}/api/v1/stripe/connect/account`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: 'nodlr@example.com' }) // In real app, get from auth
+                body: JSON.stringify({ email: 'stephen@wnode.one' }) // Seeded account
             });
             const { accountID } = await res.json();
 
@@ -79,7 +86,7 @@ export default function OnboardingWizard() {
                         <div>
                             <h2 className="text-[24px] font-normal tracking-tight text-white mb-2 uppercase-none">Universal Identity</h2>
                             <p className="text-[14px] text-slate-400 font-normal leading-relaxed uppercase-none">
-                                Your Nodl ID is your passport to the sovereign mesh. Verify your identity to begin participating in global compute clusters.
+                                Add your Universal Identity to personalize your account. You can do this now or later.
                             </p>
                         </div>
                         
@@ -89,17 +96,32 @@ export default function OnboardingWizard() {
                                 <input 
                                     type="text" 
                                     placeholder="Enter your name or business"
+                                    value={name}
+                                    onChange={(e) => setName(e.target.value)}
                                     className="w-full bg-white/5 border border-white/10 rounded-[5px] px-4 py-3 text-[14px] text-white focus:border-[#22D3EE] focus:outline-none transition-all outline-none"
                                 />
                             </div>
                         </div>
 
-                        <button 
-                            onClick={() => setCurrentStep(2)}
-                            className="w-full h-12 bg-white text-black rounded-[5px] text-[14px] font-bold hover:bg-[#22D3EE] transition-all flex items-center justify-center gap-2"
-                        >
-                            Next Step <ChevronRight className="w-4 h-4" />
-                        </button>
+                        <div className="space-y-3">
+                            <button 
+                                onClick={() => setCurrentStep(2)}
+                                className="w-full h-12 bg-white text-black rounded-[5px] text-[14px] font-bold hover:bg-[#22D3EE] transition-all flex items-center justify-center gap-2"
+                            >
+                                Next Step <ChevronRight className="w-4 h-4" />
+                            </button>
+                            
+                            <button 
+                                onClick={() => {
+                                    localStorage.setItem('nodl_skip_onboarding', 'true');
+                                    if (onSkip) onSkip();
+                                    else window.location.href = '/dashboard';
+                                }}
+                                className="w-full h-12 bg-transparent text-slate-500 hover:text-white rounded-[5px] text-[13px] font-normal transition-all flex items-center justify-center gap-2"
+                            >
+                                Skip for now
+                            </button>
+                        </div>
                     </div>
                 )}
 
@@ -131,9 +153,22 @@ export default function OnboardingWizard() {
                             <ArrowRight className={`w-5 h-5 ${isConnecting ? 'animate-pulse' : ''}`} />
                         </button>
 
-                        <div className="flex items-center gap-2 text-[12px] text-slate-500 justify-center group cursor-help">
-                            <AlertCircle className="w-4 h-4" />
-                            <span className="group-hover:text-white transition-colors">Why do I need a Stripe account?</span>
+                        <div className="space-y-4">
+                            <button 
+                                onClick={() => setShowStripeHelp(!showStripeHelp)}
+                                className="flex items-center gap-2 text-[12px] text-slate-500 justify-center w-full group hover:text-white transition-colors"
+                            >
+                                <AlertCircle className="w-4 h-4" />
+                                <span className="font-bold underline underline-offset-4 decoration-white/20 group-hover:decoration-white/40">Why Do I Need A Stripe Account?</span>
+                            </button>
+
+                            {showStripeHelp && (
+                                <div className="p-4 bg-white/5 border border-white/10 rounded-[5px] text-[12px] text-slate-400 leading-relaxed animate-in fade-in slide-in-from-top-2 duration-300">
+                                    Stripe Connect is the industry-standard gateway for automated payouts. By linking your account, you enable **Direct Daily Settlements** of your compute earnings without Nodl acting as a middleman. 
+                                    <br/><br/>
+                                    <span className="text-[#22D3EE]">● Security: Your bank details never touch our servers.</span>
+                                </div>
+                            )}
                         </div>
                     </div>
                 )}

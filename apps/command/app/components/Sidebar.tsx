@@ -1,84 +1,129 @@
 "use client";
 
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { 
-    LayoutDashboard, Activity, Shield, BarChart3, Sliders, Settings, Zap 
+    LayoutDashboard, Activity, Shield, BarChart3, Sliders, Settings, Zap, LogOut, Users, Share2, DollarSign, Brain, History as HistoryIcon, ShieldAlert, Wallet, HelpCircle, Search as SearchIcon
 } from "lucide-react";
 
 export default function Sidebar() {
     const pathname = usePathname();
+    const router = useRouter();
+    const [user, setUser] = useState<any>(null);
+    const [mounted, setMounted] = useState(false);
 
-    const navItems = [
-        { name: 'Overview', href: '/', icon: LayoutDashboard },
-        { name: 'Finances', href: '/finances', icon: Activity },
-        { name: 'Nodl\'rs', href: '/nodlrs', icon: Shield },
-        { name: 'Clients', href: '/clients', icon: BarChart3 },
-        { name: 'Pricing', href: '/pricing', icon: Sliders },
-        { name: 'Settings', href: '/settings', icon: Settings },
+    useEffect(() => {
+        setMounted(true);
+        const userStr = typeof window !== "undefined" ? localStorage.getItem("nodl_user") : null;
+        if (userStr) {
+            try {
+                setUser(JSON.parse(userStr));
+            } catch (e) {
+                console.error("Failed to parse user session");
+            }
+        }
+    }, []);
+
+    const handleLogout = () => {
+        if (typeof window !== "undefined") {
+            localStorage.removeItem("nodl_jwt");
+            localStorage.removeItem("nodl_user");
+            localStorage.removeItem("nodl_user_email");
+        }
+        router.push("/auth/login");
+    };
+
+    // Rule: Initialize login state ONLY on the client to prevent hydration mismatches
+    const userEmail = mounted ? (user?.email || (typeof window !== "undefined" ? localStorage.getItem("nodl_user_email") : null)) : null;
+    const isOwner = userEmail === 'stephen@wnode.one' || userEmail === 'stephen@nodl.one';
+    
+    // Derived canonical role
+    let role = 'visitor';
+    if (mounted) {
+        if (isOwner) role = 'owner';
+        else if (user?.role) {
+            // Map any legacy/db roles to canonical ones if needed
+            role = user.role.toLowerCase();
+        }
+    }
+
+    const allItems = [
+        { name: 'Dashboard', href: '/', icon: LayoutDashboard, roles: ['owner', 'management', 'customer_service', 'visitor'] },
+        { name: "Nodes", href: '/nodls', icon: Activity, roles: ['owner', 'management', 'customer_service', 'visitor'] },
+        { name: 'Pricing', href: '/pricing', icon: BarChart3, roles: ['owner', 'management', 'visitor'] },
+        { name: "nodl'rs", href: '/providers', icon: Zap, roles: ['owner', 'management', 'visitor'] },
+        { name: 'Mesh Customers', href: '/clients', icon: Users, roles: ['owner', 'management', 'customer_service', 'visitor'] },
+        { name: 'Affiliates', href: '/affiliates', icon: Share2, roles: ['owner', 'management', 'visitor'] },
+        { name: 'Money', href: '/ledger', icon: DollarSign, roles: ['owner', 'management', 'customer_service', 'visitor'] },
+        { name: 'Personnel', href: '/staff', icon: ShieldAlert, roles: ['owner', 'management'] },
+        { name: 'Help', href: '/help', icon: HelpCircle, roles: ['owner', 'management', 'customer_service', 'visitor'] },
+        { name: 'Settings', href: '/settings', icon: Settings, roles: ['owner', 'management', 'customer_service', 'visitor'] },
     ];
 
-    const adminItems = [
-        { name: 'Integrity', href: '/admin/integrity', icon: Shield },
-        { name: 'Genesis', href: '/admin/genesis', icon: Zap },
-    ];
+    // During SSR and initial hydration, only show the base 'visitor' items to match the server output
+    // Once mounted, we re-filter for the actual role
+    const navItems = allItems.filter(item => item.roles.includes(role));
 
     return (
-        <aside className="fixed inset-y-0 left-0 w-64 bg-black border-r border-white/30 hidden lg:flex flex-col z-50">
+        <aside className="fixed inset-y-0 left-0 w-64 bg-gradient-to-b from-[#0a0f1b] to-[#02040c] border-r border-white/5 hidden lg:flex flex-col z-50">
             <div className="pt-[24px] pl-8 mb-12 flex flex-col items-start gap-4">
                 <Link href="/">
                     <div className="flex flex-col items-start select-none gap-3">
-                        <img src="/logo.webp" alt="NODL Logo" className="h-10" />
-                        <div className="flex flex-col items-start">
-                            <span className="text-[10px] font-normal tracking-[0.4em] text-[#22D3EE] uppercase-none">Command Centre</span>
-                            <span className="text-[10px] text-slate-500 mt-1 uppercase tracking-widest font-normal">Command Dashboard</span>
+                        <div className="flex flex-col items-center justify-center w-14">
+                            <svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg" className="w-full h-auto fill-white drop-shadow-sm">
+                                <path d="M 22 110 L 22 50 A 28 28 0 0 1 78 50 L 78 110" fill="none" stroke="white" strokeWidth="26" strokeLinecap="butt" />
+                                <circle cx="50" cy="72" r="16" />
+                            </svg>
+                            <span style={{ fontFamily: "'Roboto', sans-serif", fontSize: "14pt", fontWeight: "bold", color: "white", marginTop: "12px", lineHeight: "1", letterSpacing: "0.02em" }}>wnode</span>
+                        </div>
+                        <div className="flex flex-col items-start mt-4">
+                            <span className="text-[10px] font-bold tracking-[0.4em] text-[#22D3EE] drop-shadow-[0_0_8px_rgba(34,211,238,0.4)]">WNODE COMMAND</span>
+                            <span className="text-[10px] text-slate-400 mt-1 uppercase tracking-widest font-bold">Executive Control</span>
                         </div>
                     </div>
                 </Link>
             </div>
             
             <nav className="flex-1 px-3 space-y-1">
+
+
                 {navItems.map((item) => {
-                    const itemName = item.name === 'Nodl\'rs' ? 'Nodl\'rs' : item.name;
                     const isActive = pathname === item.href || (item.href !== '/' && pathname?.startsWith(item.href));
                     return (
-                        <Link 
-                            key={item.name}
-                            href={item.href}
-                            className={`w-full flex items-center gap-3 px-5 py-2.5 text-[14px] font-normal rounded-[5px] transition-all ${
-                                isActive 
-                                ? 'bg-white/[0.12] text-white border border-white/30' 
-                                : 'text-slate-300 hover:text-white hover:bg-white/[0.04]'
-                            }`}
-                        >
-                            <item.icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
-                            {itemName}
-                        </Link>
+                        <React.Fragment key={item.name}>
+                            <Link 
+                                href={item.href}
+                                className={`w-full flex items-center gap-3 px-5 py-2.5 text-[14px] font-medium rounded-[5px] transition-all relative group ${
+                                    isActive 
+                                    ? 'bg-[#22D3EE]/10 text-white border border-[#22D3EE]/30 shadow-[inset_0_0_12px_rgba(34,211,238,0.1)]' 
+                                    : 'text-slate-400 hover:text-white hover:bg-white/[0.04]'
+                                }`}
+                            >
+                                {isActive && (
+                                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-[#22D3EE] rounded-r-full shadow-[0_0_12px_#22D3EE]" />
+                                )}
+                                <item.icon className={`w-4 h-4 transition-colors ${isActive ? 'text-[#22D3EE]' : 'text-slate-500 group-hover:text-slate-300'}`} />
+                                {item.name}
+                            </Link>
+
+                        </React.Fragment>
                     );
                 })}
+ 
+ 
 
-                <div className="pt-8 pb-4 px-8 underline-none select-none">
-                    <span className="text-[10px] font-normal tracking-[0.2em] text-slate-600 uppercase">System Admin</span>
-                </div>
-
-                {adminItems.map((item) => {
-                    const isActive = pathname === item.href || (item.href !== '/' && pathname?.startsWith(item.href));
-                    return (
-                        <Link 
-                            key={item.name}
-                            href={item.href}
-                            className={`w-full flex items-center gap-3 px-5 py-2.5 text-[14px] font-normal rounded-[5px] transition-all ${
-                                isActive 
-                                ? 'bg-white/[0.12] text-white border border-white/30 shadow-[0_0_15px_rgba(34,211,238,0.1)]' 
-                                : 'text-slate-300 hover:text-white hover:bg-white/[0.04]'
-                            }`}
-                        >
-                            <item.icon className={`w-4 h-4 ${isActive ? 'text-[#22D3EE]' : 'text-slate-500'}`} />
-                            {item.name}
-                        </Link>
-                    );
-                })}
+                {mounted && user && (
+                    <button 
+                        onClick={handleLogout}
+                        className="mt-2 flex items-center gap-3 px-5 py-2.5 text-[14px] font-normal text-red-400 hover:text-red-300 transition-colors rounded-[5px] hover:bg-red-400/5"
+                    >
+                        <LogOut className="w-4 h-4" />
+                        Logout
+                    </button>
+                )}
             </nav>
+
         </aside>
     );
 }

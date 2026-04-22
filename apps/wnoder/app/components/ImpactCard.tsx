@@ -9,9 +9,9 @@ interface ImpactCardProps {
     isActive?: boolean;
 }
 
-export default function ImpactCard({ carbonSaved, kmAvoided, treeDays, isActive }: ImpactCardProps) {
+export default function ImpactCard({ carbonSaved = 0, kmAvoided = 0, treeDays = 0, isActive }: ImpactCardProps) {
     return (
-        <div className={`card-sovereign p-6 transition-all duration-500 ${isActive ? 'border-emerald/50 shadow-[0_0_15px_rgba(16,185,129,0.1)]' : ''}`}>
+        <div className={`surface-card p-6 transition-all duration-500 ${isActive ? 'border-emerald/50 shadow-[0_0_15px_rgba(16,185,129,0.1)]' : ''}`}>
             <div className="flex items-center justify-between mb-6">
                 <div className="flex items-center gap-2">
                     <Leaf className={`w-5 h-5 ${isActive ? 'text-emerald animate-bounce' : 'text-slate-500'}`} />

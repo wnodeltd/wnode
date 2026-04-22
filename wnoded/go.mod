@@ -1,4 +1,4 @@
-module github.com/obregan/wnode/wnoded
+module github.com/obregan/nodl/nodld
 
 go 1.22.0
 

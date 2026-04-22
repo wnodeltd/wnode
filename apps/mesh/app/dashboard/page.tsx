@@ -55,7 +55,7 @@ export default function MeshDashboard() {
                                     ${balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                                 </span>
                                 <button 
-                                    className="w-8 h-8 bg-white text-black hover:bg-mesh-emerald hover:text-black rounded-md flex items-center justify-center transition-all shadow-xl"
+                                    className="w-8 h-8 bg-blue-600 text-white hover:bg-blue-500 rounded-md flex items-center justify-center transition-all shadow-xl shadow-blue-500/20"
                                     title="Quick Top-up"
                                     onClick={() => setIsTopUpOpen(true)}
                                 >

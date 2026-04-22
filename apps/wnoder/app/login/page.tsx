@@ -13,23 +13,69 @@ export default function LoginPage() {
     const [error, setError] = useState('');
     const [authMode, setAuthMode] = useState<'signin' | 'signup'>('signin');
 
+    const [mounted, setMounted] = React.useState(false);
+
+    React.useEffect(() => {
+        setMounted(true);
+    }, []);
+
     const handleEmailAuth = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
         setError('');
 
+        const normalizedEmail = email.trim().toLowerCase();
+        const normalizedPassword = password.trim();
+
+        if (authMode === 'signup') {
+            try {
+                // Using 8081 as the backend port for Wnode/Mesh as seen in .env
+                const res = await fetch('http://localhost:8081/api/v1/auth/signup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: normalizedEmail }),
+                });
+                const data = await res.json();
+                if (data.onboardingUrl) {
+                    window.location.href = data.onboardingUrl;
+                    return;
+                }
+                throw new Error(data.error || 'Signup failed');
+            } catch (err: any) {
+                setError(err.message);
+                setIsLoading(false);
+                return;
+            }
+        }
+
+        console.log('[Auth Debug] Attempting login with:', { 
+            email: normalizedEmail,
+            hasPassword: !!normalizedPassword
+        });
+
         // Specific seed account check/bypass for Phase 4
-        if (email === 'stephen@nodl.one' && password === 'command') {
+        // Use: stephen@wnode.one / command
+        if ((normalizedEmail === 'stephen@wnode.one' || normalizedEmail === 'stephen@nodl.one') && normalizedPassword === 'command') {
+            console.log('[Auth Debug] Peak Developer credentials accepted.');
             localStorage.setItem('nodl_auth_bypass', 'true');
-            localStorage.setItem('nodl_user_email', email);
+            localStorage.setItem('nodl_user_email', normalizedEmail);
+            // Inject valid dev JWT for the backend to accept
+            localStorage.setItem('nodl_jwt', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InN0ZXBoZW5Abm9kbC5vbmUiLCJleHAiOjE3NzkzMjk3ODAsInJvbGUiOiJnb2QiLCJzdWIiOiJtb2NrLWlkLTEyMyJ9.cggY1itCGfrs6C38jmEm3fpxS7ZxybwEj13NCxfwVpk');
+            
             setTimeout(() => {
                 router.push('/dashboard');
             }, 1000);
             return;
         }
 
-        setIsLoading(false);
+        setTimeout(() => {
+            console.warn('[Auth Debug] Peak Developer credentials rejected.');
+            setError('Invalid credentials. Please use the developer seed account.');
+            setIsLoading(false);
+        }, 800);
     };
+
+    if (!mounted) return null;
 
     const handleGoogleLogin = async () => {
         setError('Federated Identity is currently disabled.');
@@ -46,20 +92,23 @@ export default function LoginPage() {
                 className="w-full max-w-md z-10"
             >
                 {/* Logo Section */}
-                <div className="flex flex-col items-center mb-10">
-                    <img
-                        src="https://nodl.one/wp-content/uploads/2025/05/nodl-medium.webp"
-                        alt="Nodl"
-                        className="w-48 h-auto mb-2"
-                        style={{ filter: 'drop-shadow(0 0 15px rgba(147, 51, 234, 0.3))' }}
-                    />
+                <div className="flex flex-col items-center mb-10 w-full">
+                    <div style={{ filter: 'drop-shadow(0 0 15px rgba(147, 51, 234, 0.3))' }}>
+                        <div className="flex flex-col items-center justify-center w-24 mb-2">
+                            <svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg" className="w-full h-auto fill-white drop-shadow-sm">
+                                <path d="M 22 110 L 22 50 A 28 28 0 0 1 78 50 L 78 110" fill="none" stroke="white" strokeWidth="26" strokeLinecap="butt" />
+                                <circle cx="50" cy="72" r="16" />
+                            </svg>
+                            <span style={{ fontFamily: "'Roboto', sans-serif", fontSize: "14pt", fontWeight: "bold", color: "white", marginTop: "12px", lineHeight: "1", letterSpacing: "0.02em" }}>wnode</span>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Global Harvest Login Card */}
-                <div className="bg-[#1a1a1b] border border-white/5 rounded-3xl p-10 shadow-2xl">
+                <div className="bg-[#1a1a1b] border border-white/5 rounded-[5px] p-10 shadow-2xl">
                     <div className="text-center mb-8">
                         <h1 className="text-4xl font-bold text-white mb-2 tracking-tight">
-                            nodl dashboard
+                            wnode dashboard
                         </h1>
                     </div>
 
@@ -68,7 +117,7 @@ export default function LoginPage() {
                         {authMode === 'signup' ? (
                             <button
                                 onClick={handleGoogleLogin}
-                                className="w-full bg-[#9333ea] hover:bg-[#a855f7] text-white font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-3 active:scale-[0.98]"
+                                className="w-full bg-[#9333ea] hover:bg-[#a855f7] text-white font-bold py-4 rounded-[5px] transition-all flex items-center justify-center gap-3 active:scale-[0.98]"
                             >
                                 <Chrome className="w-5 h-5 font-bold" />
                                 Sign up with Google
@@ -76,7 +125,7 @@ export default function LoginPage() {
                         ) : (
                             <button
                                 onClick={handleGoogleLogin}
-                                className="w-full bg-transparent border border-white/10 hover:bg-white/5 text-white font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-3 active:scale-[0.98]"
+                                className="w-full bg-transparent border border-white/10 hover:bg-white/5 text-white font-bold py-4 rounded-[5px] transition-all flex items-center justify-center gap-3 active:scale-[0.98]"
                             >
                                 <Chrome className="w-5 h-5" />
                                 Continue with Google
@@ -100,7 +149,7 @@ export default function LoginPage() {
                                     placeholder="Email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
-                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-4 text-white  text-sm focus:outline-none focus:border-[#9333ea]/50 transition-all border-b-2"
+                                    className="w-full bg-black/40 border border-white/10 rounded-[5px] px-4 py-4 text-white  text-sm focus:outline-none focus:border-[#9333ea]/50 transition-all border-b-2"
                                     required
                                 />
                             </div>
@@ -111,13 +160,13 @@ export default function LoginPage() {
                                     placeholder="Password"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
-                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-4 text-white text-sm focus:outline-none focus:border-[#9333ea]/50 transition-all border-b-2"
+                                    className="w-full bg-black/40 border border-white/10 rounded-[5px] px-4 py-4 text-white text-sm focus:outline-none focus:border-[#9333ea]/50 transition-all border-b-2"
                                     required
                                 />
                             </div>
 
                             {authMode === 'signup' && (
-                                <div className="flex items-start gap-3 p-4 bg-white/5 rounded-xl border border-white/5">
+                                <div className="flex items-start gap-3 p-4 bg-white/5 rounded-[5px] border border-white/5">
                                     <input type="checkbox" required className="mt-1 accent-[#9333ea]" />
                                     <span className="text-[11px] text-slate-400 leading-relaxed">
                                         I agree to the <span className="text-white font-bold">'One Machine, One Node' (1M1N)</span> policy. I understand that running multiple nodes on a single machine or using virtual machines will result in an <span className="text-red-500">Integrity Score of 0</span> and immediate account suspension.
@@ -134,7 +183,7 @@ export default function LoginPage() {
                             <button
                                 type="submit"
                                 disabled={isLoading}
-                                className="w-full bg-transparent border border-white/10 hover:bg-white/5 text-white font-bold py-4 rounded-xl transition-all flex items-center justify-center gap-2 group active:scale-[0.98]"
+                                className="w-full bg-transparent border border-white/10 hover:bg-white/5 text-white font-bold py-4 rounded-[5px] transition-all flex items-center justify-center gap-2 group active:scale-[0.98]"
                             >
                                 {isLoading ? (
                                     <Loader2 className="w-5 h-5 animate-spin text-[#9333ea]" />
@@ -160,11 +209,11 @@ export default function LoginPage() {
 
                 <div className="mt-12 text-center">
                     <a
-                        href="https://nodl.one"
+                        href="https://wnode.one"
                         target="_blank"
                         className="text-white hover:text-slate-200 text-[10px]  uppercase tracking-[0.2em] transition-colors"
                     >
-                        go to nodl.one
+                        go to wnode.one
                     </a>
                 </div>
             </motion.div>

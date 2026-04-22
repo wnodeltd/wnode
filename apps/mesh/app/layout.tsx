@@ -14,14 +14,14 @@ const roboto = Roboto({
 });
 
 export const metadata: Metadata = {
-    title: "Nodl Mesh — Compute Marketplace",
+    title: "Wnode Mesh — Compute Marketplace",
     description: "Access high-performance decentralized compute resources.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     return (
         <html lang="en" className="dark" suppressHydrationWarning>
-            <body data-portal="mesh" className={`${roboto.variable} antialiased bg-black text-white min-h-screen font-sans`} style={{ "--mesh-portal-glow-color": "#fcba03" } as any}>
+            <body data-portal="mesh" className={`${roboto.variable} antialiased bg-black text-white min-h-screen font-sans`} style={{ "--mesh-portal-glow-color": "#fcba03" } as any} suppressHydrationWarning>
                 <AuthProvider>
                     <BillingProvider>
                         <JobsProvider>

@@ -1,8 +1,8 @@
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
 
-export interface WasmBundle {
+export interface JobBundle {
     id: string;
     name: string;
     size: string;
@@ -13,7 +13,7 @@ export interface Job {
     id: string;
     name: string;
     tier: string;
-    status: 'Running' | 'Completed' | 'Queued';
+    status: 'Running' | 'Completed' | 'Queued' | 'Pending' | 'Assigned' | 'Failed' | 'Expired';
     date: string;
     cost: string;
     // Drawer details
@@ -27,72 +27,81 @@ export interface Job {
 }
 
 interface JobsContextType {
-    bundles: WasmBundle[];
+    bundles: JobBundle[];
     jobs: Job[];
-    addBundle: (file: File) => void;
-    addJob: (job: Omit<Job, 'id' | 'date' | 'status'>) => void;
+    submitJob: (file: File, metadata: { budget: number, targetCycles: number }) => Promise<string>;
     deleteBundle: (id: string) => void;
+    refreshJobs: () => void;
 }
 
 const JobsContext = createContext<JobsContextType | undefined>(undefined);
 
+const API_BASE = 'http://localhost:8081/api/v1';
+
 export function JobsProvider({ children }: { children: ReactNode }) {
-    const [bundles, setBundles] = useState<WasmBundle[]>([
-        { id: 'WASM-001', name: 'genomic_calc_v2.wasm', size: '2.4 MB', timestamp: '2026-03-28 10:12' },
-        { id: 'WASM-002', name: 'raytrace_kernel_v4.wasm', size: '1.8 MB', timestamp: '2026-03-27 14:45' },
-    ]);
+    const [bundles, setBundles] = useState<JobBundle[]>([]);
+    const [jobs, setJobs] = useState<Job[]>([]);
 
-    const [jobs, setJobs] = useState<Job[]>([
-        { 
-            id: 'JOB-9921', 
-            name: 'LLM BATCH INFERENCE',
-            tier: 'Standard', 
-            status: 'Completed', 
-            date: '2026-03-27 14:22',
-            cost: '$1.42',
-            uptime: '12h 44m',
-            result: 'Success // Hash Integrity Verified',
-            compute_used: '744.2 GigaFLOPs',
-            energy_saved: '1.2 kWh',
-            cpu_cores: 16,
-            ram_gb: 32,
-            gpu_model: 'T4 GPU'
-        },
-        { 
-            id: 'JOB-9918', 
-            name: 'GENOMIC ALIGNMENT',
-            tier: 'Boost', 
-            status: 'Running', 
-            date: '2026-03-29 08:30',
-            cost: '$0.88',
-            uptime: '4h 12m',
-            result: 'Processing...',
-            compute_used: '2,105.8 GigaFLOPs',
-            energy_saved: '0.4 kWh',
-            cpu_cores: 32,
-            ram_gb: 64,
-            gpu_model: 'RTX 4090'
-        },
-    ]);
+    const fetchJobs = useCallback(async () => {
+        try {
+            const resp = await fetch(`${API_BASE}/jobs`);
+            if (!resp.ok) return;
+            const data = await resp.json();
+            
+            // Map backend Job model to frontend Job interface
+            const mappedJobs: Job[] = data.map((j: any) => ({
+                id: j.id,
+                name: j.name || `JOB-${j.id.slice(0,4).toUpperCase()}`,
+                tier: j.tier || 'Standard',
+                status: j.status.charAt(0).toUpperCase() + j.status.slice(1),
+                date: new Date(j.createdAt).toLocaleString(),
+                cost: `$${(j.budget || 0).toFixed(2)}`,
+                cpu_cores: j.cpu_cores || 16,
+                ram_gb: j.ram_gb || 32,
+                gpu_model: j.gpu_model || 'T4 GPU',
+                result: j.status === 'complete' ? 'Success // Verified' : undefined
+            }));
+            
+            setJobs(mappedJobs);
+        } catch (err) {
+            console.error('Failed to fetch jobs:', err);
+        }
+    }, []);
 
-    const addBundle = (file: File) => {
-        const newBundle: WasmBundle = {
-            id: `WASM-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`,
+    useEffect(() => {
+        fetchJobs();
+        const interval = setInterval(fetchJobs, 10000); // Poll every 10s
+        return () => clearInterval(interval);
+    }, [fetchJobs]);
+
+    const submitJob = async (file: File, metadata: { budget: number, targetCycles: number }) => {
+        const formData = new FormData();
+        formData.append('wasm', file);
+        formData.append('manifest', JSON.stringify(metadata));
+
+        const resp = await fetch(`${API_BASE}/jobs`, {
+            method: 'POST',
+            body: formData,
+        });
+
+        if (!resp.ok) {
+            const err = await resp.json();
+            throw new Error(err.error || 'Upload failed');
+        }
+
+        const result = await resp.json();
+        
+        // Add to local bundles for UI storage view
+        const newBundle: JobBundle = {
+            id: `BUNDLE-${result.id.slice(0,3).toUpperCase()}`,
             name: file.name,
             size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
             timestamp: new Date().toLocaleString()
         };
         setBundles(prev => [newBundle, ...prev]);
-    };
 
-    const addJob = (job: Omit<Job, 'id' | 'date' | 'status'>) => {
-        const newJob: Job = {
-            ...job,
-            id: `JOB-${Math.floor(Math.random() * 10000).toString().padStart(4, '0')}`,
-            date: new Date().toLocaleString(),
-            status: 'Queued'
-        };
-        setJobs(prev => [newJob, ...prev]);
+        fetchJobs(); // Trigger immediate refresh
+        return result.id;
     };
 
     const deleteBundle = (id: string) => {
@@ -103,9 +112,9 @@ export function JobsProvider({ children }: { children: ReactNode }) {
         <JobsContext.Provider value={{ 
             bundles, 
             jobs, 
-            addBundle, 
-            addJob,
-            deleteBundle
+            submitJob, 
+            deleteBundle,
+            refreshJobs: fetchJobs
         }}>
             {children}
         </JobsContext.Provider>
@@ -119,3 +128,4 @@ export function useJobs() {
     }
     return context;
 }
+

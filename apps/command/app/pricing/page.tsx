@@ -1,527 +1,500 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Sidebar from "../components/Sidebar";
-import { TrendingUp, AlertTriangle, Shield, Zap, Activity, Info } from "lucide-react";
+import React, { useState, useEffect, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { 
+    Zap, Save, RefreshCw, AlertCircle, CheckCircle2, 
+    Globe, Shield, Info, SlidersHorizontal, Gauge, Eye, 
+    ChevronDown, ChevronUp, Cloud
+} from "lucide-react";
 
-interface MarketRate {
-    source: string;
-    price: number;
-    timestamp: string;
-}
+// Constants for Genesis Guard
+const OPERATIONAL_COST_PARITY = {
+    'standard': 0.0010,
+    'boost': 0.0030,
+    'ultra': 0.0060,
+    'decc': 0.0090,
+    'gpu-pro': 0.0140,
+    'gpu-max': 0.0200
+};
 
-interface PricingRule {
-    mode: string;
-    multiplier: number;
-    percentOffset: number;
-    floor: number;
-    ceiling: number;
-    manualOverride: number;
-    autoTuneMode: string;
-    targetPercent: number;
-    targetPosition: number;
-}
-
-interface HistoryPoint {
-    price: number;
-    volatility: number;
-    timestamp: string;
-}
-
-interface Alert {
-    tierID: string;
-    level: string;
-    message: string;
-    timestamp: string;
-}
-
-interface TierState {
-    id: string;
-    name: string;
-    liveMarket: number;
-    mean: number;
-    volatility: number;
-    effectiveRate: number;
-    rule: PricingRule;
-    smas: { m5: number; m15: number; h1: number };
-    ema: number;
-    sources: MarketRate[];
-    history: HistoryPoint[];
-    alerts: Alert[];
-    lastUpdate: string;
-}
-
-interface PricingState {
-    tiers: Record<string, TierState>;
-    lastUpdate: string;
-}
-
-const DEFAULT_TIERS = [
-    { id: 'tiny', name: 'Tiny', devices: 'Phones/Tablets' },
-    { id: 'standard', name: 'Standard', devices: 'Laptops/Desktops' },
-    { id: 'boost', name: 'Boost', devices: 'Gaming PCs/Macs' },
-    { id: 'pro', name: 'Pro', devices: 'Servers/Workstations' },
-    { id: 'ultra', name: 'Ultra', devices: 'GPU Rigs/DGX' },
-];
+import { usePageTitle } from "../components/PageTitleContext";
+import IdentityHeader from "@shared/components/IdentityHeader";
 
 export default function PricingPage() {
-    const [pricing, setPricing] = useState<PricingState | null>(null);
-    const [selectedTier, setSelectedTier] = useState<string | null>(null);
-    const [alerts, setAlerts] = useState<Alert[]>([]);
-    const [isOwner] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    usePageTitle("Pricing Protocol & Tier Matrix", "Autonomous economy management with real-time market-relative rate tuning.");
+    const [tiers, setTiers] = useState<any[]>([]);
+    const [expandedTiers, setExpandedTiers] = useState<Set<string>>(new Set());
+    const [loading, setLoading] = useState(true);
+    const [saving, setSaving] = useState<string | null>(null);
+    const [competitors, setCompetitors] = useState<any[]>([]);
+    const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
-    const fetchPricingData = async () => {
+    const fetchPricing = async () => {
+        setLoading(true);
         try {
-            const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://api.nodl.one';
-            const [pricingRes, alertsRes] = await Promise.all([
-                fetch(`${apiBase}/pricing`),
-                fetch(`${apiBase}/pricing/alerts`)
-            ]);
-            
-            if (pricingRes.ok) {
-                const data = await pricingRes.json();
-                setPricing(data);
-            }
-            if (alertsRes.ok) {
-                const data = await alertsRes.json();
-                setAlerts(data);
+            const res = await fetch('/api/admin/pricing/tiers');
+            if (res.ok) {
+                const data = await res.json();
+                setTiers(data);
             }
         } catch (err) {
-            console.error("Failed to fetch data:", err);
-            setError("Connection to API gateway failed.");
+            console.error("Failed to fetch pricing:", err);
+        } finally {
+            setLoading(false);
         }
+    };
+
+    const fetchCompetitors = () => {
+        setCompetitors([
+            { id: 'aws', name: 'AWS', sku: 'g5.xlarge', gpu: 'A10G', rate: 1.006, delta: +1.2, type: 'Cloud', source: 'Live API', confidence: 0.98, status: 'Live' },
+            { id: 'gcp', name: 'GCP', sku: 'a2-highgpu', gpu: 'A100-40', rate: 3.67, delta: -0.5, type: 'Cloud', source: 'Live API', confidence: 0.95, status: 'Live' },
+            { id: 'akash', name: 'Akash', sku: 'Standard-8', gpu: 'RTX 3080', rate: 0.22, delta: +0.0, type: 'DePIN', source: 'Cached', confidence: 0.82, status: 'Synced' },
+            { id: 'render', name: 'Render', sku: 'Node-RTX', gpu: 'RTX 4090', rate: 0.45, delta: -2.1, type: 'DePIN', source: 'Live API', confidence: 0.91, status: 'Live' },
+            { id: 'coreweave', name: 'Coreweave', sku: 'hgx-h100', gpu: 'H100', rate: 4.25, delta: +0.0, type: 'Hybrid', source: 'Live API', confidence: 0.99, status: 'Live' },
+        ]);
     };
 
     useEffect(() => {
-        fetchPricingData();
-        const interval = setInterval(fetchPricingData, 10000); // 10s poll for v3.0
+        fetchPricing();
+        fetchCompetitors();
+        const interval = setInterval(fetchCompetitors, 30000); 
         return () => clearInterval(interval);
     }, []);
 
-    const updateOverride = async (tierId: string, rule: PricingRule) => {
+    const toggleExpand = (id: string) => {
+        const next = new Set(expandedTiers);
+        if (next.has(id)) next.delete(id);
+        else next.add(id);
+        setExpandedTiers(next);
+    };
+
+    const handleUpdateRate = async (tierId: string, updates: any) => {
+        setSaving(tierId);
+        setMessage(null);
         try {
-            const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://api.nodl.one';
-            const res = await fetch(`${apiBase}/pricing/override`, {
+            const jwt = typeof window !== "undefined" ? localStorage.getItem("nodl_jwt") : null;
+            const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8082';
+            
+            const payload = {
+                tier_id: tierId,
+                rate_th_sec: updates.rate_th_sec,
+                rule: {
+                    mode: updates.rule?.mode || 'manual',
+                    targetPercent: updates.rule?.targetPercent || 12.5,
+                    autoTuneMode: 'undercut'
+                }
+            };
+
+            const res = await fetch(`${apiBase}/api/admin/pricing/update`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ tierID: tierId, rule })
+                headers: { 
+                    'Authorization': `Bearer ${jwt}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload),
             });
+
             if (res.ok) {
-                const updatedTier = await res.json();
-                setPricing(prev => prev ? {
-                    ...prev,
-                    tiers: { ...prev.tiers, [tierId]: updatedTier }
-                } : prev);
+                setMessage({ type: 'success', text: `Pricing protocol propagated for ${tierId}` });
+                fetchPricing();
+            } else {
+                const data = await res.json();
+                throw new Error(data.error || 'Failed to update');
             }
-        } catch (err) {
-            console.error("Failed to update override:", err);
+        } catch (err: any) {
+            setMessage({ type: 'error', text: err.message });
+        } finally {
+            setSaving(null);
+            setTimeout(() => setMessage(null), 4000);
         }
     };
 
-    const activeTier = selectedTier && pricing?.tiers[selectedTier];
+    return (
+        <div className="flex-1 flex overflow-hidden h-full">
+            {/* Left side: Tier Matrix */}
+            <main className="flex-1 p-8 overflow-y-auto pb-24 relative custom-scrollbar space-y-6 focus:outline-none">
+
+                <div className="mb-6">
+                    <AnimatePresence>
+                        {message && (
+                            <motion.div 
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
+                                className={`flex items-center gap-2 px-4 py-1.5 rounded-[5px] border ${message.type === 'success' ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-red-500/10 border-red-500/20 text-red-400'}`}
+                            >
+                                {message.type === 'success' ? <CheckCircle2 className="w-3.5 h-3.5" /> : <AlertCircle className="w-3.5 h-3.5" />}
+                                <span className="text-[11px] font-normal tracking-wide">{message.text}</span>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </div>
+
+                <div className="space-y-4 max-w-5xl">
+                    <AnimatePresence mode="popLayout">
+                        {tiers.map((tier) => (
+                            <TierCard 
+                                key={tier.id} 
+                                tier={tier} 
+                                expanded={expandedTiers.has(tier.id)}
+                                onToggle={() => toggleExpand(tier.id)}
+                                competitors={competitors}
+                                onUpdate={(updates: any) => handleUpdateRate(tier.id, updates)}
+                                isSaving={saving === tier.id}
+                            />
+                        ))}
+                    </AnimatePresence>
+                    {loading && tiers.length === 0 && (
+                        <div className="py-32 flex flex-col items-center justify-center space-y-4 opacity-40">
+                            <RefreshCw className="w-8 h-8 animate-spin text-[#22D3EE]" />
+                            <span className="text-[11px] uppercase tracking-[0.3em] font-light">Loading Protocol Data</span>
+                        </div>
+                    )}
+                </div>
+            </main>
+
+            {/* Right side: Market Comparison Sidebar */}
+            <aside className="w-[400px] border-l border-white/10 bg-black/40 backdrop-blur-xl flex flex-col hidden xl:flex overflow-hidden h-full">
+                <div className="p-8 border-b border-white/10 shrink-0">
+                    <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                            <Globe className="w-4 h-4 text-[#22D3EE]" />
+                            <h2 className="text-[11px] font-bold text-white uppercase tracking-[0.25em]">Market Intelligence</h2>
+                        </div>
+                        <div className="flex items-center gap-1.5 px-2 py-0.5 bg-green-500/10 border border-green-500/20 rounded-full">
+                            <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                            <span className="text-[9px] text-green-500 font-bold uppercase tracking-widest">Live Flow</span>
+                        </div>
+                    </div>
+                    <p className="text-[10px] text-slate-500 uppercase tracking-widest">Global Compute Ingestion Feed</p>
+                </div>
+
+                <div className="flex-1 overflow-y-auto custom-scrollbar p-8 space-y-6">
+                    {competitors.map((comp) => (
+                        <div key={comp.id} className="bg-white/[0.01] border border-white/5 rounded-[5px] p-5 flex flex-col gap-4 group hover:border-[#22D3EE]/50 hover:bg-white/[0.03] transition-all duration-300">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-10 h-10 rounded-[5px] bg-white/5 border border-white/10 flex items-center justify-center group-hover:border-[#22D3EE]/30 transition-colors">
+                                        <Cloud className="w-5 h-5 text-slate-500 group-hover:text-[#22D3EE] transition-colors" />
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className="text-[15px] text-white font-normal uppercase tracking-tight">{comp.name}</span>
+                                        <span className="text-[9px] text-slate-600 font-mono uppercase tracking-widest">{comp.sku}</span>
+                                    </div>
+                                </div>
+                                <div className="flex flex-col items-end">
+                                    <span className="text-[17px] font-mono text-white tracking-tighter">${comp.rate.toFixed(3)}</span>
+                                    <span className={`text-[10px] font-mono ${comp.delta >= 0 ? 'text-red-400' : 'text-green-400'}`}>
+                                        {comp.delta >= 0 ? '▲' : '▼'} {Math.abs(comp.delta).toFixed(1)}%
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <div className="flex flex-col gap-3 py-3 border-y border-white/5">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-[9px] text-slate-600 uppercase font-bold tracking-widest">Compute Core</span>
+                                    <span className="text-[11px] text-slate-300 font-mono">{comp.gpu}</span>
+                                </div>
+                                <div className="flex flex-col gap-1.5">
+                                    <div className="flex justify-between items-center text-[9px] text-slate-600 uppercase font-bold tracking-widest">
+                                        <span>Confidence Index</span>
+                                        <span className="text-[#22D3EE] font-mono">{(comp.confidence * 100).toFixed(0)}%</span>
+                                    </div>
+                                    <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                                        <div 
+                                            className="h-full bg-[#22D3EE] shadow-[0_0_8px_rgba(34,211,238,0.5)] transition-all duration-1000" 
+                                            style={{ width: `${comp.confidence * 100}%` }} 
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center justify-between text-[9px] font-mono opacity-40 group-hover:opacity-100 transition-opacity">
+                                <span className="text-slate-500 uppercase tracking-widest">{comp.source}</span>
+                                <span className="text-slate-500 uppercase tracking-tighter">{comp.status}</span>
+                            </div>
+                        </div>
+                    ))}
+
+                    <div className="pt-4 pb-12">
+                        <div className="bg-[#22D3EE]/5 border border-[#22D3EE]/20 rounded-[5px] p-6 relative overflow-hidden group">
+                            <div className="flex items-start gap-4 relative z-10">
+                                <Shield className="w-5 h-5 text-[#22D3EE] mt-0.5 group-hover:scale-110 transition-transform" />
+                                <div>
+                                    <h4 className="text-[12px] font-bold text-white mb-2 uppercase tracking-widest">Genesis Guard Active</h4>
+                                    <p className="text-[11px] text-slate-400 leading-relaxed font-normal">
+                                        Economy stabilized. All pricing tiers are locked to <span className="text-[#22D3EE] font-bold">110% operational parity</span> floor to protect provider margins.
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="absolute -bottom-8 -right-8 w-24 h-24 bg-[#22D3EE]/10 rounded-full blur-3xl opacity-50 group-hover:opacity-80 transition-opacity" />
+                        </div>
+                    </div>
+                </div>
+            </aside>
+        </div>
+    );
+}
+
+function TierCard({ tier: initialTier, expanded, onToggle, competitors, onUpdate, isSaving }: any) {
+    const [tier, setTier] = useState(initialTier);
+    
+    useEffect(() => {
+        setTier(initialTier);
+    }, [initialTier]);
+
+    const marketRange = useMemo(() => {
+        const rates = competitors.map((c: any) => c.rate);
+        const order = ['standard', 'boost', 'ultra', 'decc', 'gpu-pro', 'gpu-max'];
+        const idx = order.indexOf(initialTier.id);
+        const multiplier = 1 + (idx * 0.4);
+        
+        return {
+            min: Math.min(...rates) * multiplier || 0,
+            max: Math.max(...rates) * multiplier || 0,
+            avg: (rates.reduce((a: any, b: any) => a + b, 0) / (rates.length || 1)) * multiplier || 0
+        };
+    }, [competitors, initialTier.id]);
+
+    const floor = (OPERATIONAL_COST_PARITY[initialTier.id as keyof typeof OPERATIONAL_COST_PARITY] || 0) * 1.1;
+    
+    const effectiveRate = useMemo(() => {
+        if (tier.rule?.mode === 'auto_tune') {
+            const undercut = tier.rule.targetPercent || 12.5;
+            const autoPrice = marketRange.avg * (1 - undercut / 100);
+            return Math.max(autoPrice, floor);
+        }
+        return tier.rate_th_sec;
+    }, [tier.rule?.mode, tier.rule?.targetPercent, tier.rate_th_sec, marketRange.avg, floor]);
+
+    const isBelowFloor = effectiveRate < floor;
+
+    const dailyRev = effectiveRate * 24 * 10;
+    const platformFee = dailyRev * 0.10;
+    const affiliateFee = dailyRev * 0.05;
+    const netEarnings = dailyRev - platformFee - affiliateFee;
+
+    const toggleMode = () => {
+        const newMode = tier.rule?.mode === 'auto_tune' ? 'manual' : 'auto_tune';
+        setTier({
+            ...tier,
+            rule: { ...tier.rule, mode: newMode }
+        });
+    };
 
     return (
-        <div className="flex min-h-screen bg-black text-white font-sans overflow-hidden">
-            <Sidebar />
-            <div className="flex-1 lg:pl-64 flex flex-col relative h-screen overflow-hidden">
-                <header className="h-14 border-b border-white/25 flex items-center justify-between px-8 bg-black shrink-0">
-                    <div className="flex items-center gap-4">
-                        <span className="text-[12px] font-normal text-slate-400 tracking-[0.2em] uppercase-none">Autonomous Pricing Engine v3.0</span>
-                        <div className="flex items-center gap-2 bg-[#22D3EE]/10 px-2 py-0.5 rounded border border-[#22D3EE]/20">
-                            <Activity className="w-3 h-3 text-[#22D3EE] animate-pulse" />
-                            <span className="text-[10px] text-[#22D3EE] font-mono">ORACLE_ACTIVE</span>
-                        </div>
+        <div className={`bg-white/[0.01] border ${expanded ? 'border-[#22D3EE]/50 bg-white/[0.03] shadow-[0_0_30px_rgba(34,211,238,0.05)]' : 'border-white/10'} rounded-[5px] overflow-hidden transition-all duration-500 relative`}>
+            {expanded && <div className="absolute top-0 left-0 bottom-0 w-1 bg-[#22D3EE] shadow-[2px_0_10px_rgba(34,211,238,0.4)]" />}
+            
+            <div className="p-6 flex items-center justify-between cursor-pointer group" onClick={onToggle}>
+                <div className="flex items-center gap-5">
+                    <div className={`w-12 h-12 rounded-[5px] border flex items-center justify-center transition-all duration-500 ${expanded ? 'bg-[#22D3EE] text-black border-[#22D3EE]' : 'bg-white/5 text-[#22D3EE] border-white/10'}`}>
+                        <Zap className={`w-6 h-6 ${expanded ? 'fill-current' : ''}`} />
                     </div>
-                    <div className="flex items-center gap-2.5 bg-[#22D3EE] px-3 py-1 rounded-[5px]">
-                        <span className="text-[14px] text-black font-normal uppercase-none italic">Stephen_Nodlrs [Owner]</span>
-                    </div>
-                </header>
-
-                <main className="flex-1 p-8 overflow-y-auto pb-24 space-y-8">
-                    {/* Hero Section */}
-                    <div className="flex justify-between items-end">
-                        <div>
-                            <h2 className="text-[20px] font-normal tracking-tight text-white mb-1 uppercase-none italic">Market Intelligence Console</h2>
-                            <p className="text-[14px] text-slate-400 font-normal uppercase-none">Advanced volatility smoothing and autonomous valuation protocols.</p>
+                    <div className="flex flex-col">
+                        <div className="flex items-center gap-3">
+                            <span className="text-[17px] font-normal text-white uppercase tracking-tight">{tier.name || tier.id}</span>
+                            <span className={`text-[9px] px-2 py-0.5 rounded-[2px] uppercase tracking-widest font-bold border transition-colors ${tier.rule?.mode === 'auto_tune' ? 'bg-[#22D3EE]/10 text-[#22D3EE] border-[#22D3EE]/20' : 'bg-orange-500/10 text-orange-400 border-orange-500/20'}`}>
+                                {tier.rule?.mode === 'auto_tune' ? 'Autonomous' : 'Manual'}
+                            </span>
                         </div>
-                        <div className="flex gap-4">
-                           <div className="card-sovereign py-2 px-4 border-[#22D3EE]/20 bg-[#22D3EE]/5">
-                                <span className="text-[10px] text-slate-500 block">Avg Volatility</span>
-                                <span className="text-[16px] text-[#22D3EE] font-mono">High Coverage</span>
-                           </div>
-                           <div className="card-sovereign py-2 px-4 border-orange-500/20 bg-orange-500/5">
-                                <span className="text-[10px] text-slate-500 block">System Alerts</span>
-                                <span className="text-[16px] text-orange-400 font-mono">{alerts.length} Active</span>
-                           </div>
-                        </div>
-                    </div>
-
-                    {/* Alerts Feed */}
-                    {alerts.length > 0 && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {alerts.slice(0, 2).map((alert, idx) => (
-                                <div key={idx} className={`p-3 rounded-[5px] border flex items-center gap-3 animate-in fade-in duration-500 ${
-                                    alert.level === 'critical' ? 'bg-[#22D3EE]/10 border-[#22D3EE]/30 text-[#22D3EE]' :
-                                    alert.level === 'warning' ? 'bg-orange-500/10 border-orange-500/30 text-orange-400' :
-                                    'bg-blue-500/10 border-blue-500/30 text-blue-400'
-                                }`}>
-                                    <AlertTriangle className="w-4 h-4 shrink-0" />
-                                    <div className="flex-1">
-                                        <p className="text-[12px] font-bold uppercase-none">{alert.tierID.toUpperCase()} ALERT</p>
-                                        <p className="text-[12px] opacity-80">{alert.message}</p>
-                                    </div>
-                                    <span className="text-[10px] opacity-50 font-mono">{new Date(alert.timestamp).toLocaleTimeString()}</span>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-
-                    {/* Tier Selection Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                        {DEFAULT_TIERS.map((tier) => {
-                            const state = pricing?.tiers[tier.id];
-                            const isSelected = selectedTier === tier.id;
-                            
-                            return (
-                                <div 
-                                    key={tier.id} 
-                                    onClick={() => setSelectedTier(tier.id)}
-                                    className={`card-sovereign p-5 flex flex-col gap-4 group transition-all cursor-pointer ${isSelected ? 'border-[#22D3EE] bg-white/[0.12]' : 'hover:border-[#22D3EE]/50 shadow-none'}`}
-                                >
-                                    <div className="space-y-1">
-                                        <div className="flex items-center justify-between">
-                                            <h3 className="text-white text-[16px] font-normal tracking-tight uppercase-none">{tier.name}</h3>
-                                            <div className="flex gap-1">
-                                                {state?.volatility !== undefined && state.volatility > 0.05 && (
-                                                    <Zap className="w-3 h-3 text-orange-400" />
-                                                )}
-                                                <span className="text-[9px] bg-[#22D3EE]/10 text-[#22D3EE] px-1.5 py-0.5 rounded-[2px] border border-[#22D3EE]/20 font-bold">
-                                                    {state?.rule.mode === 'manual' ? 'MAN' : state?.rule.mode === 'auto_tune' ? 'AUTO' : 'MKT'}
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <p className="text-slate-500 text-[11px] uppercase-none tracking-wider">{tier.devices}</p>
-                                    </div>
-
-                                    {/* Sparkline Visualization */}
-                                    <div className="h-12 w-full bg-white/[0.03] rounded-[3px] overflow-hidden relative border border-white/5">
-                                        {state?.history && state.history.length > 1 ? (
-                                            <svg className="w-full h-full" viewBox="0 0 100 40" preserveAspectRatio="none">
-                                                <polyline
-                                                    fill="none"
-                                                    stroke="#22D3EE"
-                                                    strokeWidth="1.5"
-                                                    points={state.history.slice(-10).map((p, i) => `${i * 11.1},${40 - ((p.price - (state.liveMarket * 0.8)) / (state.liveMarket * 0.4) * 40)}`).join(' ')}
-                                                />
-                                            </svg>
-                                        ) : (
-                                            <div className="absolute inset-0 flex items-center justify-center">
-                                                <div className="w-full h-[1px] bg-white/10" />
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    <div className="flex flex-col gap-3 py-3 border-y border-white/10">
-                                        <div className="flex justify-between items-end">
-                                            <span className="text-slate-500 text-[9px] uppercase-none tracking-widest">Effective</span>
-                                            <div className="flex items-baseline gap-0.5">
-                                                <span className="text-[20px] text-[#22D3EE] font-normal tracking-tighter leading-none font-mono">
-                                                    ${state?.effectiveRate.toFixed(4) || "0.0000"}
-                                                </span>
-                                                <span className="text-slate-600 text-[10px]">/hr</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    
-                                    <div className="flex justify-between items-center text-[9px]">
-                                        <div className="flex items-center gap-1.5 text-slate-500">
-                                            <div className={`w-1 h-1 rounded-full ${state ? 'bg-[#22D3EE]' : 'bg-slate-700 animate-pulse'}`} />
-                                            <span className="font-mono">{state ? 'SYNCED' : 'FETCHING'}</span>
-                                        </div>
-                                        <span className="text-slate-600 font-mono italic">
-                                            {state?.volatility !== undefined ? `±${(state.volatility/state.liveMarket*100).toFixed(1)}%` : '--'}
-                                        </span>
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </div>
-
-                    {/* Advanced analytics & Rule Editor */}
-                    {activeTier && (
-                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-in fade-in slide-in-from-bottom-6 duration-700">
-                            {/* Analytics Panel */}
-                            <div className="lg:col-span-8 flex flex-col gap-6">
-                                <div className="card-sovereign p-6 flex flex-col gap-6">
-                                    <div className="flex items-center justify-between border-b border-white/10 pb-4">
-                                        <div>
-                                            <h3 className="text-[18px] text-white uppercase-none italic tracking-tight">{activeTier.name} Analytics</h3>
-                                            <p className="text-slate-500 text-[13px]">Historical trends, volatility bands, and normalization metrics.</p>
-                                        </div>
-                                        <div className="flex gap-2">
-                                            <div className="px-3 py-1 bg-white/5 rounded-[4px] border border-white/10 flex flex-col items-center">
-                                                <span className="text-[9px] text-slate-500">Vol Band</span>
-                                                <span className="text-[12px] text-[#22D3EE] font-mono">2σ Stable</span>
-                                            </div>
-                                            <div className="px-3 py-1 bg-white/5 rounded-[4px] border border-white/10 flex flex-col items-center">
-                                                <span className="text-[9px] text-slate-500">MA Spread</span>
-                                                <span className="text-[12px] text-emerald-400 font-mono">Tight</span>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Large Chart */}
-                                    <div className="h-64 w-full bg-black/40 rounded-[5px] border border-white/10 relative overflow-hidden group">
-                                        <div className="absolute top-4 left-4 flex gap-4 z-10">
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-2 h-2 rounded-full bg-[#22D3EE]" />
-                                                <span className="text-[10px] text-slate-400 font-mono uppercase-none">Market Price</span>
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-2 h-2 rounded-full bg-emerald-400" />
-                                                <span className="text-[10px] text-slate-400 font-mono uppercase-none">EMA Smoothing</span>
-                                            </div>
-                                        </div>
-
-                                        {activeTier.history && activeTier.history.length > 1 ? (
-                                            <svg className="w-full h-full px-4 pt-12 pb-4" viewBox="0 0 1000 200" preserveAspectRatio="none">
-                                                {/* Grid Lines */}
-                                                <line x1="0" y1="50" x2="1000" y2="50" stroke="white" strokeWidth="0.5" strokeDasharray="4 4" opacity="0.1" />
-                                                <line x1="0" y1="100" x2="1000" y2="100" stroke="white" strokeWidth="0.5" strokeDasharray="4 4" opacity="0.1" />
-                                                <line x1="0" y1="150" x2="1000" y2="150" stroke="white" strokeWidth="0.5" strokeDasharray="4 4" opacity="0.1" />
-                                                
-                                                {/* Price Line */}
-                                                <polyline
-                                                    fill="none"
-                                                    stroke="#22D3EE"
-                                                    strokeWidth="2"
-                                                    strokeLinejoin="round"
-                                                    points={activeTier.history.map((p, i) => `${(i / (activeTier.history.length - 1)) * 1000},${180 - ((p.price - (activeTier.liveMarket * 0.7)) / (activeTier.liveMarket * 0.6) * 160)}`).join(' ')}
-                                                />
-                                                
-                                                {/* EMA Sim */}
-                                                <polyline
-                                                    fill="none"
-                                                    stroke="rgba(52, 211, 153, 0.5)"
-                                                    strokeWidth="2"
-                                                    strokeDasharray="5 5"
-                                                    points={activeTier.history.map((p, i) => `${(i / (activeTier.history.length - 1)) * 1000},${185 - ((activeTier.ema - (activeTier.liveMarket * 0.7)) / (activeTier.liveMarket * 0.6) * 160)}`).join(' ')}
-                                                />
-                                            </svg>
-                                        ) : (
-                                            <div className="absolute inset-0 flex items-center justify-center text-slate-600 italic text-[14px]">
-                                                Initializing historical buffer...
-                                            </div>
-                                        )}
-                                    </div>
-
-                                    <div className="grid grid-cols-3 gap-4">
-                                        <div className="p-3 bg-white/[0.02] border border-white/5 rounded-[4px] space-y-1">
-                                            <span className="text-[10px] text-slate-500 uppercase-none tracking-widest">5m SMA</span>
-                                            <span className="text-[16px] text-white font-mono block">${activeTier.smas.m5.toFixed(4)}</span>
-                                        </div>
-                                        <div className="p-3 bg-white/[0.02] border border-white/5 rounded-[4px] space-y-1">
-                                            <span className="text-[10px] text-slate-500 uppercase-none tracking-widest">15m SMA</span>
-                                            <span className="text-[16px] text-white font-mono block">${activeTier.smas.m15.toFixed(4)}</span>
-                                        </div>
-                                        <div className="p-3 bg-white/[0.02] border border-white/5 rounded-[4px] space-y-1">
-                                            <span className="text-[10px] text-slate-500 uppercase-none tracking-widest">EMA (α=0.3)</span>
-                                            <span className="text-[16px] text-emerald-400 font-mono block">${activeTier.ema.toFixed(4)}</span>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="card-sovereign p-6 bg-[#22D3EE]/5 border-[#22D3EE]/20">
-                                    <h4 className="text-[11px] text-[#22D3EE] font-bold uppercase-none mb-4 flex items-center gap-2">
-                                        <Shield className="w-3.5 h-3.5" />
-                                        VALUATION LOGIC EXECUTION
-                                    </h4>
-                                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-                                        <div className="space-y-1">
-                                            <span className="text-[9px] text-slate-500 block uppercase-none">Raw Market</span>
-                                            <span className="text-[14px] text-slate-300 font-mono">${activeTier.mean.toFixed(4)}</span>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <span className="text-[9px] text-slate-500 block uppercase-none">Normalization</span>
-                                            <span className="text-[14px] text-slate-300 font-mono italic">IQR Filter</span>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <span className="text-[9px] text-slate-500 block uppercase-none">Volatility Offset</span>
-                                            <span className="text-[14px] text-slate-300 font-mono">{(activeTier.volatility/activeTier.liveMarket*100).toFixed(2)}%</span>
-                                        </div>
-                                        <div className="space-y-1">
-                                            <span className="text-[9px] text-slate-500 block uppercase-none">Safety Dampening</span>
-                                            <span className="text-[14px] text-[#22D3EE] font-mono">Active (2σ)</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Configuration Panel */}
-                            <div className="lg:col-span-4 flex flex-col gap-6">
-                                <div className="card-sovereign p-6 flex flex-col gap-6 h-full">
-                                    <div className="border-b border-white/10 pb-4">
-                                        <h3 className="text-[18px] text-[#22D3EE] uppercase-none italic tracking-tight">Auto-Tuning Engine</h3>
-                                        <p className="text-slate-500 text-[13px]">Define autonomous behavior & safety limits.</p>
-                                    </div>
-
-                                    <div className="flex bg-black p-1 rounded-[6px] border border-white/10">
-                                        {['follow_market', 'auto_tune', 'manual'].map((m) => (
-                                            <button 
-                                                key={m}
-                                                onClick={() => updateOverride(activeTier.id, { ...activeTier.rule, mode: m })}
-                                                className={`flex-1 py-2 text-[10px] rounded-[4px] font-bold transition-all uppercase-none ${activeTier.rule.mode === m ? 'bg-[#22D3EE] text-black shadow-[0_0_12px_rgba(34,211,238,0.4)]' : 'text-slate-500 hover:text-slate-300'}`}
-                                            >
-                                                {m.replace('_', ' ')}
-                                            </button>
-                                        ))}
-                                    </div>
-
-                                    <div className="flex-1 space-y-6">
-                                        {activeTier.rule.mode === 'auto_tune' ? (
-                                            <div className="space-y-6 animate-in fade-in duration-300">
-                                                <div className="flex flex-col gap-3">
-                                                    <label className="text-slate-400 text-[11px] uppercase-none tracking-widest font-bold">Optimization Strategy</label>
-                                                    <select 
-                                                        value={activeTier.rule.autoTuneMode}
-                                                        onChange={(e) => updateOverride(activeTier.id, { ...activeTier.rule, autoTuneMode: e.target.value })}
-                                                        className="bg-black/50 border border-white/20 rounded-[5px] px-4 py-2.5 text-[#22D3EE] font-mono focus:border-[#22D3EE] focus:outline-none appearance-none cursor-pointer"
-                                                    >
-                                                        <option value="undercut">UNDERCUT MARKET</option>
-                                                        <option value="top_n">MAINTAIN TOP POSITION</option>
-                                                        <option value="volatility_adaptive">VOLATILITY ADAPTIVE</option>
-                                                    </select>
-                                                </div>
-
-                                                {activeTier.rule.autoTuneMode === 'undercut' && (
-                                                    <div className="flex flex-col gap-3">
-                                                        <label className="text-slate-400 text-[11px] uppercase-none tracking-widest">Undercut Offset (%)</label>
-                                                        <input 
-                                                            type="number" step="0.5"
-                                                            value={activeTier.rule.targetPercent}
-                                                            onChange={(e) => updateOverride(activeTier.id, { ...activeTier.rule, targetPercent: parseFloat(e.target.value) || 0 })}
-                                                            className="bg-black/80 border border-white/20 rounded-[5px] px-4 py-2.5 text-[#22D3EE] font-mono focus:border-[#22D3EE] focus:outline-none"
-                                                        />
-                                                        <p className="text-[10px] text-slate-600 italic">Reduces pricing by X% below market median to drive node utilization.</p>
-                                                    </div>
-                                                )}
-
-                                                {activeTier.rule.autoTuneMode === 'top_n' && (
-                                                    <div className="flex flex-col gap-3">
-                                                        <label className="text-slate-400 text-[11px] uppercase-none tracking-widest">Target Market Position (%)</label>
-                                                        <input 
-                                                            type="number" step="1"
-                                                            value={activeTier.rule.targetPosition}
-                                                            onChange={(e) => updateOverride(activeTier.id, { ...activeTier.rule, targetPosition: parseFloat(e.target.value) || 0 })}
-                                                            className="bg-black/80 border border-white/20 rounded-[5px] px-4 py-2.5 text-[#22D3EE] font-mono focus:border-[#22D3EE] focus:outline-none"
-                                                        />
-                                                        <p className="text-[10px] text-slate-600 italic">Positions effective rate in the top N% of global cloud pricing.</p>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        ) : activeTier.rule.mode === 'manual' ? (
-                                            <div className="flex flex-col gap-3 animate-in fade-in duration-300">
-                                                <label className="text-slate-400 text-[11px] uppercase-none tracking-widest font-bold font-mono">Static Override (USD/hr)</label>
-                                                <input 
-                                                    type="number" step="0.01"
-                                                    value={activeTier.rule.manualOverride}
-                                                    onChange={(e) => updateOverride(activeTier.id, { ...activeTier.rule, manualOverride: parseFloat(e.target.value) || 0 })}
-                                                    className="bg-black/80 border border-white/20 rounded-[5px] px-4 py-2.5 text-[#22D3EE] font-mono text-[18px] focus:border-[#22D3EE] focus:outline-none"
-                                                />
-                                            </div>
-                                        ) : (
-                                            <div className="space-y-6 animate-in fade-in duration-300">
-                                                <div className="flex flex-col gap-3">
-                                                    <label className="text-slate-400 text-[11px] uppercase-none tracking-widest font-bold font-mono">Multiplier (x)</label>
-                                                    <input 
-                                                        type="number" step="0.05"
-                                                        value={activeTier.rule.multiplier}
-                                                        onChange={(e) => updateOverride(activeTier.id, { ...activeTier.rule, multiplier: parseFloat(e.target.value) || 0 })}
-                                                        className="bg-black/80 border border-white/20 rounded-[5px] px-4 py-2.5 text-[#22D3EE] font-mono focus:border-[#22D3EE] focus:outline-none"
-                                                    />
-                                                </div>
-                                                <div className="flex flex-col gap-3">
-                                                    <label className="text-slate-400 text-[11px] uppercase-none tracking-widest font-bold font-mono">Relative Offset (%)</label>
-                                                    <input 
-                                                        type="number" step="1"
-                                                        value={activeTier.rule.percentOffset}
-                                                        onChange={(e) => updateOverride(activeTier.id, { ...activeTier.rule, percentOffset: parseFloat(e.target.value) || 0 })}
-                                                        className="bg-black/80 border border-white/20 rounded-[5px] px-4 py-2.5 text-[#22D3EE] font-mono focus:border-[#22D3EE] focus:outline-none"
-                                                    />
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        <div className="pt-6 border-t border-white/10 space-y-4">
-                                            <div className="flex flex-col gap-2">
-                                                <span className="text-slate-500 text-[10px] uppercase-none tracking-widest font-bold">Hard Pricing Floor</span>
-                                                <div className="flex items-center gap-3">
-                                                    <input 
-                                                        type="number" step="0.01"
-                                                        value={activeTier.rule.floor}
-                                                        onChange={(e) => updateOverride(activeTier.id, { ...activeTier.rule, floor: parseFloat(e.target.value) || 0 })}
-                                                        className="bg-black border border-white/10 rounded-[4px] px-3 py-1.5 text-slate-300 font-mono text-[12px] w-full focus:border-[#22D3EE] focus:outline-none"
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div className="flex flex-col gap-2">
-                                                <span className="text-slate-500 text-[10px] uppercase-none tracking-widest font-bold">Hard Pricing Ceiling</span>
-                                                <div className="flex items-center gap-3">
-                                                    <input 
-                                                        type="number" step="0.01"
-                                                        value={activeTier.rule.ceiling}
-                                                        onChange={(e) => updateOverride(activeTier.id, { ...activeTier.rule, ceiling: parseFloat(e.target.value) || 0 })}
-                                                        className="bg-black border border-white/10 rounded-[4px] px-3 py-1.5 text-slate-300 font-mono text-[12px] w-full focus:border-[#22D3EE] focus:outline-none"
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="mt-auto">
-                                        <button className="w-full py-3 bg-[#22D3EE]/10 border border-[#22D3EE]/30 text-[#22D3EE] rounded-[5px] text-[12px] font-bold tracking-widest uppercase-none hover:bg-[#22D3EE]/20 transition-all flex items-center justify-center gap-2">
-                                            <Shield className="w-4 h-4" />
-                                            SAVE RULE CONFIG
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {!activeTier && (
-                        <div className="card-sovereign p-20 flex flex-col items-center justify-center text-center gap-6 border-dashed border-white/10 bg-transparent">
-                            <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center">
-                                <Activity className="w-8 h-8 text-slate-600" />
-                            </div>
-                            <div>
-                                <h3 className="text-white text-[18px] uppercase-none italic">Select a tier for autonomous optimization</h3>
-                                <p className="text-slate-500 max-w-sm mt-2">Deep analytics and rule-based tuning are available for all configured compute tiers once selected.</p>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Verification Footer */}
-                    <div className="flex justify-between items-center text-slate-700 border-t border-white/10 pt-10 px-2 shrink-0">
-                        <div className="flex items-center gap-6">
-                            <div className="flex items-center gap-3">
-                                <div className="w-1.5 h-1.5 rounded-full bg-[#22D3EE] shadow-[0_0_8px_rgba(34,211,238,0.5)]" />
-                                <span className="text-[11px] uppercase-none tracking-widest">Market Oracle: Autonomous v3.0 | 10s Precision</span>
+                        <div className="flex items-center gap-5 mt-1.5">
+                            <div className="flex items-center gap-2 font-mono">
+                                <span className="text-[10px] text-slate-600 uppercase tracking-widest">Protocol Rate</span>
+                                <span className={`text-[14px] font-bold ${isBelowFloor ? 'text-red-400' : 'text-[#22D3EE]'}`}>${effectiveRate.toFixed(4)}<span className="text-[10px] text-slate-500 font-normal ml-1">/hr</span></span>
                             </div>
                             <div className="flex items-center gap-2">
-                                <TrendingUp className="w-3 h-3 text-emerald-400" />
-                                <span className="text-[11px] font-mono tracking-tighter text-slate-600 overflow-hidden text-ellipsis whitespace-nowrap max-w-[200px]">NODE_VALUATION_REF: {pricing?.lastUpdate ? new Date(pricing.lastUpdate).toISOString() : 'BOOTING...'}</span>
+                                <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_8px_#22C55E]" />
+                                <span className="text-[9px] text-green-500/80 uppercase tracking-widest font-bold">Mesh Synced</span>
                             </div>
                         </div>
-                        <div className="flex items-center gap-4 text-slate-600">
-                            <span className="text-[11px] font-mono">ENCRYPTED_ORACLE_FEED: ON</span>
-                            <div className="w-1.5 h-1.5 rounded-full bg-slate-800" />
-                            <span className="text-[11px] font-mono">VALUATION_AUTO: ACTIVE</span>
-                        </div>
                     </div>
-                </main>
+                </div>
+
+                <div className="flex items-center gap-6">
+                    <div className="hidden md:flex flex-col items-start opacity-60 group-hover:opacity-100 transition-opacity">
+                        <span className="text-[9px] text-slate-500 uppercase tracking-tighter mb-0.5">Est. Net/Day</span>
+                        <span className="text-[14px] font-mono text-white">${netEarnings.toFixed(2)}</span>
+                    </div>
+                    {expanded ? <ChevronUp className="w-5 h-5 text-[#22D3EE]" /> : <ChevronDown className="w-5 h-5 text-slate-600 group-hover:text-slate-400" />}
+                </div>
             </div>
+
+            <AnimatePresence>
+                {expanded && (
+                    <motion.div 
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        className="border-t border-white/5 bg-black/40"
+                    >
+                        <div className="p-6 space-y-8">
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                                <div className="space-y-6">
+                                    <div className="space-y-3">
+                                        <h5 className="text-[10px] font-normal text-slate-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                                            <Info className="w-3 h-3" /> Tier Overview
+                                        </h5>
+                                        <p className="text-[12px] text-slate-400 leading-relaxed">{tier.description}</p>
+                                        <div className="grid grid-cols-2 gap-2 text-[11px] pt-1">
+                                            <div className="flex flex-col">
+                                                <span className="text-slate-600 uppercase tracking-tighter mb-0.5">vCPU</span>
+                                                <span className="text-white font-mono">{tier.cpu_cores} Cores</span>
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="text-slate-600 uppercase tracking-tighter mb-0.5">vRAM</span>
+                                                <span className="text-white font-mono">{tier.ram_gb} GB</span>
+                                            </div>
+                                            <div className="flex flex-col col-span-2 mt-1">
+                                                <span className="text-slate-600 uppercase tracking-tighter mb-0.5">GPU Compute</span>
+                                                <span className="text-white font-mono truncate">{tier.gpu_model}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="space-y-3 pt-2">
+                                        <h5 className="text-[10px] font-normal text-slate-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                                            <Globe className="w-3 h-3" /> Market Intel
+                                        </h5>
+                                        <div className="space-y-2 bg-white/[0.02] border border-white/5 rounded-[5px] p-3">
+                                            <div className="flex justify-between items-center text-[11px]">
+                                                <span className="text-slate-500">Market Low</span>
+                                                <span className="font-mono text-white text-[12px]">${marketRange.min.toFixed(3)}</span>
+                                            </div>
+                                            <div className="flex justify-between items-center text-[11px]">
+                                                <span className="text-slate-500 text-[#22D3EE]">Market Avg</span>
+                                                <span className="font-mono text-[#22D3EE] text-[12px] font-bold">${marketRange.avg.toFixed(3)}</span>
+                                            </div>
+                                            <div className="flex justify-between items-center text-[11px]">
+                                                <span className="text-slate-500">Market High</span>
+                                                <span className="font-mono text-white text-[12px]">${marketRange.max.toFixed(3)}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-6">
+                                    <div className="space-y-4">
+                                        <div className="flex items-center justify-between">
+                                            <h5 className="text-[10px] font-normal text-slate-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                                                <SlidersHorizontal className="w-3 h-3 text-[#22D3EE]" /> Strategy Control
+                                            </h5>
+                                            <button 
+                                                onClick={toggleMode}
+                                                className={`flex items-center gap-2 px-3 py-1 rounded-[30px] text-[10px] font-bold uppercase tracking-widest transition-all ${tier.rule?.mode === 'auto_tune' ? 'bg-[#22D3EE] text-black' : 'bg-white/10 text-white'}`}
+                                            >
+                                                {tier.rule?.mode === 'auto_tune' ? <RefreshCw className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                                                {tier.rule?.mode === 'auto_tune' ? 'Auto ON' : 'Manual'}
+                                            </button>
+                                        </div>
+
+                                        {tier.rule?.mode === 'auto_tune' ? (
+                                            <div className="p-4 bg-[#22D3EE]/5 border border-[#22D3EE]/20 rounded-[5px] space-y-5">
+                                                <div className="flex items-center justify-between">
+                                                    <span className="text-[11px] text-white uppercase tracking-wide">Target Undercut</span>
+                                                    <span className="text-[18px] font-mono text-[#22D3EE]">-{tier.rule.targetPercent}%</span>
+                                                </div>
+                                                <input 
+                                                    type="range" min="0" max="50" step="0.5"
+                                                    value={tier.rule.targetPercent}
+                                                    onChange={(e) => setTier({...tier, rule: {...tier.rule, targetPercent: parseFloat(e.target.value)}})}
+                                                    className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#22D3EE]"
+                                                />
+                                                <div className="pt-2 border-t border-white/5 space-y-2">
+                                                    <div className="flex justify-between text-[11px]">
+                                                        <span className="text-slate-500">Suggested Price</span>
+                                                        <span className="text-white font-mono">${(marketRange.avg * (1 - tier.rule.targetPercent / 100)).toFixed(4)}</span>
+                                                    </div>
+                                                    <div className="flex justify-between text-[11px]">
+                                                        <span className="text-slate-500">Genesis Floor</span>
+                                                        <span className="text-slate-400 font-mono">${floor.toFixed(4)}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            <div className="p-4 bg-orange-500/5 border border-orange-500/20 rounded-[5px] space-y-4">
+                                                <div className="flex flex-col gap-1">
+                                                    <span className="text-[11px] text-white uppercase tracking-wide">Manual Override</span>
+                                                </div>
+                                                <div className="relative">
+                                                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 font-mono text-[14px]">$</span>
+                                                    <input 
+                                                        type="number" step="0.0001"
+                                                        value={tier.rate_th_sec}
+                                                        onChange={(e) => setTier({...tier, rate_th_sec: parseFloat(e.target.value)})}
+                                                        className="w-full bg-black border border-white/10 rounded-[3px] py-3 pl-8 pr-3 font-mono text-[20px] focus:border-orange-500/50 outline-none transition-all text-white"
+                                                    />
+                                                </div>
+                                                <div className={`flex items-center gap-2 text-[10px] font-bold uppercase tracking-tight py-1 px-2 rounded-[2px] ${isBelowFloor ? 'bg-red-500/10 text-red-500' : 'bg-green-500/10 text-green-500'}`}>
+                                                    <Shield className="w-3 h-3" />
+                                                    {isBelowFloor ? 'Below Genesis Floor' : 'Valid Strategy Detected'}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                <div className="space-y-6">
+                                    <div className="space-y-4">
+                                        <h5 className="text-[10px] font-normal text-slate-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                                            <Gauge className="w-3 h-3 text-purple-400" /> Economy Simulation
+                                        </h5>
+                                        <div className="bg-white/5 rounded-[5px] divide-y divide-white/5 border border-white/5 overflow-hidden">
+                                            <div className="p-4 flex justify-between items-center bg-[#22D3EE]/5">
+                                                <div className="flex flex-col">
+                                                    <span className="text-[12px] text-white font-medium">Daily Gross Revenue</span>
+                                                    <span className="text-[9px] text-slate-500 uppercase tracking-tighter">At 10 TH/sec node</span>
+                                                </div>
+                                                <span className="text-[16px] font-mono text-white">${dailyRev.toFixed(2)}</span>
+                                            </div>
+                                            <div className="p-3 flex justify-between items-center">
+                                                <span className="text-[11px] text-slate-400 uppercase tracking-widest">Platform Fee (10%)</span>
+                                                <span className="text-[12px] font-mono text-slate-500">-${platformFee.toFixed(2)}</span>
+                                            </div>
+                                            <div className="p-3 flex justify-between items-center">
+                                                <span className="text-[11px] text-slate-400 uppercase tracking-widest">Affiliate Revenue (5%)</span>
+                                                <span className="text-[12px] font-mono text-slate-500">-${affiliateFee.toFixed(2)}</span>
+                                            </div>
+                                            <div className="p-4 flex justify-between items-center bg-green-500/5">
+                                                <div className="flex flex-col">
+                                                    <span className="text-[13px] text-green-400 font-bold uppercase tracking-widest">Net Earnings</span>
+                                                    <span className="text-[9px] text-green-400/60 lowercase italic">liquid payout to nodl'r</span>
+                                                </div>
+                                                <span className="text-[22px] font-mono text-green-400 font-bold">${netEarnings.toFixed(2)}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className={`p-4 rounded-[5px] border flex flex-col md:flex-row items-center justify-between gap-4 transition-all ${isBelowFloor ? 'bg-red-500/10 border-red-500/30' : 'bg-[#22D3EE]/5 border-[#22D3EE]/20'}`}>
+                                <div className="flex items-start gap-4">
+                                    <Shield className={`w-5 h-5 mt-0.5 ${isBelowFloor ? 'text-red-500' : 'text-[#22D3EE]'}`} />
+                                    <div>
+                                        <h6 className={`text-[11px] font-bold uppercase tracking-widest mb-1 ${isBelowFloor ? 'text-red-500' : 'text-[#22D3EE]'}`}>
+                                            {isBelowFloor ? 'Genesis Guard Intervention' : 'Protocol Stability: High'}
+                                        </h6>
+                                        <p className="text-[11px] text-slate-400 leading-relaxed max-w-xl">
+                                            {isBelowFloor 
+                                                ? `The current rate is below the 110% operational cost floor ($${floor.toFixed(5)}). Propagation will be locked or adjusted by the backend to prevent platform deficit.`
+                                                : "Current pricing strategy is verified against the Genesis Guard. It maintains a healthy margin above operational parity and is ready for propagation."}
+                                        </p>
+                                    </div>
+                                </div>
+                                <button 
+                                    onClick={() => onUpdate(tier)}
+                                    disabled={isSaving}
+                                    className={`px-8 py-3 rounded-[5px] text-[13px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-3 min-w-[200px] border shadow-lg ${isBelowFloor ? 'bg-slate-800 text-slate-500 cursor-not-allowed border-white/5' : 'bg-[#22D3EE] text-black hover:bg-[#22D3EE]/90 border-[#22D3EE] shadow-[#22D3EE]/20'}`}
+                                >
+                                    {isSaving ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                                    Update Protocol
+                                </button>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

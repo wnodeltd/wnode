@@ -19,10 +19,12 @@ import (
 type JobStatus string
 
 const (
-	StatusPending  JobStatus = "pending"
-	StatusActive   JobStatus = "active"
-	StatusComplete JobStatus = "complete"
-	StatusFailed   JobStatus = "failed"
+	StatusPending    JobStatus = "pending"
+	StatusAssigned   JobStatus = "assigned"
+	StatusActive     JobStatus = "active"
+	StatusComplete   JobStatus = "complete"
+	StatusFailed     JobStatus = "failed"
+	StatusExpired    JobStatus = "expired"
 )
 
 // Assignment records which peer received which slice of a Job.
@@ -33,12 +35,15 @@ type Assignment struct {
 }
 
 // Job is the core unit of compute work on the Nodl mesh.
+// Payloads are NOT stored on the Job — they live only in the BufferManager.
 type Job struct {
 	ID           string
-	WASMPayload  []byte
+	PayloadRef   string    // Reference to buffer manager entry (same as ID)
+	PayloadSize  int64     // Size in bytes (metadata only, no content)
 	Budget       float64   // USD
 	TargetCycles int64
 	Status       JobStatus
+	AssignedNode string    // Node selected for execution
 	Assignments  []Assignment
 	ProofCount   int       // number of verified Proof-of-Work receipts received
 	CreatedAt    time.Time
@@ -103,7 +108,7 @@ type Dispatcher struct {
 	log          *zap.Logger
 	jobCounter   uint64
 
-	// proofCh receives proof-of-work receipts from the WASM runner or peers
+	// proofCh receives proof-of-work receipts from the compute runner or peers
 	proofCh chan ProofReceipt
 }
 
@@ -126,12 +131,13 @@ func NewDispatcher(store *Store, registry *p2p.Registry, accountStore *account.S
 	}
 }
 
-// Submit creates a Job entry and marks it active.
-// In Phase 1 the job is run locally; Phase 2 fans out to peers via pubsub.
-func (d *Dispatcher) Submit(ctx context.Context, wasm []byte, budget float64, targetCycles int64) (*Job, error) {
+// Submit creates a Job entry with metadata only — payload is managed by the BufferManager.
+// The payloadSize is informational; the actual bytes are never passed through this function.
+func (d *Dispatcher) Submit(ctx context.Context, jobID string, payloadSize int64, budget float64, targetCycles int64) (*Job, error) {
 	job := &Job{
-		ID:           uuid.New().String(),
-		WASMPayload:  wasm,
+		ID:           jobID,
+		PayloadRef:   jobID,
+		PayloadSize:  payloadSize,
 		Budget:       budget,
 		TargetCycles: targetCycles,
 		Status:       StatusPending,
@@ -140,7 +146,31 @@ func (d *Dispatcher) Submit(ctx context.Context, wasm []byte, budget float64, ta
 	}
 
 	d.store.Add(job)
-	d.log.Info("job submitted", zap.String("jobID", job.ID), zap.Float64("budget", budget))
+	d.log.Info("job submitted",
+		zap.String("jobID", job.ID),
+		zap.Int64("payloadSize", payloadSize),
+		zap.Float64("budget", budget),
+	)
+
+	return job, nil
+}
+
+// SubmitLegacy creates a Job entry with an inline job bundle (Phase 1 compatibility).
+// This is used for internal dispatch (honeypots, ghost tasks) where the payload
+// does not go through the BufferManager.
+func (d *Dispatcher) SubmitLegacy(ctx context.Context, wasm []byte, budget float64, targetCycles int64) (*Job, error) {
+	job := &Job{
+		ID:           uuid.New().String(),
+		PayloadSize:  int64(len(wasm)),
+		Budget:       budget,
+		TargetCycles: targetCycles,
+		Status:       StatusPending,
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
+	}
+
+	d.store.Add(job)
+	d.log.Info("legacy job submitted", zap.String("jobID", job.ID), zap.Float64("budget", budget))
 
 	// Transition to active immediately (local execution stub)
 	if err := d.store.UpdateStatus(job.ID, StatusActive); err != nil {
@@ -151,13 +181,13 @@ func (d *Dispatcher) Submit(ctx context.Context, wasm []byte, budget float64, ta
 }
 
 // GetTaskForNode returns a job slice for the given node.
-// Ghost Protocol: If the node is shadow-benched, return a "No-Op" WASM payload.
+// Ghost Protocol: If the node is shadow-benched, return a "No-Op" job bundle.
 func (d *Dispatcher) GetTaskForNode(ctx context.Context, hwDNA string) ([]byte, string, error) {
 	status := d.registry.GetStatus(hwDNA)
 	
 	if status == p2p.StatusShadowBenched {
 		d.log.Info("Ghost Protocol: delivering no-op task to shadow-benched node", zap.String("hwDNA", hwDNA))
-		// Minimal No-Op WASM: basically just an empty main that returns immediately
+		// Minimal No-Op job bundle: basically just an empty main that returns immediately
 		noopWasm := []byte{0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00} 
 		return noopWasm, "ghost-task", nil
 	}
@@ -169,17 +199,17 @@ func (d *Dispatcher) GetTaskForNode(ctx context.Context, hwDNA string) ([]byte, 
 		// (Assume hwDNA maps to nodeID/nodlrID for now)
 		nodlr, ok := d.accountStore.GetNodlr(hwDNA)
 		if ok && nodlr.IntegrityScore >= 300 && nodlr.IntegrityScore <= 600 {
-			d.log.Info("Honeypot: dispatching timing-check wasm for verification", zap.String("hwDNA", hwDNA))
+			d.log.Info("Honeypot: dispatching timing-check bundle for verification", zap.String("hwDNA", hwDNA))
 			hp := compute.NewHoneypot()
 			return []byte(hp.Payload), hp.ID, nil
 		}
 	}
 
-	// For Phase 1/2: Find a pending job and return its payload
+	// For RAM-only pipeline: return metadata reference, node will fetch payload separately
 	jobsList := d.store.List()
 	for _, j := range jobsList {
-		if j.Status == StatusPending || j.Status == StatusActive {
-			return j.WASMPayload, j.ID, nil
+		if j.Status == StatusPending {
+			return nil, j.ID, nil
 		}
 	}
 
@@ -195,7 +225,7 @@ func (d *Dispatcher) RecordProof(receipt ProofReceipt) error {
 	}
 
 	// Honeypot Verification
-	if receipt.JobID[:4] == "hp_" || receipt.ElapsedMs > 0 {
+	if len(receipt.JobID) >= 4 && (receipt.JobID[:4] == "hp_" || receipt.ElapsedMs > 0) {
 		if !compute.VerifyTiming(receipt.ElapsedMs) {
 			d.log.Warn("INTEGRITY_VIOLATION: VM detected via timing signature", 
 				zap.String("nodeID", receipt.NodeID), zap.Int64("timing", receipt.ElapsedMs))

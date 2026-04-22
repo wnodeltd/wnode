@@ -23,9 +23,8 @@
     ],
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./*"
-      ]
+      "@/*": ["./*"],
+      "@shared/*": ["../shared/*"]
     },
     "target": "ES2017"
   },
@@ -33,7 +32,8 @@
     "next-env.d.ts",
     ".next/types/**/*.ts",
     "**/*.ts",
-    "**/*.tsx"
+    "**/*.tsx",
+    "../../types/**/*"
   ],
   "exclude": [
     "node_modules"
