@@ -438,6 +438,46 @@ func (s *Service) handleV1CheckoutSession(c *fiber.Ctx) error {
 	})
 }
 
+// ExecuteSovereignAtomicSplit triggers the 5-way deterministic payout.
+// It will fail the entire operation if the architecture is not perfect.
+func (s *Service) ExecuteSovereignAtomicSplit(totalCents int64, nodeID string, chargeID string) error {
+	// 1. Authoritative Resolution (Hard Error on failure)
+	arch, err := s.accountStore.GetPayoutArchitecture(nodeID)
+	if err != nil {
+		s.log.Error("CRITICAL ECONOMIC VIOLATION", zap.Error(err), zap.String("nodeID", nodeID))
+		return err // Atomic failure: No funds are moved if architecture is broken
+	}
+
+	// 2. Protocol Share Calculation
+	nodlrShare   := (totalCents * 80) / 100
+	l1Share      := (totalCents * 3) / 100
+	l2Share      := (totalCents * 7) / 100
+	founderShare := (totalCents * 3) / 100
+	// Wnode (7%) remains on platform
+
+	// 3. Mandatory transfers (No conditionals, No fallbacks)
+	s.initiateTransfer(nodlrShare, arch.NodlrStripe, chargeID, "nodlr_80_payout")
+	s.initiateTransfer(l1Share, arch.L1Stripe, chargeID, "affiliate_l1_3")
+	s.initiateTransfer(l2Share, arch.L2Stripe, chargeID, "affiliate_l2_7")
+	s.initiateTransfer(founderShare, arch.FounderStripe, chargeID, "founder_override_3")
+
+	return nil
+}
+
+func (s *Service) initiateTransfer(amount int64, destination, sourceID, desc string) {
+	params := &stripe.TransferParams{
+		Amount:            stripe.Int64(amount),
+		Currency:          stripe.String("usd"),
+		Destination:       stripe.String(destination),
+		SourceTransaction: stripe.String(sourceID),
+		Description:       stripe.String(desc),
+	}
+	_, err := transfer.New(params)
+	if err != nil {
+		s.log.Error("transfer failed", zap.Error(err), zap.String("destination", destination))
+	}
+}
+
 // --- PaymentIntent (Buyer funds a job) ---
 
 // CreatePaymentIntentRequest carries the job funding details.

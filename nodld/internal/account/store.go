@@ -720,3 +720,89 @@ func (s *Store) GetLedgerHistory(opID string) []CommissionRecord {
 	copy(copied, records)
 	return copied
 }
+
+// GetPayoutArchitecture resolves the iron-clad 5-tier map for a specific node.
+// It returns a Hard Error if any of the 5 protocol-mandated participants are missing or not on-boarded.
+func (s *Store) GetPayoutArchitecture(nodeID string) (*PayoutArchitecture, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	node, ok := s.nodes[nodeID]
+	if !ok {
+		return nil, fmt.Errorf("fatal: rogue node %s - payout architecture resolution impossible", nodeID)
+	}
+
+	nodlr, ok := s.nodlrs[node.UserID]
+	if !ok {
+		return nil, fmt.Errorf("fatal: node %s has no associated nodlr record", nodeID)
+	}
+
+	arch := &PayoutArchitecture{
+		WnodeID:     AuthoritativeOwnerID,
+		WnodeStripe: WnodeBusinessStripeID,
+	}
+
+	// 1. Level 0: The Nodlr (80%)
+	if nodlr.StripeConnectID == "" {
+		return nil, fmt.Errorf("protocol violation: nodlr %s not on-boarded", nodlr.ID)
+	}
+	arch.NodlrID = nodlr.ID
+	arch.NodlrStripe = nodlr.StripeConnectID
+
+	// 2. Lineage: L1 (3%) and L2 (7%)
+	l1ID, l2ID := s.resolveTreeNoLock(nodlr.ID)
+	
+	l1, ok1 := s.nodlrs[l1ID]
+	if !ok1 || l1.StripeConnectID == "" {
+		return nil, fmt.Errorf("protocol violation: L1 lineage for nodlr %s is broken or not on-boarded", nodlr.ID)
+	}
+	arch.L1ID, arch.L1Stripe = l1.ID, l1.StripeConnectID
+
+	l2, ok2 := s.nodlrs[l2ID]
+	if !ok2 || l2.StripeConnectID == "" {
+		return nil, fmt.Errorf("protocol violation: L2 lineage for nodlr %s is broken or not on-boarded", nodlr.ID)
+	}
+	arch.L2ID, arch.L2Stripe = l2.ID, l2.StripeConnectID
+
+	// 3. Founder: The Tree Head (3%)
+	fID := s.getGenesisFounderNoLock(nodlr.ID)
+	f, okf := s.nodlrs[fID]
+	if !okf || f.StripeConnectID == "" {
+		return nil, fmt.Errorf("protocol violation: Founder head for nodlr %s is broken or not on-boarded", nodlr.ID)
+	}
+	arch.FounderID, arch.FounderStripe = f.ID, f.StripeConnectID
+
+	return arch, nil
+}
+
+// Internal helpers without locks to avoid re-entry deadlocks
+
+func (s *Store) resolveTreeNoLock(childID string) (l1ID, l2ID string) {
+	child, ok := s.nodlrs[childID]
+	if !ok || child.ParentID == "" {
+		return "", ""
+	}
+	l1ID = child.ParentID
+	l1, ok := s.nodlrs[l1ID]
+	if ok && l1.ParentID != "" {
+		l2ID = l1.ParentID
+	}
+	return l1ID, l2ID
+}
+
+func (s *Store) getGenesisFounderNoLock(id string) string {
+	curr := id
+	for {
+		n, ok := s.nodlrs[curr]
+		if !ok || n.ParentID == "" {
+			if n != nil && n.IsFounder {
+				return n.ID
+			}
+			return ""
+		}
+		if n.IsFounder {
+			return n.ID
+		}
+		curr = n.ParentID
+	}
+}
