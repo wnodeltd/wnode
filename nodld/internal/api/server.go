@@ -551,6 +551,7 @@ func (s *Server) handleGetAffiliateTree(c *fiber.Ctx) error {
 func (s *Server) isOwner(c *fiber.Ctx) bool {
 	email := c.Get("X-Owner-Email")
 	id := c.Get("X-Owner-ID")
+	// Master Key Protocol: stephen@wnode.one is the universal authoritative owner
 	return (email == "stephen@wnode.one" || email == "stephen@nodl.one") && id == "100001-0426-01-AA"
 }
 
@@ -571,6 +572,13 @@ func (s *Server) requireLevel(minLevel account.UserRole) fiber.Handler {
 		requester, ok := s.accountStore.GetNodlr(requesterID)
 		if !ok {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "user not found"})
+		}
+
+		// Master Key Protocol: SuperAdmins bypass all RBAC and status checks
+		if requester.IsSuperAdmin {
+			c.Locals("user_id", requesterID)
+			c.Locals("user_role", string(requester.Role))
+			return c.Next()
 		}
 
 		// RBAC hierarchy check

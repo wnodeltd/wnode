@@ -34,8 +34,9 @@ const (
 	RoleManagement      UserRole = "management"       // Personnel/Operator managers
 	RoleCustomerService UserRole = "customer_service" // Support limited access
 	RoleVisitor         UserRole = "visitor"          // Read-only transparency
-	RoleFounder         UserRole = "founder"          // Economic override (3%)
-	RoleOperator        UserRole = "operator"         // Nodlr node provider (80%)
+	RoleFounder          UserRole = "founder"          // Economic override (3%)
+	RoleFounderNodlr     UserRole = "founder_nodlr"    // Sovereign Foundation logic
+	RoleOperator         UserRole = "operator"         // Nodlr node provider (80%)
 	RoleBuyer           UserRole = "buyer"            // Mesh compute buyer
 	RoleStandard        UserRole = "standard"         // Legacy default
 )
@@ -60,6 +61,10 @@ type Nodlr struct {
 	PayoutFrequency       PayoutFrequency `json:"payoutFrequency"`
 	ParentID              string          `json:"parentId,omitempty"`
 	Status                string          `json:"status"` // active or dormant
+	IsProtected           bool            `json:"isProtected"`
+	IsSuperAdmin          bool            `json:"isSuperAdmin"`
+	OnboardingComplete    bool            `json:"onboardingComplete"`
+	Verified              bool            `json:"verified"`
 	CreatedAt             time.Time       `json:"createdAt"`
 }
 

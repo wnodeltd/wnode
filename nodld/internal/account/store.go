@@ -46,6 +46,7 @@ func NewStore(forensics *forensics.Store, statePath string) *Store {
 		statePath:          statePath,
 	}
 	s.loadState()
+	s.SeedFoundationIdentities()
 	return s
 }
 
@@ -79,6 +80,60 @@ func (s *Store) saveState() {
 	data, _ := json.MarshalIndent(state, "", "  ")
 	_ = os.MkdirAll(filepath.Dir(s.statePath), 0755)
 	_ = os.WriteFile(s.statePath, data, 0644)
+}
+
+// SeedFoundationIdentities hard-codes the Sovereign Foundation accounts.
+func (s *Store) SeedFoundationIdentities() {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	// 1. Stephen (Universal Owner)
+	ownerID := "100001-0426-01-AA"
+	if _, ok := s.nodlrs[ownerID]; !ok {
+		s.nodlrs[ownerID] = &Nodlr{
+			ID:                 ownerID,
+			Email:              "stephen@wnode.one",
+			Role:               RoleOwner,
+			IsSuperAdmin:       true,
+			IsProtected:        true,
+			OnboardingComplete: true,
+			Verified:           true,
+			Status:             "active",
+			CreatedAt:          time.Now(),
+		}
+	}
+
+	// 2. Stephen (Founder Nodlr)
+	founderID := "100002-0426-02-AA"
+	if _, ok := s.nodlrs[founderID]; !ok {
+		s.nodlrs[founderID] = &Nodlr{
+			ID:                     founderID,
+			Email:                  "stephensoos@yahoo.com",
+			Role:                   RoleFounderNodlr,
+			FounderStripeAccountID: stringPtr("PENDING_FOUNDER_STRIPE_ID"),
+			OnboardingComplete:     true,
+			Verified:               true,
+			IsProtected:            true,
+			Status:                 "active",
+			CreatedAt:              time.Now(),
+		}
+	}
+
+	// 3. Eldesskar (Reservation)
+	eldesskarID := "100003-0426-03-AA"
+	if _, ok := s.nodlrs[eldesskarID]; !ok {
+		s.nodlrs[eldesskarID] = &Nodlr{
+			ID:        eldesskarID,
+			Email:     "eldesskar@wnode.one",
+			Role:      RoleVisitor,
+			Status:    "active",
+			CreatedAt: time.Now(),
+		}
+	}
+}
+
+func stringPtr(s string) *string {
+	return &s
 }
 
 // SetFounder assigns a specific ID to one of the 5 founder slots.
@@ -393,6 +448,10 @@ func (s *Store) AssignUserRole(actorID, actorRole, id string, role UserRole) err
 	n, ok := s.nodlrs[id]
 	if !ok {
 		return fmt.Errorf("account not found")
+	}
+
+	if n.IsProtected {
+		return fmt.Errorf("constitutional lock: protected foundation identities cannot be altered")
 	}
 
 	if role == RoleOwner {
