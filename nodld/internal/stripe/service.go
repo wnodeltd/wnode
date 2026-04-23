@@ -14,6 +14,8 @@ import (
 	stripe "github.com/stripe/stripe-go/v81"
 	stripeAccount "github.com/stripe/stripe-go/v81/account"
 	"github.com/stripe/stripe-go/v81/accountlink"
+	"github.com/stripe/stripe-go/v81/accountsession"
+	"github.com/stripe/stripe-go/v81/checkout/session"
 	"github.com/stripe/stripe-go/v81/paymentintent"
 	"github.com/stripe/stripe-go/v81/transfer"
 	"github.com/stripe/stripe-go/v81/webhook"
@@ -81,9 +83,11 @@ func (s *Service) RegisterRoutes(router fiber.Router) {
 	connect.Get("/status", s.handleConnectStatus)
 	connect.Post("/account", s.handleCreateConnectAccount)
 	connect.Post("/onboard", s.handleCreateAccountLink)
+	connect.Post("/v2/session", s.handleV2AccountSession) // Added for v2 onboarding
 
 	payment := router.Group("/stripe/payment")
 	payment.Post("/create", s.handleCreatePaymentIntent)
+	payment.Post("/checkout", s.handleV1CheckoutSession) // Added for Checkout flow
 
 	transfer := router.Group("/stripe/transfer")
 	transfer.Post("/", s.handleCreateTransfer)
@@ -315,6 +319,125 @@ func (s *Service) handleCreateAccountLink(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{"url": link.URL})
 }
 
+// --- Account Session (v2 onboarding) ---
+
+func (s *Service) handleV2AccountSession(c *fiber.Ctx) error {
+	var req struct {
+		Email string `json:"email"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request body"})
+	}
+
+	// 1. Resolve Nodlr
+	var n *internalAccount.Nodlr
+	nodlrs := s.accountStore.ListNodlrs()
+	for _, item := range nodlrs {
+		if item.Email == req.Email {
+			n = item
+			break
+		}
+	}
+
+	if n == nil {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "account not found"})
+	}
+
+	// 2. Ensure Stripe ID exists
+	if n.StripeConnectID == "" {
+		params := &stripe.AccountParams{
+			Type:  stripe.String(string(stripe.AccountTypeExpress)),
+			Email: stripe.String(n.Email),
+			Capabilities: &stripe.AccountCapabilitiesParams{
+				Transfers: &stripe.AccountCapabilitiesTransfersParams{
+					Requested: stripe.Bool(true),
+				},
+			},
+		}
+		acct, err := stripeAccount.New(params)
+		if err != nil {
+			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+		}
+		n.StripeConnectID = acct.ID
+	}
+
+	// 3. Create Account Session
+	params := &stripe.AccountSessionParams{
+		Account: stripe.String(n.StripeConnectID),
+		Components: &stripe.AccountSessionComponentsParams{
+			AccountOnboarding: &stripe.AccountSessionComponentsAccountOnboardingParams{
+				Enabled: stripe.Bool(true),
+			},
+		},
+	}
+
+	sess, err := accountsession.New(params)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{
+		"clientSecret": sess.ClientSecret,
+		"accountID":    n.StripeConnectID,
+	})
+}
+
+// --- Checkout Session (Payment flow) ---
+
+func (s *Service) handleV1CheckoutSession(c *fiber.Ctx) error {
+	var req struct {
+		AmountCents int64  `json:"amountCents"`
+		UserID      string `json:"userID"`
+		JobID       string `json:"jobID"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request body"})
+	}
+
+	if req.AmountCents < 100 {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "minimum amount is $1.00"})
+	}
+
+	// Hardcoded 10% application fee per Blueprint
+	appFee := int64(float64(req.AmountCents) * 0.10)
+
+	params := &stripe.CheckoutSessionParams{
+		SuccessURL: stripe.String(os.Getenv("STRIPE_SUCCESS_URL")),
+		CancelURL:  stripe.String(os.Getenv("STRIPE_CANCEL_URL")),
+		LineItems: []*stripe.CheckoutSessionLineItemParams{
+			{
+				PriceData: &stripe.CheckoutSessionLineItemPriceDataParams{
+					Currency: stripe.String("usd"),
+					ProductData: &stripe.CheckoutSessionLineItemPriceDataProductDataParams{
+						Name: stripe.String("WNode Compute Credit"),
+					},
+					UnitAmount: stripe.Int64(req.AmountCents),
+				},
+				Quantity: stripe.Int64(1),
+			},
+		},
+		Mode: stripe.String(string(stripe.CheckoutSessionModePayment)),
+		PaymentIntentData: &stripe.CheckoutSessionPaymentIntentDataParams{
+			ApplicationFeeAmount: stripe.Int64(appFee),
+			Metadata: map[string]string{
+				"userID": req.UserID,
+				"jobID":  req.JobID,
+				"type":   "topup",
+			},
+		},
+	}
+
+	sess, err := session.New(params)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{
+		"url": sess.URL,
+		"id":  sess.ID,
+	})
+}
+
 // --- PaymentIntent (Buyer funds a job) ---
 
 // CreatePaymentIntentRequest carries the job funding details.
@@ -337,9 +460,13 @@ func (s *Service) handleCreatePaymentIntent(c *fiber.Ctx) error {
 		req.Currency = "usd"
 	}
 
+	// Hardcoded 10% platform fee per Blueprint
+	appFee := int64(float64(req.AmountCents) * 0.10)
+
 	params := &stripe.PaymentIntentParams{
-		Amount:   stripe.Int64(req.AmountCents),
-		Currency: stripe.String(req.Currency),
+		Amount:               stripe.Int64(req.AmountCents),
+		Currency:             stripe.String("usd"),
+		ApplicationFeeAmount: stripe.Int64(appFee),
 		Metadata: map[string]string{
 			"userID": req.UserID,
 			"jobID":  req.JobID,

@@ -30,33 +30,9 @@ export default function OnboardingWizard({ account, onSkip }: OnboardingWizardPr
         { id: 3, title: "Mesh Verification", description: "Hardware Integrity Check", icon: Shield },
     ];
 
-    const handleConnectStripe = async () => {
+    const handleConnectStripe = () => {
         setIsConnecting(true);
-        try {
-            const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://api.wnode.one';
-            const res = await fetch(`${apiBase}/api/v1/stripe/connect/account`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: 'stephen@wnode.one' }) // Seeded account
-            });
-            const { accountID } = await res.json();
-
-            const resLink = await fetch(`${apiBase}/api/v1/stripe/connect/onboard`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ 
-                    accountID,
-                    returnURL: window.location.origin + '/dashboard',
-                    refreshURL: window.location.href
-                })
-            });
-            const { url } = await resLink.json();
-            window.location.href = url;
-        } catch (err) {
-            console.error(err);
-        } finally {
-            setIsConnecting(false);
-        }
+        window.location.href = '/onboard';
     };
 
     return (

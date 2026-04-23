@@ -136,6 +136,38 @@ export default function DashboardPage() {
                 {/* Sidebar Controls (Right) */}
                 <div className="lg:col-span-4 space-y-8">
 
+                    {/* Action Card: Start Working */}
+                    <div className="surface-card p-6 space-y-4 border border-cyber-cyan/30 bg-cyber-cyan/5">
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-[10px] uppercase font-bold tracking-widest text-cyber-cyan">Platform Status</h3>
+                            <div className="flex items-center gap-1.5">
+                                <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${isPayoutActive ? 'bg-green-500' : 'bg-yellow-500'}`} />
+                                <span className="text-[10px] text-white font-bold">{isPayoutActive ? 'ACTIVE' : 'SETUP REQUIRED'}</span>
+                            </div>
+                        </div>
+                        <p className="text-[12px] text-slate-400 leading-relaxed font-normal">
+                            {isPayoutActive 
+                                ? "Your compute nodes are verified and ready for mesh-task allocation."
+                                : "Link your Stripe account to verify your identity and enable daily revenue settlements."}
+                        </p>
+                        <button 
+                            onClick={() => {
+                                if (isPayoutActive) toggleHarvesting();
+                                else window.location.href = '/onboard';
+                            }}
+                            className={`w-full py-4 rounded-[4px] font-bold text-xs uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 ${
+                                isPayoutActive 
+                                    ? (isHarvesting ? 'bg-red-500/10 text-red-500 border border-red-500/20' : 'bg-cyber-cyan text-black')
+                                    : 'bg-white text-black hover:bg-cyber-cyan'
+                            }`}
+                        >
+                            {isPayoutActive 
+                                ? (isHarvesting ? 'Stop Working' : 'Start Working')
+                                : 'Link Stripe to Start'}
+                            <Zap className="w-4 h-4" />
+                        </button>
+                    </div>
+
                     {/* Impact Card */}
                     <ImpactCard 
                         carbonSaved={impact.carbonSavedKg || 0}
