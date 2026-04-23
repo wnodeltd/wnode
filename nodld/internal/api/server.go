@@ -560,6 +560,8 @@ func (s *Server) requireLevel(minLevel account.UserRole) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 		// Owner bypass
 		if s.isOwner(c) {
+			c.Locals("user_id", account.AuthoritativeOwnerID)
+			c.Locals("user_role", string(account.RoleOwner))
 			return c.Next()
 		}
 
