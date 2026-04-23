@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { ChevronLeft, Activity, Heart, ShieldInfo, AlertCircle } from "lucide-react";
+import { ChevronLeft, Activity, Heart, Shield, AlertCircle } from "lucide-react";
 
 export default function WnoderNodeHealthHelp() {
     return (
@@ -78,7 +78,7 @@ export default function WnoderNodeHealthHelp() {
                         </h2>
                         <div className="space-y-4">
                             <div className="flex gap-4 p-4 border border-white/5 bg-[#080808]">
-                                <ShieldInfo className="w-4 h-4 text-slate-500 mt-1 shrink-0" />
+                                <Shield className="w-4 h-4 text-slate-500 mt-1 shrink-0" />
                                 <div>
                                     <p className="text-white text-xs font-bold mb-1 uppercase tracking-widest">Network Jitter</p>
                                     <p className="text-slate-400 text-[13px] leading-relaxed">
