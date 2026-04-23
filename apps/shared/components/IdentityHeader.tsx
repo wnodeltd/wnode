@@ -98,7 +98,6 @@ export default function IdentityHeader() {
 
             {/* User Avatar */}
             <div className="relative group">
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full opacity-20 group-hover:opacity-40 transition duration-300 blur-sm"></div>
                 <div className="relative w-10 h-10 rounded-full border-2 border-neutral-800/50 bg-neutral-900 overflow-hidden flex items-center justify-center">
                     {user.avatar_url ? (
                         <img 

@@ -51,12 +51,12 @@ export default function Sidebar() {
 
     const allItems = [
         { name: 'Dashboard', href: '/', icon: LayoutDashboard, roles: ['owner', 'management', 'customer_service', 'visitor'] },
-        { name: "Nodes", href: '/nodls', icon: Activity, roles: ['owner', 'management', 'customer_service', 'visitor'] },
-        { name: 'Pricing', href: '/pricing', icon: BarChart3, roles: ['owner', 'management', 'visitor'] },
+        { name: "Nodes", href: '/nodls', icon: Activity, roles: ['owner', 'management', 'customer_service', 'visitor'], iconColor: 'text-cyan-400' },
+        { name: 'Pricing', href: '/pricing', icon: BarChart3, roles: ['owner', 'management', 'visitor'], iconColor: 'text-orange-500' },
         { name: "nodl'rs", href: '/providers', icon: Zap, roles: ['owner', 'management', 'visitor'], iconColor: 'text-orange-500' },
         { name: 'Mesh Customers', href: '/clients', icon: Users, roles: ['owner', 'management', 'customer_service', 'visitor'], iconColor: 'text-cyan-400' },
         { name: 'Affiliates', href: '/affiliates', icon: Share2, roles: ['owner', 'management', 'visitor'] },
-        { name: 'Money', href: '/ledger', icon: DollarSign, roles: ['owner', 'management', 'customer_service', 'visitor'] },
+        { name: 'Money', href: '/ledger', icon: DollarSign, roles: ['owner', 'management', 'customer_service', 'visitor'], iconColor: 'text-cyan-400' },
         { name: 'Personnel', href: '/staff', icon: ShieldAlert, roles: ['owner', 'management'] },
         { name: 'Help', href: '/help', icon: HelpCircle, roles: ['owner', 'management', 'customer_service', 'visitor'] },
         { name: 'Settings', href: '/settings', icon: Settings, roles: ['owner', 'management', 'customer_service', 'visitor'] },
