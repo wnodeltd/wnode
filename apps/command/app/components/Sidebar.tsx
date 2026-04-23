@@ -50,16 +50,16 @@ export default function Sidebar() {
     }
 
     const allItems = [
-        { name: 'Dashboard', href: '/', icon: LayoutDashboard, roles: ['owner', 'management', 'customer_service', 'visitor'] },
+        { name: 'Dashboard', href: '/', icon: LayoutDashboard, roles: ['owner', 'management', 'customer_service', 'visitor'], iconColor: 'text-blue-400' },
         { name: "Nodes", href: '/nodls', icon: Activity, roles: ['owner', 'management', 'customer_service', 'visitor'], iconColor: 'text-cyan-400' },
-        { name: 'Pricing', href: '/pricing', icon: BarChart3, roles: ['owner', 'management', 'visitor'], iconColor: 'text-orange-500' },
+        { name: 'Pricing', href: '/pricing', icon: BarChart3, roles: ['owner', 'management', 'visitor'], iconColor: 'text-amber-400' },
         { name: "nodl'rs", href: '/providers', icon: Zap, roles: ['owner', 'management', 'visitor'], iconColor: 'text-orange-500' },
-        { name: 'Mesh Customers', href: '/clients', icon: Users, roles: ['owner', 'management', 'customer_service', 'visitor'], iconColor: 'text-cyan-400' },
-        { name: 'Affiliates', href: '/affiliates', icon: Share2, roles: ['owner', 'management', 'visitor'] },
-        { name: 'Money', href: '/ledger', icon: DollarSign, roles: ['owner', 'management', 'customer_service', 'visitor'], iconColor: 'text-cyan-400' },
-        { name: 'Personnel', href: '/staff', icon: ShieldAlert, roles: ['owner', 'management'] },
-        { name: 'Help', href: '/help', icon: HelpCircle, roles: ['owner', 'management', 'customer_service', 'visitor'] },
-        { name: 'Settings', href: '/settings', icon: Settings, roles: ['owner', 'management', 'customer_service', 'visitor'] },
+        { name: 'Mesh Customers', href: '/clients', icon: Users, roles: ['owner', 'management', 'customer_service', 'visitor'], iconColor: 'text-teal-400' },
+        { name: 'Affiliates', href: '/affiliates', icon: Share2, roles: ['owner', 'management', 'visitor'], iconColor: 'text-fuchsia-400' },
+        { name: 'Money', href: '/ledger', icon: DollarSign, roles: ['owner', 'management', 'customer_service', 'visitor'], iconColor: 'text-emerald-400' },
+        { name: 'Personnel', href: '/staff', icon: ShieldAlert, roles: ['owner', 'management'], iconColor: 'text-rose-400' },
+        { name: 'Help', href: '/help', icon: HelpCircle, roles: ['owner', 'management', 'customer_service', 'visitor'], iconColor: 'text-yellow-400' },
+        { name: 'Settings', href: '/settings', icon: Settings, roles: ['owner', 'management', 'customer_service', 'visitor'], iconColor: 'text-slate-400' },
     ];
 
     // During SSR and initial hydration, only show the base 'visitor' items to match the server output
