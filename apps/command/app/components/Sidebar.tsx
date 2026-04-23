@@ -53,8 +53,8 @@ export default function Sidebar() {
         { name: 'Dashboard', href: '/', icon: LayoutDashboard, roles: ['owner', 'management', 'customer_service', 'visitor'] },
         { name: "Nodes", href: '/nodls', icon: Activity, roles: ['owner', 'management', 'customer_service', 'visitor'] },
         { name: 'Pricing', href: '/pricing', icon: BarChart3, roles: ['owner', 'management', 'visitor'] },
-        { name: "nodl'rs", href: '/providers', icon: Zap, roles: ['owner', 'management', 'visitor'] },
-        { name: 'Mesh Customers', href: '/clients', icon: Users, roles: ['owner', 'management', 'customer_service', 'visitor'] },
+        { name: "nodl'rs", href: '/providers', icon: Zap, roles: ['owner', 'management', 'visitor'], iconColor: 'text-orange-500' },
+        { name: 'Mesh Customers', href: '/clients', icon: Users, roles: ['owner', 'management', 'customer_service', 'visitor'], iconColor: 'text-cyan-400' },
         { name: 'Affiliates', href: '/affiliates', icon: Share2, roles: ['owner', 'management', 'visitor'] },
         { name: 'Money', href: '/ledger', icon: DollarSign, roles: ['owner', 'management', 'customer_service', 'visitor'] },
         { name: 'Personnel', href: '/staff', icon: ShieldAlert, roles: ['owner', 'management'] },
@@ -104,7 +104,7 @@ export default function Sidebar() {
                                 {isActive && (
                                     <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-[#22D3EE] rounded-r-full shadow-[0_0_12px_#22D3EE]" />
                                 )}
-                                <item.icon className={`w-4 h-4 transition-colors ${isActive ? 'text-[#22D3EE]' : 'text-slate-500 group-hover:text-slate-300'}`} />
+                                <item.icon className={`w-4 h-4 transition-colors ${isActive ? 'text-[#22D3EE]' : (item.iconColor || 'text-slate-500 group-hover:text-slate-300')}`} />
                                 {item.name}
                             </Link>
 
