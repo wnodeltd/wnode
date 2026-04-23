@@ -111,7 +111,7 @@ wnode is built for fairness. Every job follows a hardcoded commission waterfall:
 
 - **Operator**: 80% (Direct to Nodlr)
 - **Steward**: 7% (Platform Maintenance)
-- **Affiliate Tree**: 10% (Growth Incentive: 2% L1, 8% L2)
+- **Affiliate Tree**: 10% (Growth Incentive: 3% L1, 7% L2)
 - **Founder**: 3% (Genesis Override)
 
 *Note: All withdrawals are subject to a **120-Day Compliance Hold** to ensure network integrity.*

@@ -216,13 +216,9 @@ Even when nodlrs build small clusters, the environmental impact is still far bel
 ## Summary
 Compute economics ensure:
 
-- Fair earnings for nodes,
-- Aggregated earnings for nodlrs,
-- Override earnings for founders,
-- Sustainable revenue for the steward,
-- Performance‑based routing,
-- Distributed supply,
-- Transparent attribution,
-- Long‑term stability.
+- **Operator**: 80% (Direct to Nodlr)
+- **Steward**: 7% (Platform Maintenance)
+- **Affiliate Tree**: 10% (3% L1, 7% L2)
+- **Founder**: 3% (Genesis Override)
 
 The network forms a global, decentralized compute marketplace that is economically aligned, environmentally efficient, and structurally fair.
