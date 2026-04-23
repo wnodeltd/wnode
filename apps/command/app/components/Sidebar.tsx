@@ -30,6 +30,7 @@ export default function Sidebar() {
             localStorage.removeItem("nodl_jwt");
             localStorage.removeItem("nodl_user");
             localStorage.removeItem("nodl_user_email");
+            document.cookie = "nodl_jwt=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
         }
         router.push("/auth/login");
     };

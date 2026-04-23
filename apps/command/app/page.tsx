@@ -31,25 +31,6 @@ export default function CommandCentrePage() {
     const [apiLatencyMs, setApiLatencyMs] = useState<number | null>(null);
     const router = useRouter();
 
-    useEffect(() => {
-        if (typeof window === 'undefined') return;
-        const jwt = typeof window !== "undefined" ? localStorage.getItem("nodl_jwt") : null;
-        const userStr = typeof window !== "undefined" ? localStorage.getItem("nodl_user") : null;
-        
-        if (!jwt || !userStr) {
-            router.push("/auth/login");
-            return;
-        }
-
-        try {
-            const user = JSON.parse(userStr);
-            if (user.role === 'visitor') {
-                router.push("/auth/login");
-            }
-        } catch (e) {
-            router.push("/auth/login");
-        }
-    }, [router]);
 
     const fetchData = async () => {
         try {

@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import "./globals.css";
 import { Libp2pProvider } from "./components/Libp2pProvider";
 import Shell from "./components/Shell";
+import AuthGuard from "./components/AuthGuard";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
@@ -24,13 +25,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 } as React.CSSProperties}
             >
                 <Libp2pProvider>
-                    <React.Suspense fallback={<div className="h-screen w-screen bg-black" />}>
-                        {pathname?.startsWith("/auth") ? (
-                            children
-                        ) : (
-                            <Shell>{children}</Shell>
-                        )}
-                    </React.Suspense>
+                    <AuthGuard>
+                        <React.Suspense fallback={<div className="h-screen w-screen bg-black" />}>
+                            {pathname?.startsWith("/auth") ? (
+                                children
+                            ) : (
+                                <Shell>{children}</Shell>
+                            )}
+                        </React.Suspense>
+                    </AuthGuard>
                 </Libp2pProvider>
             </body>
         </html>

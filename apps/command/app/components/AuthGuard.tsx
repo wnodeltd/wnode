@@ -1,61 +1,85 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { Loader2 } from "lucide-react";
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const [isAuthorized, setIsAuthorized] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
+    const [isVerified, setIsVerified] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+    const router = useRouter();
+    const pathname = usePathname();
 
-  useEffect(() => {
-    setIsMounted(true);
-    
-    // Centralized 'Not Signed In' logic
-    const jwt = localStorage.getItem("nodl_jwt");
-    const userStr = localStorage.getItem("nodl_user");
+    useEffect(() => {
+        const checkAuth = async () => {
+            // Skip auth check for login/auth pages
+            if (pathname?.startsWith("/auth") || pathname === "/login") {
+                setIsLoading(false);
+                return;
+            }
 
-    if (pathname === "/auth/login") {
-      setIsAuthorized(true);
-      return;
+            const jwt = localStorage.getItem("nodl_jwt");
+            const userStr = localStorage.getItem("nodl_user");
+
+            if (!jwt || !userStr) {
+                console.warn("[AuthGuard] No token or user found, redirecting to /auth/login");
+                router.push("/auth/login");
+                return;
+            }
+
+            try {
+                // Verify session with backend
+                const res = await fetch("/api/account/me", {
+                    headers: {
+                        "Authorization": `Bearer ${jwt}`,
+                    },
+                    cache: "no-store",
+                });
+
+                if (res.ok) {
+                    setIsVerified(true);
+                } else {
+                    console.error("[AuthGuard] Session verification failed, status:", res.status);
+                    // Clear invalid session
+                    localStorage.removeItem("nodl_jwt");
+                    localStorage.removeItem("nodl_user");
+                    document.cookie = "nodl_jwt=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+                    router.push("/auth/login");
+                }
+            } catch (error) {
+                console.error("[AuthGuard] Error verifying session:", error);
+                // If backend is unreachable, we can't confirm status 200
+                setIsVerified(false);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        checkAuth();
+    }, [pathname, router]);
+
+    if (isLoading) {
+        return (
+            <div className="h-screen w-screen bg-black flex items-center justify-center">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="w-12 h-12 border-t-2 border-cyan-500 border-solid rounded-full animate-spin" />
+                    <span className="text-[10px] text-cyan-500 font-bold uppercase tracking-[0.2em] animate-pulse">
+                        Synchronizing Identity...
+                    </span>
+                </div>
+            </div>
+        );
     }
 
-    if (!jwt || !userStr) {
-      router.push("/auth/login");
-      return;
+    // For auth pages, just render children
+    if (pathname?.startsWith("/auth") || pathname === "/login") {
+        return <>{children}</>;
     }
 
-    try {
-      const user = JSON.parse(userStr);
-      // Check for authorized roles
-      const allowedRoles = ["owner", "manager", "customer_service"];
-      if (!allowedRoles.includes(user.role)) {
-        // Not authorized for this portal - but signed in
-        // For simplicity, redirect to login or show error
-        router.push("/auth/login");
-        return;
-      }
-      setIsAuthorized(true);
-    } catch (e) {
-      router.push("/auth/login");
+    // Only render dashboard if verified
+    if (isVerified) {
+        return <>{children}</>;
     }
-  }, [pathname, router]);
 
-  // Don't render anything during SSR to prevent hydration mismatches
-  if (!isMounted) {
+    // Default to empty while redirecting
     return null;
-  }
-
-  if (!isAuthorized && pathname !== "/auth/login") {
-    return (
-      <div className="min-h-screen bg-black flex flex-col items-center justify-center text-white">
-        <Loader2 className="w-8 h-8 animate-spin text-[#22D3EE] mb-4" />
-        <p className="text-slate-500 font-normal">Verifying Security Credentials...</p>
-      </div>
-    );
-  }
-
-  return <>{children}</>;
 }
