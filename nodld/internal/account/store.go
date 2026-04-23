@@ -89,7 +89,7 @@ func (s *Store) SeedFoundationIdentities() {
 
 	// 1. Stephen (Universal Owner)
 	ownerID := "100001-0426-01-AA"
-	if _, ok := s.nodlrs[ownerID]; !ok {
+	if n, ok := s.nodlrs[ownerID]; !ok {
 		s.nodlrs[ownerID] = &Nodlr{
 			ID:                 ownerID,
 			Email:              "stephen@wnode.one",
@@ -101,11 +101,17 @@ func (s *Store) SeedFoundationIdentities() {
 			Status:             "active",
 			CreatedAt:          time.Now(),
 		}
+	} else {
+		// Enforce foundation status on existing record
+		n.IsSuperAdmin = true
+		n.IsProtected = true
+		n.OnboardingComplete = true
+		n.Verified = true
 	}
 
 	// 2. Stephen (Founder Nodlr)
 	founderID := "100002-0426-02-AA"
-	if _, ok := s.nodlrs[founderID]; !ok {
+	if n, ok := s.nodlrs[founderID]; !ok {
 		s.nodlrs[founderID] = &Nodlr{
 			ID:                     founderID,
 			Email:                  "stephensoos@yahoo.com",
@@ -117,6 +123,11 @@ func (s *Store) SeedFoundationIdentities() {
 			Status:                 "active",
 			CreatedAt:              time.Now(),
 		}
+	} else {
+		// Enforce foundation status on existing record
+		n.IsProtected = true
+		n.OnboardingComplete = true
+		n.Verified = true
 	}
 
 	// 3. Eldesskar (Reservation)
