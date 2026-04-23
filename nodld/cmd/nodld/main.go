@@ -120,60 +120,7 @@ func main() {
 	// ── Account & Affiliate Store ─────────────────────────────────────────────
 	// (Moved up)
 	
-	// Seed Data for Authoritative Founder Layer (5 Live, 5 Dormant)
-	founders := []struct {
-		id     string
-		email  string
-		name   string
-		status string
-	}{
-		{id: "100001-0426-01-AA", email: "stephen@nodl.one", name: "Stephen Soos", status: "active"},
-		{id: "100002-0426-02-AA", email: "eldesskar@protocol.nodl", name: "Eldesskar", status: "active"},
-		{id: "100003-0426-03-AA", email: "ava@wnode.one", name: "Ava Chen", status: "active"},
-		{id: "100004-0426-04-AA", email: "marcus@wnode.one", name: "Marcus Thorne", status: "active"},
-		{id: "100005-0426-05-AA", email: "yara@wnode.one", name: "Yara Hassan", status: "active"},
-		{id: "100006-0426-06-AA", email: "f06@wnode.one", name: "Founder 06", status: "dormant"},
-		{id: "100007-0426-07-AA", email: "f07@wnode.one", name: "Founder 07", status: "dormant"},
-		{id: "100008-0426-08-AA", email: "f08@wnode.one", name: "Founder 08", status: "dormant"},
-		{id: "100009-0426-09-AA", email: "f09@wnode.one", name: "Founder 09", status: "dormant"},
-		{id: "100010-0426-10-AA", email: "f10@wnode.one", name: "Founder 10", status: "dormant"},
-	}
-
-	for i, f := range founders {
-		founderIndex := i + 1
-		accountStore.SetFounder(founderIndex, f.id)
-		n := &account.Nodlr{
-			ID:                     f.id,
-			Email:                  f.email,
-			Status:                 f.status,
-			IsFounder:              true,
-			FounderIndex:           founderIndex,
-			Role:                   account.RoleStandard, // Standard by default, Stephen promoted below
-			PayoutFrequency:        account.PayoutDaily,
-			PayoutStatus:           account.PayoutStatusActive,
-			IntegrityScore:         1000,
-			FounderStripeAccountID: nil, // null
-			NodlrStripeAccountID:   nil, // null
-			CreatedAt:              time.Now(),
-		}
-		if f.id == account.AuthoritativeOwnerID {
-			n.Role = account.RoleOwner
-			// n.StripeConnectID = "" // Dynamic creation enabled
-		}
-		accountStore.AddNodlr(n)
-	}
-
-	ownerID := account.AuthoritativeOwnerID
-
-	// Create a small test tree under Stephen
-	for i := 1; i <= 3; i++ {
-		l1, _ := accountStore.CreateNodlr(fmt.Sprintf("l1_%d@example.com", i), ownerID)
-		for j := 1; j <= 2; j++ {
-			accountStore.CreateNodlr(fmt.Sprintf("l1_%d_l2_%d@example.com", i, j), l1.ID)
-		}
-	}
-
-	log.Info("account store online with seeded data", zap.String("ownerID", ownerID))
+	log.Info("account store online with Master Key Protocol active", zap.String("ownerID", account.AuthoritativeOwnerID))
 
 	// ── Money Service ──────────────────────────────────────────────────────────
 	moneySvc := money.NewService(accountStore, stripeSvc, log, startTime)
