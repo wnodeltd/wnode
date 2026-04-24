@@ -152,8 +152,6 @@ func (s *Server) registerRoutes() {
 
 	// Account & Affiliates
 	s.app.Get("/account/me", s.handleGetMyAccount)
-	// Account & Affiliates
-	s.app.Get("/account/me", s.handleGetMyAccount)
 	s.app.Get("/account/opportunity", s.handleGetOpportunityAudit)
 	s.app.Get("/account/:id", s.requireLevel(account.RoleVisitor), s.handleGetAccount)
 	s.app.Put("/account/:id", s.requireLevel(account.RoleCustomerService), s.handleUpdateAccount)
@@ -471,17 +469,17 @@ func (s *Server) handleGetPricingAlerts(c *fiber.Ctx) error {
 }
 
 func (s *Server) handleGetMyAccount(c *fiber.Ctx) error {
-	// For testing, we return the seeded owner account
-	acc, ok := s.accountStore.GetNodlr(account.AuthoritativeOwnerID)
+	userId := c.Locals("userId").(string)
+	acc, ok := s.accountStore.GetNodlr(userId)
 	if !ok {
-		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "my account not found"})
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "account not found"})
 	}
 	return c.JSON(acc)
 }
 
-func (s *Server) handleGetMyAccount(c *fiber.Ctx) error {
-	userId := c.Locals("userId").(string)
-	acc, ok := s.accountStore.GetNodlr(userId)
+func (s *Server) handleGetAccount(c *fiber.Ctx) error {
+	id := c.Params("id")
+	acc, ok := s.accountStore.GetNodlr(id)
 	if !ok {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "account not found"})
 	}
