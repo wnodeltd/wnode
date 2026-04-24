@@ -29,8 +29,9 @@ export default function HeroSection({ onOpenModal }: HeroSectionProps) {
 
                     {/* Hardware Illustration */}
                     <div className="mb-12 transform hover:scale-[1.01] transition-transform duration-500 w-full px-4 flex justify-center">
-                        <img src="/devices.png" alt="Revenue streams" className="w-full max-w-4xl h-auto rounded-3xl" />
+                        <img src="/hero-steps.png" alt="How it works" className="w-full max-w-4xl h-auto rounded-3xl" />
                     </div>
+
 
                     {/* Description in a Box - Split over 2 lines */}
                     <div className="max-w-2xl w-full p-8 rounded-[12px] border border-white/15 bg-black/40 backdrop-blur-md transition-all hover:border-white/10 shadow-2xl">
