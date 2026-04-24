@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Cpu, Users, Settings, LogOut, Upload, DollarSign, Plus, UserPlus, HelpCircle, AlertCircle } from 'lucide-react';
+import { LayoutDashboard, Cpu, Users, Settings, LogOut, Upload, DollarSign, Plus, UserPlus, HelpCircle, AlertCircle, TrendingUp } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAvatar } from '../hooks/useAvatar';
@@ -13,11 +13,13 @@ import { useRouter } from 'next/navigation';
 const navigation = [
     { name: 'Overview', href: '/dashboard', icon: LayoutDashboard, color: 'text-[#22d3ee]' },
     { name: 'Nodes', href: '/dashboard/hardware', icon: Cpu, color: 'text-[#a855f7]' },
+    { name: 'Mesh Sales', href: '/dashboard/sales', icon: TrendingUp, color: 'text-[#ffff00]' },
     { name: 'Money', href: '/dashboard/finances', icon: DollarSign, color: 'text-[#10b981]' },
     { name: 'Affiliates', href: '/dashboard/affiliates', icon: Users, color: 'text-[#3b82f6]' },
     { name: 'Settings', href: '/dashboard/settings', icon: Settings, color: 'text-[#f59e0b]' },
     { name: 'Help', href: '/dashboard/help', icon: HelpCircle, color: 'text-[#f472b6]' },
 ];
+
 
 
 export default function DashboardLayout({

@@ -188,3 +188,29 @@ type Lineage struct {
 	WnodeID       string `json:"wnodeId"`       // 7%
 }
 
+// Ambassador Intelligence Suite - Opportunity Audit Models
+type OpportunityAudit struct {
+	NodlrID                    string             `json:"nodlrId"`
+	EarnedSalesCents           int64              `json:"earnedSalesCents"`
+	MissedComputeCents         int64              `json:"missedComputeCents"`
+	CaptureEfficiencyPercentage float64            `json:"captureEfficiencyPercentage"` // (EarnedSalesCents / (EarnedSalesCents + (MissedComputeCents / 7))) * 100? No, let's use the 100% potential base.
+	PotentialMonthlyTotalCents int64              `json:"potentialMonthlyTotalCents"`
+	Events                     []OpportunityEvent `json:"events"`
+	ExpansionInsight           ExpansionInsight   `json:"expansionInsight"`
+}
+
+type OpportunityEvent struct {
+	JobID       string `json:"jobId"`
+	AmountCents int64  `json:"amountCents"` // The 70% portion
+	Category    string `json:"category"`    // CAPACITY_LIMIT, HARDWARE_GAP, DOWNTIME
+	Reason      string `json:"reason"`
+	Timestamp   time.Time `json:"timestamp"`
+}
+
+type ExpansionInsight struct {
+	Analysis      string  `json:"analysis"`
+	MissedMonthly float64 `json:"missedMonthly"`
+}
+
+
+

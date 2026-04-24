@@ -154,6 +154,7 @@ func (s *Server) registerRoutes() {
 	s.app.Get("/account/me", s.handleGetMyAccount)
 	// Account & Affiliates
 	s.app.Get("/account/me", s.handleGetMyAccount)
+	s.app.Get("/account/opportunity", s.handleGetOpportunityAudit)
 	s.app.Get("/account/:id", s.requireLevel(account.RoleVisitor), s.handleGetAccount)
 	s.app.Put("/account/:id", s.requireLevel(account.RoleCustomerService), s.handleUpdateAccount)
 	s.app.Post("/account/onboard", s.handleOnboardAccount)
@@ -478,14 +479,21 @@ func (s *Server) handleGetMyAccount(c *fiber.Ctx) error {
 	return c.JSON(acc)
 }
 
-func (s *Server) handleGetAccount(c *fiber.Ctx) error {
-	id := c.Params("id")
-	acc, ok := s.accountStore.GetNodlr(id)
+func (s *Server) handleGetMyAccount(c *fiber.Ctx) error {
+	userId := c.Locals("userId").(string)
+	acc, ok := s.accountStore.GetNodlr(userId)
 	if !ok {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "account not found"})
 	}
 	return c.JSON(acc)
 }
+
+func (s *Server) handleGetOpportunityAudit(c *fiber.Ctx) error {
+	userId := c.Locals("userId").(string)
+	audit := s.accountStore.GetOpportunityAudit(userId)
+	return c.JSON(audit)
+}
+
 
 func (s *Server) handleUpdateAccount(c *fiber.Ctx) error {
 	id := c.Params("id")
