@@ -28,7 +28,7 @@ export default function BetaSection({ onOpenModal }: BetaSectionProps) {
                             Become a beta tester
                         </button>
                         <a 
-                            href="https://github.com/Nodlshire/wnode" 
+                            href="https://github.com/wnodeltd/wnode" 
                             target="_blank" 
                             rel="noopener noreferrer"
                             className="text-orange-500 hover:text-orange-400 font-medium tracking-wide transition-colors flex items-center gap-2"

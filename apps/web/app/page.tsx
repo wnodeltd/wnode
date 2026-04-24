@@ -26,7 +26,7 @@ export default function LandingPage() {
     };
 
     if (!mounted) return null;
-
+    
     return (
         <AppLayout>
             <div className="bg-black text-white">

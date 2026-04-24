@@ -1,6 +1,10 @@
 import Link from "next/link";
 
-export default function Footer() {
+interface FooterProps {
+    onContactClick: () => void;
+}
+
+export default function Footer({ onContactClick }: FooterProps) {
     return (
         <footer className="py-20 px-8 border-t border-white/15 bg-black">
             <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-12 mb-20">
@@ -9,10 +13,16 @@ export default function Footer() {
                 </div>
                 
                 <div className="flex flex-wrap justify-center gap-10 text-sm font-medium text-[var(--text-secondary)]">
+                    <Link href="/" className="hover:text-white transition-colors">Home</Link>
                     <Link href="/terms" className="hover:text-white transition-colors">Terms</Link>
                     <Link href="/privacy" className="hover:text-white transition-colors">Privacy</Link>
                     <Link href="/cookies" className="hover:text-white transition-colors">Cookies</Link>
-                    <a href="mailto:stephen@wnode.one" className="hover:text-white transition-colors">Contact</a>
+                    <button 
+                        onClick={onContactClick}
+                        className="hover:text-white transition-colors"
+                    >
+                        Contact
+                    </button>
                 </div>
             </div>
 

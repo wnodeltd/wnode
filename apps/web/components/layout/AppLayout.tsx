@@ -1,12 +1,27 @@
-import Footer from "../landing/Footer";
+"use client";
 
-export default function AppLayout({ children }: { children: React.ReactNode }) {
+import { useState } from "react";
+import Footer from "../landing/Footer";
+import ContactModal from "../landing/ContactModal";
+
+interface AppLayoutProps {
+    children: React.ReactNode;
+}
+
+export default function AppLayout({ children }: AppLayoutProps) {
+    const [isContactOpen, setIsContactOpen] = useState(false);
+
     return (
         <div className="min-h-screen flex flex-col bg-black">
             <main className="flex-grow">
                 {children}
             </main>
-            <Footer />
+            <Footer onContactClick={() => setIsContactOpen(true)} />
+            
+            <ContactModal 
+                isOpen={isContactOpen} 
+                onClose={() => setIsContactOpen(false)} 
+            />
         </div>
     );
 }

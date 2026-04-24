@@ -1,38 +1,63 @@
 import AppLayout from "../../components/layout/AppLayout";
 
-export default function CookiesPage() {
+export default function CookiePage() {
     return (
         <AppLayout>
-            <div className="max-w-3xl mx-auto py-24 px-6">
-                <h1 className="text-4xl font-bold mb-12 tracking-tight">Cookie Policy</h1>
-                
-                <div className="space-y-12 text-gray-400 leading-relaxed">
-                    <section>
-                        <h2 className="text-xl font-bold text-white mb-4">1. What Are Cookies</h2>
-                        <p>Cookies are small text files stored on your device to improve your browsing experience.</p>
-                    </section>
+            <div className="relative pt-40 pb-24 px-8">
+                {/* Logo and Brand - Replicated from Hero */}
+                <div className="absolute top-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 z-20">
+                    <img src="/logo.png" alt="wnode logo" className="w-16 h-16" />
+                    <span className="font-roboto text-xl tracking-[0.3em] uppercase font-light text-slate-500">wnode</span>
+                </div>
 
-                    <section>
-                        <h2 className="text-xl font-bold text-white mb-4">2. Types of Cookies We Use</h2>
-                        <p>We use strictly necessary cookies for session management and basic site functionality. We may also use analytical cookies to understand how you use the site.</p>
-                    </section>
+                <div className="max-w-4xl mx-auto">
+                <div className="fade-in-section">
+                    <h1 className="text-5xl md:text-7xl font-bold mb-16 tracking-tighter uppercase">Cookie Policy</h1>
+                    
+                    <div className="space-y-16 text-slate-400 text-lg md:text-xl leading-relaxed font-light">
+                        <section className="border-t border-white/10 pt-12">
+                            <h2 className="text-sm font-bold text-blue-500 uppercase tracking-[0.3em] mb-6">Wnode Ltd. Cookie Policy</h2>
+                            <p className="text-white font-medium mb-4">Last Updated: April 2026</p>
+                        </section>
 
-                    <section>
-                        <h2 className="text-xl font-bold text-white mb-4">3. Managing Cookies</h2>
-                        <p>You can control and manage cookies through your browser settings. Note that disabling cookies may affect some features.</p>
-                    </section>
+                        <section>
+                            <p>
+                                Wnode Ltd. ("we", "us", or "our") believes in digital sovereignty. Our use of cookies is strictly functional 
+                                and designed to meet global privacy standards, including the <span className="text-white">UK/EU GDPR</span> 
+                                and <span className="text-white">US State Privacy Laws</span>.
+                            </p>
+                        </section>
 
-                    <section>
-                        <h2 className="text-xl font-bold text-white mb-4">4. Changes to This Policy</h2>
-                        <p>We update this policy as needed to reflect changes in our technology or legal requirements.</p>
-                    </section>
+                        <section>
+                            <h2 className="text-2xl font-bold text-white mb-6 uppercase tracking-tight">What are cookies?</h2>
+                            <p>Small text files stored on your device to help websites function.</p>
+                        </section>
 
-                    <section>
-                        <h2 className="text-xl font-bold text-white mb-4">5. Contact</h2>
-                        <p>Questions about cookies? Contact stephen@wnode.one</p>
-                    </section>
+                        <section>
+                            <h2 className="text-2xl font-bold text-white mb-6 uppercase tracking-tight">How we use them</h2>
+                            <p>
+                                We only use <span className="text-white">Strictly Necessary</span> cookies. These are essential for 
+                                authentication and session management within the Wnode Dashboards.
+                            </p>
+                        </section>
+
+                        <section>
+                            <h2 className="text-2xl font-bold text-white mb-6 uppercase tracking-tight text-blue-500">No Tracking</h2>
+                            <p>We do not use advertising or third-party tracking cookies.</p>
+                        </section>
+
+                        <section>
+                            <h2 className="text-2xl font-bold text-white mb-6 uppercase tracking-tight">Control</h2>
+                            <p>
+                                You can manage cookie preferences via your browser. Contact 
+                                <a href="mailto:team1@wnode.one" className="text-blue-500 hover:text-blue-400 ml-2 transition-colors">team1@wnode.one</a> 
+                                for technical inquiries regarding our session management.
+                            </p>
+                        </section>
+                    </div>
                 </div>
             </div>
-        </AppLayout>
+        </div>
+    </AppLayout>
     );
 }
