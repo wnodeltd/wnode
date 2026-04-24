@@ -25,7 +25,7 @@ export default function WhyItMattersSection() {
         },
         {
             title: "Novice-proof.",
-            description: "3 Clicks and earn, add devices and grow your revenue to any scale.Fully automated, fully managed, always yours.",
+            description: "3 Clicks and earn, add devices and grow your revenue to any scale. Fully automated, fully managed, always yours.",
             icon: Zap,
             color: "text-emerald-400",
             borderColor: "border-emerald-500/50"
