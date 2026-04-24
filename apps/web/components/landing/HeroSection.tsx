@@ -17,8 +17,8 @@ export default function HeroSection({ onOpenModal }: HeroSectionProps) {
 
             <div className="fade-in-section max-w-5xl mx-auto z-10 flex flex-col items-center">
                 {/* Integrated Hero Section with Minimalist Border */}
-                <div className="border border-blue-500/40 bg-transparent px-10 py-12 md:px-16 md:py-16 rounded-[40px] mb-16 relative transition-all max-w-5xl flex flex-col items-center">
-                    <h1 className="text-3xl md:text-5xl font-bold tracking-tight leading-tight text-white mb-10 uppercase whitespace-nowrap">
+                <div className="border border-blue-500/40 bg-transparent px-6 py-10 md:px-16 md:py-16 rounded-[24px] md:rounded-[40px] mb-16 relative transition-all max-w-5xl flex flex-col items-center w-full">
+                    <h1 className="text-2xl sm:text-3xl md:text-5xl font-bold tracking-tight leading-tight text-white mb-10 uppercase">
                         COMPUTE IS THE NEW GOLDRUSH
                     </h1>
                     
@@ -29,13 +29,13 @@ export default function HeroSection({ onOpenModal }: HeroSectionProps) {
 
                     {/* Hardware Illustration */}
                     <div className="mb-12 transform hover:scale-[1.01] transition-transform duration-500 w-full px-4 flex justify-center">
-                        <img src="/hero-model.png" alt="Wnode Model" className="w-full max-w-4xl h-auto rounded-3xl" />
+                        <img src="/steps.png" alt="How it works" className="w-full max-w-4xl h-auto rounded-3xl" />
                     </div>
 
 
 
                     {/* Description in a Box - Split over 2 lines */}
-                    <div className="max-w-2xl w-full p-8 rounded-[12px] border border-white/15 bg-black/40 backdrop-blur-md transition-all hover:border-white/10 shadow-2xl">
+                    <div className="max-w-2xl w-full p-6 md:p-8 rounded-[12px] border border-white/15 bg-black/40 backdrop-blur-md transition-all hover:border-white/10 shadow-2xl">
                         <p className="text-lg md:text-xl text-slate-300 font-normal leading-relaxed">
                             Old laptops or modern racks.<br className="hidden md:block" />
                             Any scale. Three clicks to start earning.
@@ -43,7 +43,7 @@ export default function HeroSection({ onOpenModal }: HeroSectionProps) {
                     </div>
                 </div>
                 
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-10">
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-6 md:gap-10 w-full px-4">
                     <div className="flex flex-col items-center gap-4">
                         <button 
                             onClick={() => onOpenModal("beta_tester")}

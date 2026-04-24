@@ -58,6 +58,9 @@ export default function PersonasSection({ onOpenModal }: PersonasSectionProps) {
         <section className="section-spacing border-t border-white/15">
             <div className="max-w-4xl mx-auto">
                 <div className="fade-in-section text-center border border-blue-500/40 px-10 py-16 md:px-20 md:py-24 rounded-[40px] bg-white/[0.01] backdrop-blur-sm shadow-2xl">
+                    <div className="mb-12 transform hover:scale-[1.01] transition-transform duration-700">
+                        <img src="/models.png" alt="Sovereign Models" className="w-full h-auto rounded-3xl" />
+                    </div>
                     <h2 className="text-4xl md:text-6xl font-bold mb-12 text-white uppercase tracking-tight">
                         COMPUTE IS THE EMERGING CURRENCY
                     </h2>
