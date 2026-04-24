@@ -63,7 +63,7 @@ func (s *Store) CalculateSplit(originID string, amountCents int64) Split {
 
 // RecordCommissions creates ledger entries for a transaction based on the constitutional model.
 func (s *Store) RecordCommissions(txID string, totalCents int64, earnerID string) []CommissionRecord {
-	records := s.CalculateSplits(totalCents, earnerID)
+	records := s.CalculateSplits(totalCents, earnerID, "")
 	// Override the TransactionID from the calculation with the provided one if needed
 	for i := range records {
 		records[i].TransactionID = txID

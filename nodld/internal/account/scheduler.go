@@ -81,7 +81,7 @@ func (s *Scheduler) Settle() {
 		}
 
 		// ── Authoritative Economics Waterfall ────────────────────────────────
-		records := s.store.CalculateSplits(pending, n.ID)
+		records := s.store.CalculateSplits(pending, n.ID, "")
 		if len(records) == 0 {
 			continue
 		}

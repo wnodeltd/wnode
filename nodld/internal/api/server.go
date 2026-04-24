@@ -339,6 +339,7 @@ func (s *Server) handleListJobs(c *fiber.Ctx) error {
 
 // JobSubmitRequest is the JSON manifest included with job submission.
 type JobSubmitRequest struct {
+	MeshClientID string  `json:"meshClientId"`
 	Budget       float64 `json:"budget"`
 	TargetCycles int64   `json:"targetCycles"`
 }
@@ -365,13 +366,13 @@ func (s *Server) handleSubmitJob(c *fiber.Ctx) error {
 
 	// Parse the JSON manifest from form field
 	var req JobSubmitRequest
-	if manifestStr := c.FormValue("manifest"); manifestStr != "" {
-		if err := json.Unmarshal([]byte(manifestStr), &req); err != nil {
+	if manifest := c.FormValue("manifest"); manifest != "" {
+		if err := json.Unmarshal([]byte(manifest), &req); err != nil {
 			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid manifest JSON"})
 		}
 	}
 
-	job, err := s.dispatcher.Submit(c.Context(), wasmBytes, req.Budget, req.TargetCycles)
+	job, err := s.dispatcher.Submit(c.Context(), req.MeshClientID, wasmBytes, req.Budget, req.TargetCycles)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}

@@ -36,6 +36,7 @@ type Assignment struct {
 // Job is the core unit of compute work on the Nodl mesh.
 type Job struct {
 	ID           string
+	MeshClientID string    `json:"meshClientId"` // The client who submitted the job
 	WASMPayload  []byte
 	Budget       float64   // USD
 	TargetCycles int64
@@ -131,9 +132,10 @@ func NewDispatcher(store *Store, registry *p2p.Registry, accountStore *account.S
 
 // Submit creates a Job entry and marks it active.
 // In Phase 1 the job is run locally; Phase 2 fans out to peers via pubsub.
-func (d *Dispatcher) Submit(ctx context.Context, wasm []byte, budget float64, targetCycles int64) (*Job, error) {
+func (d *Dispatcher) Submit(ctx context.Context, meshClientID string, wasm []byte, budget float64, targetCycles int64) (*Job, error) {
 	job := &Job{
 		ID:           uuid.New().String(),
+		MeshClientID: meshClientID,
 		WASMPayload:  wasm,
 		Budget:       budget,
 		TargetCycles: targetCycles,
@@ -178,7 +180,29 @@ func (d *Dispatcher) GetTaskForNode(ctx context.Context, hwDNA string) ([]byte, 
 		}
 	}
 
-	// For Phase 1/2: Find a pending job and return its payload
+	// Phase 2: Priority Routing (Sales Source)
+	nodlr, ok := d.accountStore.GetNodlr(hwDNA)
+	if ok {
+		t0 := time.Now()
+		jobsList := d.store.List()
+		for _, j := range jobsList {
+			if j.Status == StatusPending || j.Status == StatusActive {
+				client, ok := d.accountStore.GetMeshClient(j.MeshClientID)
+				if ok && client.SalesSourceID == nodlr.ID {
+					// Latency compliance check (< 50ms)
+					if elapsed := time.Since(t0); elapsed < 50*time.Millisecond {
+						d.log.Info("Priority Hit: assigning job to Sales Source node", 
+							zap.String("jobID", j.ID), 
+							zap.String("nodeID", hwDNA),
+							zap.Duration("latency", elapsed))
+						return j.WASMPayload, j.ID, nil
+					}
+				}
+			}
+		}
+	}
+
+	// Fallback: Standard Mesh Allocation
 	jobsList := d.store.List()
 	for _, j := range jobsList {
 		if j.Status == StatusPending || j.Status == StatusActive {
@@ -188,6 +212,7 @@ func (d *Dispatcher) GetTaskForNode(ctx context.Context, hwDNA string) ([]byte, 
 
 	return nil, "", fmt.Errorf("no jobs available")
 }
+
 
 // RecordProof accepts a Proof-of-Work receipt and updates job state.
 // When sufficient proofs accumulate the job is marked complete.
@@ -230,7 +255,7 @@ func (d *Dispatcher) RecordProof(receipt ProofReceipt) error {
 		// authoritative disbursement via unified model
 		budgetCents := int64(j.Budget * 100)
 		if budgetCents > 0 {
-			records := d.accountStore.CalculateSplits(budgetCents, receipt.NodeID)
+			records := d.accountStore.CalculateSplits(budgetCents, receipt.NodeID, j.MeshClientID)
 			for i := range records {
 				records[i].TransactionID = j.ID
 			}

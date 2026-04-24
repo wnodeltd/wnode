@@ -41,12 +41,22 @@ const (
 	RoleStandard        UserRole = "standard"         // Legacy default
 )
 
+const (
+	PctOperator        = 0.70 // The node operator providing compute (Compute)
+	PctSalesSource     = 0.10 // The Perpetual Growth Agent (Sales Source)
+	PctLevel1          = 0.03 // Immediate direct referral (L1)
+	PctLevel2          = 0.07 // Secondary referral (L2)
+	PctPlatform        = 0.07 // Wnode infrastructure (Protocol)
+	PctFounderOverride = 0.03 // Genesis lineage benefit (Founder)
+)
+
 // Nodlr represents a participant in the Nodl network.
 type Nodlr struct {
 	ID                    string          `json:"id"`
 	Email                 string          `json:"email"`
 	MeshClientID          string          `json:"meshClientId"`
 	StripeConnectID       string          `json:"stripeConnectId"`
+	StripeAccountID       string          `json:"stripeAccountId"` // Phase 3 Mapping
 	FounderStripeAccountID *string         `json:"founderStripeAccountId"`
 	NodlrStripeAccountID   *string         `json:"nodlrStripeAccountId"`
 	Role                  UserRole        `json:"role"`
@@ -87,6 +97,8 @@ const (
 	CommRoleLevel2   CommissionRole = "level2"
 	CommRoleOrigin   CommissionRole = "origin"
 	CommRoleWnode    CommissionRole = "wnode"
+	CommRoleSalesSource CommissionRole = "sales_source"
+	CommRoleEscrow   CommissionRole = "escrow"
 )
 
 // CommissionRecord tracks a single payout slice.
@@ -158,3 +170,21 @@ type PayoutArchitecture struct {
 	FounderStripe string `json:"founderStripe"`
 	WnodeStripe   string `json:"wnodeStripe"`
 }
+
+// MeshClient represents a customer or entity utilizing the compute mesh.
+type MeshClient struct {
+	ID            string    `json:"id"`
+	SalesSourceID string    `json:"salesSourceId"` // 10% Perpetual Growth Agent
+	CreatedAt     time.Time `json:"createdAt"`
+}
+
+// Lineage defines the iron-clad economic ancestry for a transaction (6-tier distribution).
+type Lineage struct {
+	NodlrID       string `json:"nodlrId"`       // 70% (Compute)
+	SalesSourceID string `json:"salesSourceId"` // 10% (Sales Source)
+	L1ID          string `json:"l1Id"`          // 3%
+	L2ID          string `json:"l2Id"`          // 7%
+	FounderID     string `json:"founderId"`     // 3%
+	WnodeID       string `json:"wnodeId"`       // 7%
+}
+

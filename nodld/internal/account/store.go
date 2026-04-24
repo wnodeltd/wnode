@@ -19,6 +19,7 @@ type Store struct {
 	organicCount       int        // Total organic signups handled
 	pendingCommissions map[string][]CommissionRecord // NodlrID -> Records
 	nodes              map[string]*WnodeNode
+	meshClients        map[string]*MeshClient
 	pairingCodes       map[string]*PairingCode
 	forensics          *forensics.Store
 	statePath          string
@@ -41,6 +42,7 @@ func NewStore(forensics *forensics.Store, statePath string) *Store {
 		nodlrs:             make(map[string]*Nodlr),
 		pendingCommissions: make(map[string][]CommissionRecord),
 		nodes:              make(map[string]*WnodeNode),
+		meshClients:        make(map[string]*MeshClient),
 		pairingCodes:       make(map[string]*PairingCode),
 		forensics:          forensics,
 		statePath:          statePath,
@@ -491,8 +493,8 @@ func (s *Store) AssignUserRole(actorID, actorRole, id string, role UserRole) err
 // CalculateSplits performs the authoritative commission distribution.
 // CONSTITUTIONAL LOCK:// Deprecated: CalculateSplit was replaced by unified CalculateSplitsForAmount
 
-func (s *Store) CalculateSplits(totalCents int64, earnerID string) []CommissionRecord {
-	return s.CalculateSplitsForAmount(totalCents, earnerID)
+func (s *Store) CalculateSplits(totalCents int64, earnerID string, meshClientID string) []CommissionRecord {
+	return s.CalculateSplitsForAmount(totalCents, earnerID, meshClientID)
 }
 
 // --- Node & Pairing Logic ---
@@ -806,3 +808,17 @@ func (s *Store) getGenesisFounderNoLock(id string) string {
 		curr = n.ParentID
 	}
 }
+
+func (s *Store) AddMeshClient(c *MeshClient) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.meshClients[c.ID] = c
+}
+
+func (s *Store) GetMeshClient(id string) (*MeshClient, bool) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	c, ok := s.meshClients[id]
+	return c, ok
+}
+

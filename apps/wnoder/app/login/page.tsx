@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Mail, Chrome, ArrowRight, Loader2, Github } from 'lucide-react';
+import { Mail, ArrowRight, Loader2, Github } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function LoginPage() {
@@ -77,9 +77,7 @@ export default function LoginPage() {
 
     if (!mounted) return null;
 
-    const handleGoogleLogin = async () => {
-        setError('Federated Identity is currently disabled.');
-    };
+
 
     return (
         <div className="min-h-screen bg-black flex flex-col items-center justify-center p-6 relative overflow-hidden">
@@ -114,32 +112,7 @@ export default function LoginPage() {
 
                     <div className="space-y-4">
                         {/* Social Buttons */}
-                        {authMode === 'signup' ? (
-                            <button
-                                onClick={handleGoogleLogin}
-                                className="w-full bg-[#9333ea] hover:bg-[#a855f7] text-white font-bold py-4 rounded-[5px] transition-all flex items-center justify-center gap-3 active:scale-[0.98]"
-                            >
-                                <Chrome className="w-5 h-5 font-bold" />
-                                Sign up with Google
-                            </button>
-                        ) : (
-                            <button
-                                onClick={handleGoogleLogin}
-                                className="w-full bg-transparent border border-white/10 hover:bg-white/5 text-white font-bold py-4 rounded-[5px] transition-all flex items-center justify-center gap-3 active:scale-[0.98]"
-                            >
-                                <Chrome className="w-5 h-5" />
-                                Continue with Google
-                            </button>
-                        )}
 
-                        <div className="relative my-8">
-                            <div className="absolute inset-0 flex items-center">
-                                <div className="w-full border-t border-white/5"></div>
-                            </div>
-                            <div className="relative flex justify-center text-xs uppercase">
-                                <span className="bg-[#1a1a1b] px-4 text-slate-500  tracking-widest">or email</span>
-                            </div>
-                        </div>
 
                         {/* Email Form */}
                         <form onSubmit={handleEmailAuth} className="space-y-4">

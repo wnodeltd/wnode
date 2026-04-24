@@ -89,6 +89,14 @@ export default function DashboardLayout({
         }
     };
 
+    const handleLogout = () => {
+        localStorage.removeItem('nodl_jwt');
+        localStorage.removeItem('nodl_user');
+        localStorage.removeItem('nodl_user_email');
+        document.cookie = "nodl_jwt=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+        router.push('/login');
+    };
+
     return (
         <div className="min-h-screen bg-black text-white font-sans flex">
             {/* Sidebar */}
@@ -117,25 +125,29 @@ export default function DashboardLayout({
                             <Link
                                 key={item.name}
                                 href={item.href}
-                                className={`flex items-center gap-3.5 px-6 py-3 text-sm font-bold border border-transparent rounded-[5px] transition-all group ${
+                                className={`flex items-center gap-3.5 px-6 py-3 text-sm font-bold border transition-all relative group ${
                                     isActive
-                                        ? 'bg-white/5 border-white/10 text-white shadow-sm'
-                                        : 'text-white/80 hover:text-white hover:bg-white/5'
+                                        ? 'bg-[#ffff00]/10 text-white border-[#ffff00]/30 shadow-[inset_0_0_12px_rgba(255,255,0,0.1)] rounded-[5px]'
+                                        : 'text-white/80 hover:text-white hover:bg-white/5 border-transparent rounded-[5px]'
                                 }`}
                             >
-                                <item.icon className={`w-4 h-4 ${item.color}`} />
+                                {isActive && (
+                                    <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-[#ffff00] rounded-r-full shadow-[0_0_12px_#ffff00]" />
+                                )}
+                                <item.icon className={`w-4 h-4 ${isActive ? 'text-[#ffff00]' : item.color}`} />
 
                                 {item.name}
                             </Link>
                         );
                     })}
-                </nav>
-
-                <div className="p-5 border-t border-white/10 shrink-0">
-                    <button className="flex items-center gap-3 px-5 py-2.5 w-full text-white hover:text-red-500 transition-all text-13px font-bold">
-                        <LogOut className="w-4.5 h-4.5" /> Logout
+                    <button
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-3.5 px-6 py-3 text-sm font-bold border border-transparent rounded-[5px] transition-all text-white/80 hover:text-red-500 hover:bg-white/5"
+                    >
+                        <LogOut className="w-4 h-4 text-red-500/80 group-hover:text-red-500" />
+                        Logout
                     </button>
-                </div>
+                </nav>
             </aside>
 
             {/* Main Content Area */}
