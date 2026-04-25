@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { TrendingUp, Copy, Check, Info, AlertTriangle, Shield, ArrowUpRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { TrendingUp, Copy, Check, Info, AlertTriangle, Shield, ArrowUpRight, Cpu } from 'lucide-react';
 import { useAccount } from '../../hooks/useAccount';
+import { useSearchParams } from 'next/navigation';
 
 interface OpportunityEvent {
     jobId: string;
@@ -28,9 +29,18 @@ interface OpportunityAudit {
 
 export default function MeshSalesPage() {
     const { account, loading: accountLoading } = useAccount();
+    const searchParams = useSearchParams();
     const [audit, setAudit] = useState<OpportunityAudit | null>(null);
     const [loading, setLoading] = useState(true);
     const [copied, setCopied] = useState(false);
+    const [showInviteCode, setShowInviteCode] = useState(false);
+
+    // Auto-expand onboarding tools if triggered from global header
+    useEffect(() => {
+        if (searchParams.get('onboard') === 'true') {
+            setShowInviteCode(true);
+        }
+    }, [searchParams]);
 
     useEffect(() => {
         const fetchAudit = async () => {
@@ -38,10 +48,11 @@ export default function MeshSalesPage() {
             if (!token) return;
 
             try {
-                // Using 8081 to match existing useAccount hook pattern
-                const res = await fetch('http://localhost:8081/api/v1/account/opportunity', {
+                // Synchronizing with the active nodld service on port 8082
+                const res = await fetch('http://127.0.0.1:8082/api/v1/account/opportunity', {
                     headers: {
-                        'Authorization': `Bearer ${token}`
+                        'Authorization': `Bearer ${token}`,
+                        'X-User-ID': account?.nodlrId || '' // Authorized RBAC identity
                     }
                 });
                 if (res.ok) {
@@ -58,7 +69,7 @@ export default function MeshSalesPage() {
         if (!accountLoading) {
             fetchAudit();
         }
-    }, [accountLoading]);
+    }, [accountLoading, account]);
 
     const copyInviteCode = () => {
         if (account?.nodlrId) {
@@ -76,82 +87,87 @@ export default function MeshSalesPage() {
         );
     }
 
-    if (!audit || audit.events.length === 0) {
-        return (
-            <div className="max-w-4xl mx-auto space-y-8">
-                <div className="flex flex-col gap-2">
-                    <h1 className="text-2xl font-bold text-white uppercase tracking-tight">Mesh Sales</h1>
-                    <p className="text-slate-400 text-sm">Monitor your network growth and uncaptured yield.</p>
-                </div>
+    const defaultAudit: OpportunityAudit = {
+        nodlrId: account?.nodlrId || "M0-000000-0000",
+        earnedSalesCents: 0,
+        missedComputeCents: 0,
+        captureEfficiencyPercentage: 0,
+        potentialMonthlyTotalCents: 0,
+        events: [],
+        expansionInsight: {
+            analysis: "Initiate network growth to unlock Ambassador Intelligence insights.",
+            missedMonthly: 0
+        }
+    };
 
-                <div className="surface-card p-12 flex flex-col items-center text-center space-y-6">
-                    <div className="w-20 h-20 rounded-full bg-[#ffff00]/5 flex items-center justify-center border border-[#ffff00]/20">
-                        <TrendingUp className="w-10 h-10 text-[#ffff00]" />
-                    </div>
-                    <div className="space-y-2">
-                        <h2 className="text-xl font-bold text-white uppercase">No Active Sales Lineage</h2>
-                        <p className="text-slate-400 max-w-md">
-                            You haven't linked any Mesh clients yet. Every client you bring to the mesh earns you a 10% perpetual commission.
-                        </p>
-                    </div>
-
-                    <div className="bg-white/5 border border-white/10 rounded-xl p-6 w-full max-w-lg space-y-4 text-left">
-                        <span className="text-[10px] font-bold text-[#ffff00] uppercase tracking-widest">Your Unique Invite Code</span>
-                        <div className="flex items-center justify-between bg-black/40 border border-white/5 rounded-[5px] px-4 py-3">
-                            <code className="text-lg font-mono text-white">{account?.nodlrId}</code>
-                            <button 
-                                onClick={copyInviteCode}
-                                className="flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-white transition-colors"
-                            >
-                                {copied ? <Check className="w-4 h-4 text-emerald" /> : <Copy className="w-4 h-4" />}
-                                {copied ? 'COPIED' : 'COPY'}
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-lg">
-                        <div className="p-4 border border-white/5 bg-white/5 rounded-lg space-y-1">
-                            <span className="text-[10px] text-slate-500 uppercase font-bold">Step 1</span>
-                            <p className="text-xs text-white">Give your Invite Code to a Mesh client.</p>
-                        </div>
-                        <div className="p-4 border border-white/5 bg-white/5 rounded-lg space-y-1">
-                            <span className="text-[10px] text-slate-500 uppercase font-bold">Step 2</span>
-                            <p className="text-xs text-white">They enter it during Mesh registration.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        );
-    }
+    const currentAudit = audit || defaultAudit;
 
     return (
         <div className="max-w-6xl mx-auto space-y-8 pb-12">
             <header className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <div className="space-y-1">
-                    <h1 className="text-2xl font-bold text-white uppercase tracking-tight">Mesh Sales</h1>
+                    <h1 className="text-2xl font-bold text-white uppercase tracking-tight flex items-center gap-3">
+                        <TrendingUp className="w-6 h-6 text-[#ffff00]" />
+                        Mesh Sales
+                    </h1>
                     <p className="text-slate-400 text-sm">Ambassador Intelligence & Yield Optimization</p>
                 </div>
-
-                <div className="bg-[#080808] border border-white/10 rounded-xl p-4 flex items-center gap-6 min-w-[300px]">
-                    <div className="space-y-1 flex-1">
-                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Active Invite Code</span>
-                        <div className="text-lg font-mono text-white">{account?.nodlrId}</div>
-                    </div>
-                    <button 
-                        onClick={copyInviteCode}
-                        className={`p-3 rounded-lg border transition-all ${
-                            copied ? 'bg-emerald/10 border-emerald/30 text-emerald' : 'bg-white/5 border-white/10 text-white hover:bg-white/10'
-                        }`}
-                    >
-                        {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
-                    </button>
-                </div>
             </header>
+
+            {/* Expandable Onboarding Utility */}
+            <AnimatePresence>
+                {showInviteCode && (
+                    <motion.div 
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="overflow-hidden"
+                    >
+                        <div className="surface-card p-8 border-[#ffff00]/20 bg-[#ffff00]/5 space-y-6">
+                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                                <div className="space-y-2">
+                                    <h2 className="text-lg font-bold text-white uppercase tracking-tight">Onboard Mesh Client</h2>
+                                    <p className="text-slate-400 text-sm max-w-md">Every client that registers with your Invite Code earns you a 10% perpetual commission on their compute spend.</p>
+                                </div>
+                                <div className="bg-black/40 border border-white/10 rounded-xl p-4 flex items-center gap-6 min-w-[300px]">
+                                    <div className="space-y-1 flex-1">
+                                        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Your Invite Code</span>
+                                        <div className="text-lg font-mono text-white">{account?.nodlrId}</div>
+                                    </div>
+                                    <button 
+                                        onClick={copyInviteCode}
+                                        className={`p-3 rounded-lg border transition-all ${
+                                            copied ? 'bg-emerald/10 border-emerald/30 text-emerald' : 'bg-white/5 border-white/10 text-white hover:bg-white/10'
+                                        }`}
+                                    >
+                                        {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
+                                    </button>
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border-t border-white/5 pt-6">
+                                <div className="p-4 border border-white/5 bg-white/5 rounded-lg space-y-1">
+                                    <span className="text-[10px] text-slate-500 uppercase font-bold">Step 1</span>
+                                    <p className="text-xs text-white">Give your Invite Code to a Mesh client.</p>
+                                </div>
+                                <div className="p-4 border border-white/5 bg-white/5 rounded-lg space-y-1">
+                                    <span className="text-[10px] text-slate-500 uppercase font-bold">Step 2</span>
+                                    <p className="text-xs text-white">They enter it during Mesh registration.</p>
+                                </div>
+                                <div className="p-4 border border-white/5 bg-white/5 rounded-lg space-y-1">
+                                    <span className="text-[10px] text-slate-500 uppercase font-bold">Step 3</span>
+                                    <p className="text-xs text-white">Commission accrues to your vault instantly.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Diagnostic Alert */}
             <motion.div 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
+                title="Protocol-level diagnostic insights for network expansion and yield optimization"
                 className="bg-[#ffff00]/5 border border-[#ffff00]/20 rounded-xl p-6 flex items-start gap-4 shadow-[0_0_30px_rgba(255,255,0,0.05)]"
             >
                 <div className="bg-[#ffff00]/10 p-2 rounded-lg">
@@ -160,14 +176,92 @@ export default function MeshSalesPage() {
                 <div className="space-y-1">
                     <span className="text-[11px] font-black text-[#ffff00] uppercase tracking-[0.2em]">Network Growth Diagnostic</span>
                     <p className="text-[15px] text-white font-medium leading-relaxed italic">
-                        "{audit.expansionInsight.analysis}"
+                        "{currentAudit.expansionInsight.analysis}"
                     </p>
                 </div>
             </motion.div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Yield Simulator & Earning Potential Slider */}
+                <div 
+                    className="lg:col-span-3 surface-card p-8 space-y-8 border-cyber-cyan/20 bg-cyber-cyan/5"
+                    title="Simulate future earnings based on anticipated lineage growth and hardware efficiency"
+                >
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div className="space-y-1">
+                            <h2 className="text-sm font-bold text-cyber-cyan uppercase tracking-widest">Yield Simulator</h2>
+                            <p className="text-xs text-slate-500 font-medium italic">Project your monthly revenue based on Sales Lineage expansion.</p>
+                        </div>
+                        <div className="flex items-center gap-2 px-4 py-2 bg-black/40 border border-white/5 rounded-full">
+                            <TrendingUp className="w-4 h-4 text-cyber-cyan" />
+                            <span className="text-xs font-bold text-white tracking-tight">70/10 Model Active</span>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                        <div className="space-y-8">
+                            {/* Growth Slider */}
+                            <div className="space-y-4" title="Anticipated count of active compute nodes within your sales lineage">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Lineage Growth (Active Nodes)</span>
+                                    <span className="text-xl font-mono text-white font-bold">{Math.round(currentAudit.potentialMonthlyTotalCents / 15000) || 5}</span>
+                                </div>
+                                <input 
+                                    type="range" 
+                                    min="1" 
+                                    max="100" 
+                                    defaultValue="5"
+                                    className="w-full h-1.5 bg-white/5 rounded-full appearance-none cursor-pointer accent-[#ffff00]"
+                                />
+                                <div className="flex justify-between text-[9px] text-slate-600 font-bold uppercase">
+                                    <span>Genesis</span>
+                                    <span>Scale</span>
+                                    <span>Protocol Alpha</span>
+                                </div>
+                            </div>
+
+                            {/* Capture Efficiency Slider */}
+                            <div className="space-y-4" title="Projected efficiency of your hardware in capturing lineage spillover (70% capture)">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Hardware Capture efficiency</span>
+                                    <span className="text-xl font-mono text-[#ffff00] font-bold">75%</span>
+                                </div>
+                                <input 
+                                    type="range" 
+                                    min="0" 
+                                    max="100" 
+                                    defaultValue="75"
+                                    className="w-full h-1.5 bg-white/5 rounded-full appearance-none cursor-pointer accent-[#ffff00]"
+                                />
+                                <div className="flex justify-between text-[9px] text-slate-600 font-bold uppercase">
+                                    <span>Spillover Only</span>
+                                    <span>Optimal</span>
+                                    <span>Sovereign (100%)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="bg-black/40 rounded-2xl p-8 border border-white/5 flex flex-col justify-center items-center text-center space-y-4 relative">
+                            <div className="absolute top-0 left-0 w-full h-full bg-cyber-cyan/5 blur-[40px] pointer-events-none rounded-full" />
+                            <span className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] relative z-10">Projected Monthly Yield</span>
+                            <div className="relative z-10">
+                                <span className="text-5xl font-black text-white tracking-tighter">$2,450</span>
+                                <span className="text-cyber-cyan text-sm ml-2 font-bold">.00</span>
+                            </div>
+                            <div className="pt-4 border-t border-white/5 w-full relative z-10">
+                                <p className="text-[11px] text-slate-400 leading-relaxed">
+                                    Based on the <span className="text-white font-bold">70/10 Split</span>: Includes your direct sales commission plus hardware capture on your own infrastructure.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 {/* Efficiency Gauge */}
-                <div className="surface-card p-8 flex flex-col items-center justify-center space-y-6 relative overflow-hidden">
+                <div 
+                    className="surface-card p-8 flex flex-col items-center justify-center space-y-6 relative overflow-hidden"
+                    title="Real-time measure of your effectiveness in converting network potential into realized yield"
+                >
                     <div className="absolute top-4 right-4">
                         <Info className="w-4 h-4 text-slate-600" />
                     </div>
@@ -192,13 +286,13 @@ export default function MeshSalesPage() {
                                 strokeWidth="8"
                                 fill="transparent"
                                 strokeDasharray={2 * Math.PI * 80}
-                                strokeDashoffset={2 * Math.PI * 80 * (1 - audit.captureEfficiencyPercentage / 100)}
+                                strokeDashoffset={2 * Math.PI * 80 * (1 - currentAudit.captureEfficiencyPercentage / 100)}
                                 className="text-[#ffff00] transition-all duration-1000 ease-out"
                                 strokeLinecap="round"
                             />
                         </svg>
                         <div className="absolute inset-0 flex flex-col items-center justify-center">
-                            <span className="text-4xl font-bold text-white">{audit.captureEfficiencyPercentage.toFixed(1)}%</span>
+                            <span className="text-4xl font-bold text-white">{currentAudit.captureEfficiencyPercentage.toFixed(1)}%</span>
                             <span className="text-[10px] text-slate-500 uppercase font-bold tracking-tighter">Total Yield</span>
                         </div>
                     </div>
@@ -210,14 +304,17 @@ export default function MeshSalesPage() {
 
                 {/* Revenue Matrix */}
                 <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="surface-card p-6 border-emerald/20 flex flex-col justify-between">
+                    <div 
+                        className="surface-card p-6 border-emerald/20 flex flex-col justify-between"
+                        title="Realized 10% Sales Source commission plus your own 70% hardware capture"
+                    >
                         <div className="space-y-4">
                             <div className="flex items-center gap-2">
                                 <div className="w-2 h-2 rounded-full bg-emerald shadow-[0_0_8px_#10b981]" />
                                 <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Active Yield</span>
                             </div>
                             <div className="space-y-1">
-                                <h3 className="text-3xl font-bold text-white">${(audit.earnedSalesCents / 100).toFixed(2)}</h3>
+                                <h3 className="text-3xl font-bold text-white">${(currentAudit.earnedSalesCents / 100).toFixed(2)}</h3>
                                 <p className="text-xs text-slate-500">Current 10% + 70% capture from your hardware.</p>
                             </div>
                         </div>
@@ -230,14 +327,17 @@ export default function MeshSalesPage() {
                         </div>
                     </div>
 
-                    <div className="surface-card p-6 border-red-500/20 flex flex-col justify-between">
+                    <div 
+                        className="surface-card p-6 border-red-500/20 flex flex-col justify-between"
+                        title="Revenue lost to the public mesh due to hardware capacity, tier limits, or downtime"
+                    >
                         <div className="space-y-4">
                             <div className="flex items-center gap-2">
                                 <div className="w-2 h-2 rounded-full bg-red-500 shadow-[0_0_8px_#ef4444]" />
                                 <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Mesh Spillover</span>
                             </div>
                             <div className="space-y-1">
-                                <h3 className="text-3xl font-bold text-white">${(audit.missedComputeCents / 100).toFixed(2)}</h3>
+                                <h3 className="text-3xl font-bold text-white">${(currentAudit.missedComputeCents / 100).toFixed(2)}</h3>
                                 <p className="text-xs text-slate-500">Revenue leaked to the mesh due to capacity/tier limits.</p>
                             </div>
                         </div>
@@ -250,7 +350,10 @@ export default function MeshSalesPage() {
                         </div>
                     </div>
 
-                    <div className="md:col-span-2 surface-card p-6 bg-white/5">
+                    <div 
+                        className="md:col-span-2 surface-card p-6 bg-white/5"
+                        title="Total monthly spend from your entire Sales Lineage (before protocol splits)"
+                    >
                         <div className="flex items-center justify-between mb-4">
                             <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">Total Sovereign Potential</span>
                             <div className="px-3 py-1 bg-[#ffff00]/10 rounded-full border border-[#ffff00]/20 text-[10px] font-bold text-[#ffff00]">
@@ -258,7 +361,7 @@ export default function MeshSalesPage() {
                             </div>
                         </div>
                         <div className="flex items-baseline gap-2">
-                            <span className="text-4xl font-bold text-white">${(audit.potentialMonthlyTotalCents / 100).toFixed(2)}</span>
+                            <span className="text-4xl font-bold text-white">${(currentAudit.potentialMonthlyTotalCents / 100).toFixed(2)}</span>
                             <span className="text-slate-500 text-sm italic">Total spend from your Sales Lineage</span>
                         </div>
                     </div>
@@ -269,11 +372,13 @@ export default function MeshSalesPage() {
             <div className="space-y-4">
                 <div className="flex items-center justify-between">
                     <h2 className="text-sm font-bold text-white uppercase tracking-wider">Lineage Event Log</h2>
-                    <span className="text-[10px] text-slate-500 uppercase">Showing last {audit.events.length} events</span>
+                    <span className="text-[10px] text-slate-500 uppercase">
+                        {currentAudit.events.length > 0 ? `Showing last ${currentAudit.events.length} events` : 'No recent events recorded'}
+                    </span>
                 </div>
                 
                 <div className="space-y-2">
-                    {audit.events.map((event, i) => (
+                    {currentAudit.events.map((event, i) => (
                         <div key={i} className="surface-card px-6 py-4 flex items-center justify-between bg-white/[0.02] hover:bg-white/5 transition-colors border-transparent hover:border-white/10">
                             <div className="flex items-center gap-4">
                                 <div className={`p-2 rounded-lg ${
@@ -297,6 +402,11 @@ export default function MeshSalesPage() {
                             </div>
                         </div>
                     ))}
+                    {currentAudit.events.length === 0 && (
+                        <div className="surface-card p-12 text-center border-dashed border-white/5 bg-transparent">
+                            <p className="text-slate-500 text-sm italic">Diagnostic data will populate as your Sales Lineage begins compute activity.</p>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

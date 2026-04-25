@@ -24,10 +24,12 @@ export function useAccount() {
             }
 
             try {
-                // Using 8081 as the backend port for Wnode/Mesh as seen in .env
-                const res = await fetch('http://localhost:8081/api/v1/account/me', {
+                // Synchronizing with the active wnoded service on port 8082
+                const userId = localStorage.getItem('nodl_user_id') || '';
+                const res = await fetch('http://127.0.0.1:8082/api/v1/account/me', {
                     headers: {
-                        'Authorization': `Bearer ${token}`
+                        'Authorization': `Bearer ${token}`,
+                        'X-User-ID': userId
                     }
                 });
 

@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { User, Lock, CreditCard, ChevronRight, Check, Server, Shield, Activity, BarChart, HardDrive, Upload } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAvatar } from '../../hooks/useAvatar';
+import FinancialStatus from '../../components/FinancialStatus';
 
 export default function SettingsPage() {
     const [activeTab, setActiveTab] = useState<'profile' | 'network' | 'payouts' | 'security'>('profile');
@@ -245,9 +246,12 @@ export default function SettingsPage() {
                         ──────────────────────────────────────────────────────── */}
                         {activeTab === 'payouts' && (
                             <motion.div key="payouts" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-12">
-                                <div className="space-y-1 border-b border-white/10 pb-4">
-                                    <h2 className="text-2xl font-normal text-white">Earnings & Payouts</h2>
-                                    <p className="text-sm text-slate-400">Financial overview and payout configuration.</p>
+                                <div className="flex justify-between items-start border-b border-white/10 pb-4">
+                                    <div className="space-y-1">
+                                        <h2 className="text-2xl font-normal text-white">Earnings & Payouts</h2>
+                                        <p className="text-sm text-slate-400">Financial overview and payout configuration.</p>
+                                    </div>
+                                    <FinancialStatus />
                                 </div>
 
                                 <div className="space-y-8">

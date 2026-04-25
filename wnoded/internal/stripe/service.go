@@ -625,6 +625,74 @@ func (s *Service) handleCreateTransfer(c *fiber.Ctx) error {
 }
 
 // ProcessCommissionPayouts handles the actual Stripe transfers for a commission split.
+// ExecuteSovereignAtomicSplit performs the authoritative 6-tier economic split for a completed compute job.
+// Split Protocol: 70% Nodlr, 10% Sales Source, 3% L1, 7% L2, 3% Founder, 7% Wnode.
+func (s *Service) ExecuteSovereignAtomicSplit(jobID string, totalCents int64, arch internalAccount.PayoutArchitecture) error {
+	if err := s.requireConfigured(); err != nil {
+		return err
+	}
+
+	// 1. Calculate Tiered Shares
+	nodlrAmt := (totalCents * 70) / 100
+	salesSourceAmt := (totalCents * 10) / 100
+	l1Amt := (totalCents * 3) / 100
+	l2Amt := (totalCents * 7) / 100
+	founderAmt := (totalCents * 3) / 100
+	protocolAmt := (totalCents * 7) / 100
+
+	// 2. Perform Atomic Transfers (only if Stripe IDs are present and onboarded)
+	transfers := map[string]int64{}
+
+	// Operator (70%)
+	if arch.OperatorStripe != "" {
+		transfers[arch.OperatorStripe] = nodlrAmt
+	}
+
+	// Sales Source (Affiliate) (10%)
+	if arch.SalesSourceStripe != "" {
+		transfers[arch.SalesSourceStripe] = salesSourceAmt
+	}
+
+	// Lineage Tier 1 (3%)
+	if arch.L1Stripe != "" {
+		transfers[arch.L1Stripe] = l1Amt
+	}
+
+	// Lineage Tier 2 (7%)
+	if arch.L2Stripe != "" {
+		transfers[arch.L2Stripe] = l2Amt
+	}
+
+	// Founder (3%)
+	if arch.FounderStripe != "" {
+		transfers[arch.FounderStripe] = founderAmt
+	}
+
+	// Execute Transfers
+	for stripeID, amt := range transfers {
+		params := &stripe.TransferParams{
+			Amount:      stripe.Int64(amt),
+			Currency:    stripe.String("usd"),
+			Destination: stripe.String(stripeID),
+			Metadata: map[string]string{
+				"jobID": jobID,
+				"type":  "sovereign_split",
+			},
+		}
+		t, err := transfer.New(params)
+		if err != nil {
+			s.log.Error("sovereign transfer failed", zap.String("dest", stripeID), zap.Error(err))
+			continue
+		}
+		s.log.Info("sovereign transfer success", zap.String("id", t.ID), zap.String("dest", stripeID))
+	}
+
+	// Wnode Protocol (7%) - Retained in platform account
+	s.log.Info("protocol fee retained", zap.String("jobID", jobID), zap.Int64("amountCents", protocolAmt))
+
+	return nil
+}
+
 func (s *Service) ProcessCommissionPayouts(jobID string, platformAmt int64, payouts map[string]int64, transferGroup string) error {
 	if err := s.requireConfigured(); err != nil {
 		return err

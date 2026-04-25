@@ -96,7 +96,7 @@ func New(dispatcher *jobs.Dispatcher, store *jobs.Store, bufMgr *buffer.Manager,
 	app.Use(recover.New())
 	app.Use(cors.New(cors.Config{
 		AllowOrigins: "*",
-		AllowHeaders: "Origin, Content-Type, Accept, Authorization",
+		AllowHeaders: "Origin, Content-Type, Accept, Authorization, X-User-ID",
 	}))
 	app.Use(logger.New())
 
@@ -162,6 +162,7 @@ func (s *Server) registerRoutes() {
 
 	// Account & Affiliates
 	v1.Get("/account/me", s.handleGetMyAccount)
+	v1.Get("/account/opportunity", s.handleGetOpportunityAudit)
 	v1.Get("/account/:id", s.handleGetAccount)
 	v1.Put("/account/:id", s.handleUpdateAccount)
 	v1.Post("/account/onboard", s.handleOnboardAccount)
@@ -538,6 +539,15 @@ func (s *Server) handleGetAccount(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "account not found"})
 	}
 	return c.JSON(acc)
+}
+
+func (s *Server) handleGetOpportunityAudit(c *fiber.Ctx) error {
+	userId := c.Get("X-User-ID")
+	if userId == "" {
+		userId = "0xFD-OWNER-SYSTEM" // Fallback for dev parity if needed
+	}
+	audit := s.accountStore.GetOpportunityAudit(userId)
+	return c.JSON(audit)
 }
 
 func (s *Server) handleUpdateAccount(c *fiber.Ctx) error {

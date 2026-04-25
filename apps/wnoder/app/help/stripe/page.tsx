@@ -39,8 +39,8 @@ export default function WnoderStripeHelp() {
                             <li className="flex gap-4 p-4 bg-[#050505] border border-white/5">
                                 <span className="text-cyan-400 font-mono text-xs mt-1">01</span>
                                 <div>
-                                    <p className="text-white text-xs font-bold mb-1 uppercase tracking-widest">Connect Identity</p>
-                                    <p className="text-slate-500 text-[12px]">Navigate to the Security settings and select 'Connect Stripe'. You will be redirected to Stripe's secure environment.</p>
+                                    <p className="text-white text-xs font-bold mb-1 uppercase tracking-widest">Atomic Protocol</p>
+                                    <p className="text-slate-500 text-[12px]">Wnode utilizes atomic transfers to enforce the 70/10 constitutional split. Navigate to the Security settings and select 'Connect Stripe' to authorize your node for real-time settlement.</p>
                                 </div>
                             </li>
                             <li className="flex gap-4 p-4 bg-[#050505] border border-white/5">

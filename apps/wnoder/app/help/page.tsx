@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import { 
     HelpCircle, Zap, DollarSign, Cpu, Activity, 
     AlertTriangle, ChevronRight, BookOpen, Inbox, Shield, Monitor
@@ -13,9 +14,9 @@ export default function HelpPage() {
             icon: Zap,
             href: "/help/earnings",
             items: [
-                "Compute Contribution: Your node earns platform currency by processing real-time mesh tasks.",
-                "Uptime Bonus: Maintain high availability to increase your multiplier Tier.",
-                "Network Momentum: Earnings scale with the global demand for distributed compute resources."
+                "70/10 Protocol: Earn 70% as an Operator and 10% as a Sales Source on onboarded clients.",
+                "Uptime Multipliers: Platform rewards increase linearly based on your node's availability metrics.",
+                "Lineage Overrides: Capture 3% (L1) and 7% (L2) yields from your network's compute activity."
             ]
         },
         {

@@ -66,7 +66,11 @@ func main() {
 	defer cancel()
 
 	// ── P2P Identity ─────────────────────────────────────────────────────────
-	priv, err := p2p.LoadOrCreateIdentity("peer.key")
+	peerKeyPath := os.Getenv("PEER_KEY")
+	if peerKeyPath == "" {
+		peerKeyPath = "peer.key"
+	}
+	priv, err := p2p.LoadOrCreateIdentity(peerKeyPath)
 	if err != nil {
 		log.Fatal("failed to load/create p2p identity", zap.Error(err))
 	}
@@ -83,7 +87,11 @@ func main() {
 	forensicsStore := forensics.NewStore("SOVEREIGN_SECRET_2026", "NODL_SALT")
 
 	// ── Account & Affiliate Store ─────────────────────────────────────────────
-	accountStore := account.NewStore(forensicsStore, "nodld/state/engine.json")
+	statePath := os.Getenv("STATE_PATH")
+	if statePath == "" {
+		statePath = "nodld/state/engine.json"
+	}
+	accountStore := account.NewStore(forensicsStore, statePath)
 
 	// ── Governance Store (Personnel RBAC) ───────────────────────────────────
 	govStore := governance.NewStore()

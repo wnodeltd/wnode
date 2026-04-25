@@ -40,16 +40,16 @@ export default function WnoderComputeHelp() {
                             <div className="p-6 border border-white/5 bg-[#050505]">
                                 <h3 className="text-white text-xs font-bold mb-3 uppercase tracking-widest">CPU Throughput</h3>
                                 <p className="text-slate-500 text-[12px] leading-relaxed">
-                                    General-purpose logic processing. Wnode uses WASM-based execution to ensure 
-                                    security and cross-platform compatibility.
+                                    General-purpose logic processing. CPU contribution forms the baseline for your 
+                                    70% Operator Yield, processed via secure WASM-based execution layers.
                                 </p>
                             </div>
                             <div className="p-6 border border-white/5 bg-[#050505]">
                                 <h3 className="text-white text-xs font-bold mb-3 uppercase tracking-widest">GPU Acceleration</h3>
-                                <div className="inline-block px-2 py-0.5 bg-cyan-400/10 border border-cyan-400/20 text-cyan-400 text-[8px] font-bold uppercase mb-2">High Tier</div>
+                                <div className="inline-block px-2 py-0.5 bg-cyan-400/10 border border-cyan-400/20 text-cyan-400 text-[8px] font-bold uppercase mb-2">High Yield</div>
                                 <p className="text-slate-500 text-[12px] leading-relaxed">
-                                    Reserved for parallel intensive tasks like AI inference and visual rendering. 
-                                    Significantly increases potential earnings.
+                                    Reserved for parallel intensive tasks like AI inference. Active GPU workloads 
+                                    significantly boost the atomic payouts captured by your Wnode.
                                 </p>
                             </div>
                         </div>

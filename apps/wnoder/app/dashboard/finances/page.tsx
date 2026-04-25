@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState } from 'react';
-import { DollarSign, ArrowUpRight, ArrowDownRight, CreditCard, Building, History, Download, Plus, X } from 'lucide-react';
+import { DollarSign, ArrowUpRight, ArrowDownRight, CreditCard, Building, History, Download, Plus, X, Shield } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import FinancialStatus from '../../components/FinancialStatus';
 
 const REVENUE_STREAMS = [
     { source: 'Hardware Yield', amount: '$482.10', change: '+12.4%', trend: 'up' },
@@ -63,7 +64,8 @@ export default function FinancesPage() {
                     <h2 className="text-3xl font-normal tracking-tight text-white mb-1.5">Financial management</h2>
                     <p className="text-16px text-slate-400 font-normal">Manage your revenue streams and ledger</p>
                 </div>
-                <div className="flex gap-4">
+                <div className="flex items-center gap-6">
+                    <FinancialStatus />
                     <button className="flex items-center gap-2 bg-white/5 hover:bg-white/10 text-white px-5 py-2.5 rounded-[5px] border border-white/10 text-16px font-normal transition-all">
                         <Download className="w-4 h-4" /> Export CSV
                     </button>
@@ -113,6 +115,37 @@ export default function FinancesPage() {
                         <div className="pt-8 border-t border-white/5">
                             <p className="text-16px text-slate-500 font-normal leading-relaxed">
                                 Funds are settled every 24 hours. Automated payouts are processed via the secure mesh payment layer.
+                            </p>
+                        </div>
+                    </div>
+
+                    {/* Protocol Economic Split */}
+                    <div className="surface-card p-8 space-y-6 rounded-[5px] border border-cyber-cyan/10 bg-cyber-cyan/5">
+                        <div className="flex items-center gap-2 border-b border-cyber-cyan/10 pb-3">
+                            <Shield className="w-3.5 h-3.5 text-cyber-cyan" />
+                            <h4 className="text-[10px] uppercase font-bold text-slate-400 tracking-widest">Protocol Economic Split</h4>
+                        </div>
+                        <div className="space-y-4">
+                            {[
+                                { label: 'Node Operator', pct: '70%', sub: 'Compute Yield' },
+                                { label: 'Sales Source', pct: '10%', sub: 'Perpetual Growth' },
+                                { label: 'Level 1 Sponsor', pct: '3%', sub: 'Direct Referral' },
+                                { label: 'Level 2 Sponsor', pct: '7%', sub: 'Network Override' },
+                                { label: 'Wnode Protocol', pct: '7%', sub: 'Infrastructure' },
+                                { label: 'Founder Genesis', pct: '3%', sub: 'Economic Lineage' }
+                            ].map(item => (
+                                <div key={item.label} className="flex justify-between items-start">
+                                    <div className="flex flex-col">
+                                        <span className="text-[12px] text-white font-normal">{item.label}</span>
+                                        <span className="text-[9px] text-slate-500 uppercase tracking-tighter">{item.sub}</span>
+                                    </div>
+                                    <span className="text-[14px] text-cyber-cyan font-mono font-bold">{item.pct}</span>
+                                </div>
+                            ))}
+                        </div>
+                        <div className="pt-4 border-t border-white/5">
+                            <p className="text-[10px] text-slate-500 italic leading-relaxed">
+                                This deterministic 6-tier model is hard-coded into the Wnode economic constitution.
                             </p>
                         </div>
                     </div>

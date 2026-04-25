@@ -1,5 +1,6 @@
 import { createLibp2p } from 'libp2p'
 import { webSockets } from '@libp2p/websockets'
+import { all } from '@libp2p/websockets/filters'
 import { webRTC } from '@libp2p/webrtc'
 import { noise } from '@chainsafe/libp2p-noise'
 import { mplex } from '@libp2p/mplex'
@@ -32,8 +33,10 @@ export async function startNodlNode() {
       try {
         libp2p = await createLibp2p({
           transports: [
-            webSockets() as any,
-            webRTC() as any
+            webSockets({
+              filter: all
+            }) as any,
+            // webRTC() as any
           ],
           connectionEncryption: [noise()],
           streamMuxers: [mplex()],
@@ -46,7 +49,8 @@ export async function startNodlNode() {
         // 4. Connect to Anchor
         // Example: /ip4/100.97.254.59/tcp/8080/ws/p2p/ID
         // In a real app, this should be fetched from config or env.
-        const anchorAddr = process.env.NEXT_PUBLIC_ANCHOR_MULTIADDR || '/ip4/127.0.0.1/tcp/8080/ws/p2p/PEER_ID';
+        const anchorAddr = process.env.NEXT_PUBLIC_ANCHOR_MULTIADDR || `/dns4/localhost/tcp/10002/ws/p2p/${process.env.NEXT_PUBLIC_ANCHOR_PEER_ID || 'PEER_ID'}`;
+        console.log('[libp2p Debug] Dialing Anchor:', anchorAddr);
         try {
           if (anchorAddr.includes('PEER_ID')) {
             console.warn("Anchor node not configured: 'PEER_ID' placeholder detected. Skipping dial.");
@@ -56,7 +60,8 @@ export async function startNodlNode() {
           await libp2p.dial(ma);
           console.log('Dialed Anchor node!');
 
-          // 5. Open stream to report DNA & Benchmarks
+          // 5. Open stream to report DNA & Benchmarks (Disabled until backend supports /nodl/register/1.0.0)
+          /*
           const stream = await libp2p.dialProtocol(ma, '/nodl/register/1.0.0');
           const encoder = new TextEncoder();
           const report = JSON.stringify({
@@ -69,6 +74,8 @@ export async function startNodlNode() {
           const writer = stream.sink;
           await writer([encoder.encode(report)]);
           console.log('Hardware DNA report sent.');
+          */
+          console.log('Connected to Anchor node via WebSockets.');
 
         } catch (dialErr) {
           console.error("Failed to dial Anchor:", dialErr);

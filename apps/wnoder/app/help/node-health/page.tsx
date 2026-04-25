@@ -41,7 +41,7 @@ export default function WnoderNodeHealthHelp() {
                             </div>
                             <div>
                                 <h3 className="text-white text-xs font-bold mb-1 uppercase tracking-widest">Active Pulse</h3>
-                                <p className="text-slate-500 text-[12px]">As long as your pulse is solid, your multiplier tiers remain protected.</p>
+                                <p className="text-slate-500 text-[12px]">A stable heartbeat is essential for capturing 100% of your potential 70% Operator Yield. Fluctuations may impact your protocol multipliers.</p>
                             </div>
                         </div>
                     </section>

@@ -8,7 +8,11 @@ import { motion } from 'framer-motion';
 import { useAvatar } from '../hooks/useAvatar';
 import { useAccount } from '../hooks/useAccount';
 import AddMachineModal from '../components/AddMachineModal';
+import ConnectivityAudit from '../components/ConnectivityAudit';
 import { useRouter } from 'next/navigation';
+import useSWR from 'swr';
+
+const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 const navigation = [
     { name: 'Overview', href: '/dashboard', icon: LayoutDashboard, color: 'text-[#22d3ee]' },
@@ -34,7 +38,24 @@ export default function DashboardLayout({
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isBannerDismissed, setIsBannerDismissed] = useState(false);
     const [mounted, setMounted] = useState(false);
+    const [isAuditOpen, setIsAuditOpen] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const { data: pulse } = useSWR('http://127.0.0.1:8082/api/v1/system/pulse', fetcher, {
+        refreshInterval: 30000 // Check every 30s
+    });
+
+    useEffect(() => {
+        if (pulse?.last_synced_at) {
+            const lastSynced = new Date(pulse.last_synced_at);
+            const now = new Date();
+            const diffMinutes = Math.floor((now.getTime() - lastSynced.getTime()) / 60000);
+            if (diffMinutes >= 10) {
+                console.warn('[Audit Guard] Ledger sync delay detected:', diffMinutes, 'minutes');
+                setIsAuditOpen(true);
+            }
+        }
+    }, [pulse]);
 
     useEffect(() => {
         setMounted(true);
@@ -123,10 +144,20 @@ export default function DashboardLayout({
                 <nav className="flex-1 px-3 py-6 space-y-1.5 overflow-y-auto">
                     {navigation.map((item) => {
                         const isActive = pathname === item.href;
+                        const tooltipText = 
+                            item.name === 'Overview' ? 'At-a-glance command center & fleet map' :
+                            item.name === 'Nodes' ? 'Register and manage your hardware fleet' :
+                            item.name === 'Mesh Sales' ? 'Ambassador Intelligence & yield analytics' :
+                            item.name === 'Money' ? 'Earnings ledger & Stripe settlements' :
+                            item.name === 'Affiliates' ? 'Manage your referral network & lineage returns' :
+                            item.name === 'Settings' ? 'Platform, identity & payout configurations' :
+                            item.name === 'Help' ? 'Documentation & support center' : '';
+
                         return (
                             <Link
                                 key={item.name}
                                 href={item.href}
+                                title={tooltipText}
                                 className={`flex items-center gap-3.5 px-6 py-3 text-sm font-bold border transition-all relative group ${
                                     isActive
                                         ? 'bg-[#ffff00]/10 text-white border-[#ffff00]/30 shadow-[inset_0_0_12px_rgba(255,255,0,0.1)] rounded-[5px]'
@@ -167,16 +198,29 @@ export default function DashboardLayout({
                             whileHover={{ scale: 1.05, backgroundColor: "#ffffff", color: "#9333ea" }}
                             whileTap={{ scale: 0.95 }}
                             onClick={() => setIsModalOpen(true)}
+                            title="Register new hardware to the Wnode mesh network"
                             className="flex items-center gap-2.5 text-xs uppercase font-black bg-[#9333ea] text-white border border-[#9333ea] px-7 py-3.5 transition-all rounded-[4px] shadow-[0_0_20px_rgba(147,51,234,0.4)]"
                         >
                             <Cpu className="w-4 h-4" />
                             Add Node
                         </motion.button>
 
+                        <motion.button 
+                            whileHover={{ scale: 1.05, backgroundColor: "#ffffff", color: "#000000" }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => router.push('/dashboard/sales?onboard=true')}
+                            title="Initiate economic expansion & Ambassador yield simulation"
+                            className="flex items-center gap-2.5 text-xs uppercase font-black bg-[#ffff00] text-black border border-[#ffff00] px-7 py-3.5 transition-all rounded-[4px] shadow-[0_0_20px_rgba(255,255,0,0.3)] cursor-pointer"
+                        >
+                            <TrendingUp className="w-4 h-4" />
+                            Add Mesh Client
+                        </motion.button>
+
                         <motion.a 
                             whileHover={{ scale: 1.05, backgroundColor: "#ffffff", color: "#2563eb" }}
                             whileTap={{ scale: 0.95 }}
                             href={`mailto:?subject=${encodeURIComponent('Wnode Affiliate Invitation')}&body=${encodeURIComponent(`Here is your Wnode affiliate invitation\n\nwnode.one/invite/100001-0426-01-AA\n\nClick on it now, add your devices and start earning. Invite your own friends and watch your earnings grow as their business scales.\n\nEvery new Nodlr and node is a bit more of the planet saved and a bit more compute power added to the world.\n\nThis is your piece of the web 4 real estate`)}`}
+                            title="Send a referral invitation to your professional network"
                             className="flex items-center gap-2.5 text-xs uppercase font-black bg-[#2563eb] text-white border border-[#2563eb] px-7 py-3.5 transition-all rounded-[4px] shadow-[0_0_20px_rgba(37,99,235,0.4)] cursor-pointer no-underline"
                         >
                             <UserPlus className="w-4 h-4" />
@@ -256,6 +300,12 @@ export default function DashboardLayout({
                     isOpen={isModalOpen} 
                     onClose={() => setIsModalOpen(false)} 
                     apiBase="http://127.0.0.1:8082" 
+                />
+
+                <ConnectivityAudit 
+                    isOpen={isAuditOpen}
+                    lastSyncedAt={pulse?.last_synced_at}
+                    onClose={() => setIsAuditOpen(false)}
                 />
             </div>
         </div>

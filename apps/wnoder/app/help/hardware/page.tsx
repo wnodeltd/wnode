@@ -33,7 +33,8 @@ export default function WnoderHardwareHelp() {
                         </h2>
                         <p className="text-slate-400 text-sm leading-relaxed mb-8">
                             While Wnode runs on most modern desktop environments, specific hardware configurations 
-                            will unlock higher performance multipliers and more intensive compute tasks.
+                            will unlock higher performance multipliers and ensure you capture the maximum 
+                            possible 70% Operator Yield for the mesh tasks you process.
                         </p>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="p-6 bg-[#050505] border border-white/5 rounded">

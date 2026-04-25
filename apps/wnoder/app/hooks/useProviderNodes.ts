@@ -7,12 +7,12 @@ export function useProviderNodes() {
     
     const fetcher = async (url: string) => {
         const token = typeof window !== 'undefined' ? localStorage.getItem('nodl_jwt') : null;
-        const userId = user?.id || 'mock-id-123';
+        const userId = typeof window !== 'undefined' ? localStorage.getItem('nodl_user_id') : (user?.id || 'mock-id-123');
 
         const res = await fetch(url, {
             headers: {
                 'Authorization': `Bearer ${token}`,
-                'x-user-id': userId
+                'X-User-ID': userId || ''
             }
         });
 

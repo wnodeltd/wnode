@@ -116,3 +116,12 @@ type OperatorSummary struct {
 	StripeAccountID string    `json:"stripe_account_id"`
 	PayoutStatus    string    `json:"payout_status"`
 }
+
+// PayoutArchitecture defines the Stripe identities for a 6-tier sovereign split.
+type PayoutArchitecture struct {
+	OperatorStripe    string
+	SalesSourceStripe string
+	L1Stripe          string
+	L2Stripe          string
+	FounderStripe     string
+}

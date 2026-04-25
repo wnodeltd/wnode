@@ -155,20 +155,22 @@ type PairingCode struct {
 	CreatedAt time.Time `json:"createdAt"`
 }
 
-// PayoutArchitecture defines the iron-clad, 5-tier deterministic payout map for a node.
+// PayoutArchitecture defines the iron-clad, 6-tier deterministic payout map for a node.
 type PayoutArchitecture struct {
-	NodlrID   string `json:"nodlrId"`   // 80%
-	L1ID      string `json:"l1Id"`      // 3%
-	L2ID      string `json:"l2Id"`      // 7%
-	FounderID string `json:"founderId"` // 3%
-	WnodeID   string `json:"wnodeId"`   // 7%
+	NodlrID           string `json:"nodlrId"`           // 70%
+	SalesSourceID     string `json:"salesSourceId"`     // 10%
+	L1ID              string `json:"l1Id"`              // 3%
+	L2ID              string `json:"l2Id"`              // 7%
+	FounderID         string `json:"founderId"`         // 3%
+	WnodeID           string `json:"wnodeId"`           // 7%
 
 	// Stripe Destinations (Resolved IDs)
-	NodlrStripe   string `json:"nodlrStripe"`
-	L1Stripe      string `json:"l1Stripe"`
-	L2Stripe      string `json:"l2Stripe"`
-	FounderStripe string `json:"founderStripe"`
-	WnodeStripe   string `json:"wnodeStripe"`
+	NodlrStripe       string `json:"nodlrStripe"`
+	SalesSourceStripe string `json:"salesSourceStripe"`
+	L1Stripe          string `json:"l1Stripe"`
+	L2Stripe          string `json:"l2Stripe"`
+	FounderStripe     string `json:"founderStripe"`
+	WnodeStripe       string `json:"wnodeStripe"`
 }
 
 // MeshClient represents a customer or entity utilizing the compute mesh.

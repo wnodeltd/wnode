@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { ChevronLeft, AlertTriangle, RefreshCw, Terminal, Search } from "lucide-react";
+import { ChevronLeft, AlertTriangle, RefreshCw, Terminal, Search, Shield, DollarSign } from "lucide-react";
 
 export default function WnoderTroubleshootingHelp() {
     return (
@@ -34,23 +34,24 @@ export default function WnoderTroubleshootingHelp() {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                             <div className="p-6 bg-[#050505] border border-white/5 rounded">
                                 <h3 className="text-white text-xs font-bold mb-3 uppercase tracking-widest flex items-center gap-2">
-                                    <RefreshCw className="w-3 h-3 text-cyan-400" />
-                                    The Restart Rule
+                                    <Shield className="w-3 h-3 text-cyan-400" />
+                                    Connectivity Audit
                                 </h3>
                                 <p className="text-slate-500 text-[12px] leading-relaxed">
-                                    Most 'Sync Anomaly' or 'Unresponsive' errors are resolved by simply restarting 
-                                     the Wnode engine. This clears the local handshake cache and forces a 
-                                     fresh peer discovery.
+                                    If your node appears offline, perform a Network Connectivity Audit. Ensure your local 
+                                     firewall permits P2P mesh traffic and verify your device's visibility within the 
+                                     global registry. Manual engine restarts are strictly managed by the Founder.
                                 </p>
                             </div>
                             <div className="p-6 bg-[#050505] border border-white/5 rounded">
                                 <h3 className="text-white text-xs font-bold mb-3 uppercase tracking-widest flex items-center gap-2">
-                                    <Search className="w-3 h-3 text-cyan-400" />
-                                    Ledger Re-sync
+                                    <DollarSign className="w-3 h-3 text-cyan-400" />
+                                    Financial Latency
                                 </h3>
                                 <p className="text-slate-500 text-[12px] leading-relaxed">
-                                    If your earnings aren't showing, navigate to settings and use 'Re-sync Ledger'. 
-                                     This cross-checks your local task logs with the platform's global registry.
+                                    Wnode mesh settlements are Atomic and Final. If a transaction is not immediately 
+                                     visible in your ledger, it is due to propagation times within the global financial 
+                                     network. The system synchronizes every 10 minutes to maintain integrity.
                                 </p>
                             </div>
                         </div>

@@ -436,16 +436,69 @@ func (s *Store) GetOperatorLedgerTotals(opID string) (totalCompute, totalPaid, t
 	}
 	return
 }
-// AuditLedgerRecomputation performs a raw re-summation of all ledger records for internal audit verification.
-func (s *Store) AuditLedgerRecomputation() (rev, pay int64) {
+// GetOpportunityAudit returns a diagnostic revenue matrix for a given user.
+func (s *Store) GetOpportunityAudit(nodlrIdOrUuid string) any {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	for _, r := range s.computeLedger {
-		rev += r.Amount
+	// Find the account
+	var target *Nodlr
+	for _, n := range s.nodlrs {
+		if n.ID == nodlrIdOrUuid || n.NodlrID == nodlrIdOrUuid {
+			target = n
+			break
+		}
 	}
-	for _, r := range s.payoutLedger {
-		pay += r.Amount
+
+	if target == nil {
+		// Return a zero-state audit for safety
+		return map[string]any{
+			"nodlrId": "M0-000000-0000",
+			"earnedSalesCents": 0,
+			"missedComputeCents": 0,
+			"captureEfficiencyPercentage": 0,
+			"potentialMonthlyTotalCents": 0,
+			"events": []any{},
+			"expansionInsight": map[string]any{
+				"analysis": "Identity mismatch. Please verify your Nodlr session.",
+				"missedMonthly": 0,
+			},
+		}
 	}
-	return
+
+	// Mock Logic for Ambassador Intelligence (Dev Parity)
+	earned := s.GetPendingTotal(target.ID)
+	missed := int64(145000) // Mock 1.4k missed potential for UI feedback
+	efficiency := 78.5
+	if earned > 0 {
+		efficiency = float64(earned) / float64(earned+missed) * 100
+	}
+
+	return map[string]any{
+		"nodlrId": target.NodlrID,
+		"earnedSalesCents": earned,
+		"missedComputeCents": missed,
+		"captureEfficiencyPercentage": efficiency,
+		"potentialMonthlyTotalCents": earned + missed + 50000,
+		"events": []map[string]any{
+			{
+				"jobId": "J-8821-X",
+				"amountCents": 450,
+				"category": "L1 Affiliate",
+				"reason": "Hardware node 'Alpha-1' processed 1.2TB",
+				"timestamp": time.Now().Add(-2 * time.Hour).Format(time.RFC3339),
+			},
+			{
+				"jobId": "J-8824-Y",
+				"amountCents": 1200,
+				"category": "Sales Source",
+				"reason": "Direct mesh client acquisition: 'Quantum-Ops'",
+				"timestamp": time.Now().Add(-5 * time.Hour).Format(time.RFC3339),
+			},
+		},
+		"expansionInsight": map[string]any{
+			"analysis": "Expansion potential: Your L1 network is operating at 62% hardware capacity. Activating 3 additional nodes would bridge the $1,450 missed revenue gap.",
+			"missedMonthly": 145000,
+		},
+	}
 }

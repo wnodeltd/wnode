@@ -10,8 +10,18 @@ import AddMachineModal from "../components/AddMachineModal";
 import MachineList from "../components/MachineList";
 import FleetMap from "@shared/components/FleetMap";
 import useSWR from 'swr';
+import Tooltip from "../components/Tooltip";
 
-const fetcher = (url: string) => fetch(url).then(res => res.json());
+const fetcher = (url: string) => {
+    const token = typeof window !== 'undefined' ? localStorage.getItem('nodl_jwt') : null;
+    const userId = typeof window !== 'undefined' ? localStorage.getItem('nodl_user_id') : null;
+    return fetch(url, {
+        headers: {
+            'Authorization': token ? `Bearer ${token}` : '',
+            'X-User-ID': userId || ''
+        }
+    }).then(res => res.json());
+};
 
 import { useProviderNodes } from "../hooks/useProviderNodes";
 
@@ -20,7 +30,7 @@ export default function DashboardPage() {
     const [allocation, setAllocation] = useState({ cpu: 0, gpu: 0, ram: 12 });
     
     const apiBase = 'http://127.0.0.1:8082';
-    const { data: impactData } = useSWR(`${apiBase}/api/impact`, fetcher, { refreshInterval: 10000 });
+    const { data: impactData } = useSWR(`${apiBase}/api/v1/impact`, fetcher, { refreshInterval: 10000 });
     const { data: accountData } = useSWR(`${apiBase}/api/v1/account/me`, fetcher);
     const [showWizard, setShowWizard] = useState(false);
     const [hasSkipped, setHasSkipped] = useState(false);
@@ -91,53 +101,65 @@ export default function DashboardPage() {
         <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-1000">
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 {/* Metric 1: Total Earnings (unchanged) */}
-                <div className="surface-card p-4 flex flex-col justify-between">
-                    <span className="text-[10px] uppercase text-slate-500 tracking-widest">Total Earnings</span>
-                    <span className="text-2xl font-bold text-[#FFD700] tracking-tighter">$482.10</span>
-                </div>
+                <Tooltip content="Cumulative revenue from hardware yield and affiliate lineage">
+                    <div className="surface-card p-4 flex flex-col justify-between h-full">
+                        <span className="text-[10px] uppercase text-slate-500 tracking-widest">Total Earnings</span>
+                        <span className="text-2xl font-bold text-[#FFD700] tracking-tighter">$482.10</span>
+                    </div>
+                </Tooltip>
 
                 {/* Metric 2: L1 Affiliate Revenue */}
-                <div className="surface-card p-4 flex flex-col justify-between">
-                    <span className="text-[10px] uppercase text-slate-500 tracking-widest flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-[#9333ea] shadow-[0_0_8px_rgba(147,51,234,0.6)]" />
-                        L1 Affiliate Revenue
-                    </span>
-                    <span className="text-2xl font-bold text-white tracking-tighter">$124.50</span>
-                </div>
+                <Tooltip content="Realized commissions from your Level 1 direct network (3% lineage + 10% sales source)">
+                    <div className="surface-card p-4 flex flex-col justify-between h-full">
+                        <span className="text-[10px] uppercase text-slate-500 tracking-widest flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-[#9333ea] shadow-[0_0_8px_rgba(147,51,234,0.6)]" />
+                            L1 Affiliate Revenue
+                        </span>
+                        <span className="text-2xl font-bold text-white tracking-tighter">$124.50</span>
+                    </div>
+                </Tooltip>
 
                 {/* Metric 3: L2 Affiliate Revenue */}
-                <div className="surface-card p-4 flex flex-col justify-between">
-                    <span className="text-[10px] uppercase text-slate-500 tracking-widest flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-[#FFA500] shadow-[0_0_8px_rgba(255,165,0,0.6)]" />
-                        L2 Affiliate Revenue
-                    </span>
-                    <span className="text-2xl font-bold text-white tracking-tighter">{accountData?.l2AffiliateEarnings ? `$${(accountData.l2AffiliateEarnings / 100).toFixed(2)}` : '$0.00'}</span>
-                </div>
+                <Tooltip content="Realized commissions from your Level 2 indirect network (7% lineage override)">
+                    <div className="surface-card p-4 flex flex-col justify-between h-full">
+                        <span className="text-[10px] uppercase text-slate-500 tracking-widest flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-[#FFA500] shadow-[0_0_8px_rgba(255,165,0,0.6)]" />
+                            L2 Affiliate Revenue
+                        </span>
+                        <span className="text-2xl font-bold text-white tracking-tighter">{accountData?.l2AffiliateEarnings ? `$${(accountData.l2AffiliateEarnings / 100).toFixed(2)}` : '$0.00'}</span>
+                    </div>
+                </Tooltip>
 
                 {/* Metric 4: Global Rank */}
-                <div className="surface-card p-4 flex flex-col justify-between text-cyber-cyan border border-cyber-cyan/20">
-                    <span className="text-[10px] uppercase text-cyber-cyan opacity-70 tracking-widest font-bold">Global Rank</span>
-                    <span className="text-2xl font-bold tracking-tighter">#412</span>
-                </div>
+                <Tooltip content="Your standing on the mesh network based on total yield, uptime, and node count">
+                    <div className="surface-card p-4 flex flex-col justify-between text-cyber-cyan border border-cyber-cyan/20 h-full">
+                        <span className="text-[10px] uppercase text-cyber-cyan opacity-70 tracking-widest font-bold">Global Rank</span>
+                        <span className="text-2xl font-bold tracking-tighter">#412</span>
+                    </div>
+                </Tooltip>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
                 {/* Main Content (Left) */}
                 <div className="lg:col-span-8 space-y-8">
                     {/* Fleet Map */}
-                    <FleetMap 
-                        nodes={nodes}
-                        loading={nodesLoading}
-                        id="nodlr-fleet-map"
-                    />
-
+                    <div title="Geographic distribution and real-time status of your active nodes">
+                        <FleetMap 
+                            nodes={nodes}
+                            loading={nodesLoading}
+                            id="nodlr-fleet-map"
+                        />
+                    </div>
                 </div>
 
                 {/* Sidebar Controls (Right) */}
                 <div className="lg:col-span-4 space-y-8">
 
                     {/* Action Card: Start Working */}
-                    <div className="surface-card p-6 space-y-4 border border-cyber-cyan/30 bg-cyber-cyan/5">
+                    <div 
+                        className="surface-card p-6 space-y-4 border border-cyber-cyan/30 bg-cyber-cyan/5"
+                        title="Platform operational status and mesh-task activation control"
+                    >
                         <div className="flex items-center justify-between">
                             <h3 className="text-[10px] uppercase font-bold tracking-widest text-cyber-cyan">Platform Status</h3>
                             <div className="flex items-center gap-1.5">
@@ -155,6 +177,7 @@ export default function DashboardPage() {
                                 if (isPayoutActive) toggleHarvesting();
                                 else window.location.href = '/onboard';
                             }}
+                            title={isPayoutActive ? (isHarvesting ? "Deactivate nodes and stop accepting mesh tasks" : "Activate nodes and begin accepting compute tasks") : "Complete Stripe onboarding to enable mesh participation"}
                             className={`w-full py-4 rounded-[4px] font-bold text-xs uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-2 ${
                                 isPayoutActive 
                                     ? (isHarvesting ? 'bg-red-500/10 text-red-500 border border-red-500/20' : 'bg-cyber-cyan text-black')
@@ -169,15 +192,20 @@ export default function DashboardPage() {
                     </div>
 
                     {/* Impact Card */}
-                    <ImpactCard 
-                        carbonSaved={impact.carbonSavedKg || 0}
-                        kmAvoided={impact.equivalentKmDriven || 0}
-                        treeDays={impact.treeDays || 0}
-                        isActive={isHarvesting}
-                    />
+                    <div title="Cumulative environmental contribution and carbon offset metrics">
+                        <ImpactCard 
+                            carbonSaved={impact.carbonSavedKg || 0}
+                            kmAvoided={impact.equivalentKmDriven || 0}
+                            treeDays={impact.treeDays || 0}
+                            isActive={isHarvesting}
+                        />
+                    </div>
 
                     {/* Infrastructure Snapshot */}
-                    <div className="surface-card p-6 space-y-6">
+                    <div 
+                        className="surface-card p-6 space-y-6"
+                        title="Aggregate hardware capabilities currently registered to your fleet"
+                    >
                         <div className="flex items-center gap-2 border-b border-white/5 pb-3">
                             <Activity className="w-3.5 h-3.5 text-[#9333ea]" />
                             <h4 className="text-[10px] uppercase font-bold text-slate-400 tracking-widest">Resource Snapshot</h4>
@@ -198,7 +226,10 @@ export default function DashboardPage() {
                     </div>
 
                     {/* Allocation Meters */}
-                    <div className="surface-card p-6 space-y-6">
+                    <div 
+                        className="surface-card p-6 space-y-6"
+                        title="Real-time resource allocation and mesh job processing status"
+                    >
                          <div className="flex items-center gap-2 border-b border-white/5 pb-3">
                             <Cpu className="w-3.5 h-3.5 text-cyber-cyan" />
                             <h4 className="text-[10px] uppercase font-bold text-slate-400 tracking-widest">Mesh Allocation</h4>

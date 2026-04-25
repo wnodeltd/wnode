@@ -17,6 +17,10 @@ export default function LoginPage() {
 
     React.useEffect(() => {
         setMounted(true);
+        // Pre-populate with authoritative developer account if empty
+        if (!email) {
+            setEmail('stephen@wnode.one');
+        }
     }, []);
 
     const handleEmailAuth = async (e: React.FormEvent) => {
@@ -54,13 +58,23 @@ export default function LoginPage() {
         });
 
         // Specific seed account check/bypass for Phase 4
-        // Use: stephen@wnode.one / command
-        if ((normalizedEmail === 'stephen@wnode.one' || normalizedEmail === 'stephen@nodl.one') && normalizedPassword === 'command') {
-            console.log('[Auth Debug] Peak Developer credentials accepted.');
+        const isDevAccount = normalizedEmail === 'stephen@wnode.one' || normalizedEmail === 'stephen@nodl.one';
+        const isBetaAccount = normalizedEmail === 'user@test.com' && normalizedPassword === 'betatester';
+
+        if ((isDevAccount && normalizedPassword === 'command') || isBetaAccount) {
+            console.log(`[Auth Debug] ${isBetaAccount ? 'Beta' : 'Peak Developer'} credentials accepted.`);
             localStorage.setItem('nodl_auth_bypass', 'true');
             localStorage.setItem('nodl_user_email', normalizedEmail);
-            // Inject valid dev JWT for the backend to accept
-            localStorage.setItem('nodl_jwt', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InN0ZXBoZW5Abm9kbC5vbmUiLCJleHAiOjE3NzkzMjk3ODAsInJvbGUiOiJnb2QiLCJzdWIiOiJtb2NrLWlkLTEyMyJ9.cggY1itCGfrs6C38jmEm3fpxS7ZxybwEj13NCxfwVpk');
+            
+            let userId = '100001-0426-01-AA';
+            if (normalizedEmail === 'stephen@nodl.one') userId = '100001-0426-01-AB';
+            if (isBetaAccount) userId = '100005-0426-05-AA';
+            
+            localStorage.setItem('nodl_user_id', userId);
+            
+            // Inject valid JWT (Standard or Dev)
+            const role = isBetaAccount ? 'standard' : 'god';
+            localStorage.setItem('nodl_jwt', `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6IiR7bm9ybWFsaXplZEVtYWlsfSIsImV4cCI6MTc3OTMyOTc4MCwicm9sZSI6IiR7cm9sZX0iLCJzdWIiOiJtb2NrLWlkLTEyMyJ9.cggY1itCGfrs6C38jmEm3fpxS7ZxybwEj13NCxfwVpk`);
             
             setTimeout(() => {
                 router.push('/dashboard');

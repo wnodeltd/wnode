@@ -111,6 +111,22 @@ func (s *Store) SeedFoundationIdentities() {
 		n.Verified = true
 	}
 
+	// 1b. Stephen Alt (Universal Owner)
+	altOwnerID := "100001-0426-01-AB"
+	if _, ok := s.nodlrs[altOwnerID]; !ok {
+		s.nodlrs[altOwnerID] = &Nodlr{
+			ID:                 altOwnerID,
+			Email:              "stephen@nodl.one",
+			Role:               RoleOwner,
+			IsSuperAdmin:       true,
+			IsProtected:        true,
+			OnboardingComplete: true,
+			Verified:           true,
+			Status:             "active",
+			CreatedAt:          time.Now(),
+		}
+	}
+
 	// 2. Stephen (Founder Nodlr)
 	founderID := "100002-0426-02-AA"
 	if n, ok := s.nodlrs[founderID]; !ok {
@@ -142,6 +158,27 @@ func (s *Store) SeedFoundationIdentities() {
 			Status:    "active",
 			CreatedAt: time.Now(),
 		}
+	}
+
+	// 4. Beta User (Institutional Standard)
+	betaUserID := "100005-0426-05-AA"
+	if n, ok := s.nodlrs[betaUserID]; !ok {
+		s.nodlrs[betaUserID] = &Nodlr{
+			ID:                 betaUserID,
+			Email:              "user@test.com",
+			Role:               RoleStandard,
+			Status:             "active",
+			OnboardingComplete: true,
+			Verified:           true,
+			CreatedAt:          time.Now(),
+		}
+	} else {
+		// Ensure properties match institutional spec even if loaded from state
+		n.Email = "user@test.com"
+		n.Role = RoleStandard
+		n.Status = "active"
+		n.OnboardingComplete = true
+		n.Verified = true
 	}
 }
 
@@ -723,8 +760,8 @@ func (s *Store) GetLedgerHistory(opID string) []CommissionRecord {
 	return copied
 }
 
-// GetPayoutArchitecture resolves the iron-clad 5-tier map for a specific node.
-// It returns a Hard Error if any of the 5 protocol-mandated participants are missing or not on-boarded.
+// GetPayoutArchitecture resolves the 6-tier map for a specific node.
+// It follows the Participation Protocol: If a participant is not onboarded, their share is skipped.
 func (s *Store) GetPayoutArchitecture(nodeID string) (*PayoutArchitecture, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
@@ -744,35 +781,38 @@ func (s *Store) GetPayoutArchitecture(nodeID string) (*PayoutArchitecture, error
 		WnodeStripe: WnodeBusinessStripeID,
 	}
 
-	// 1. Level 0: The Nodlr (80%)
-	if nodlr.StripeConnectID == "" {
-		return nil, fmt.Errorf("protocol violation: nodlr %s not on-boarded", nodlr.ID)
+	// 1. Level 0: The Nodlr (70%)
+	if nodlr.StripeConnectID != "" {
+		arch.NodlrID = nodlr.ID
+		arch.NodlrStripe = nodlr.StripeConnectID
 	}
-	arch.NodlrID = nodlr.ID
-	arch.NodlrStripe = nodlr.StripeConnectID
 
 	// 2. Lineage: L1 (3%) and L2 (7%)
 	l1ID, l2ID := s.resolveTreeNoLock(nodlr.ID)
 	
-	l1, ok1 := s.nodlrs[l1ID]
-	if !ok1 || l1.StripeConnectID == "" {
-		return nil, fmt.Errorf("protocol violation: L1 lineage for nodlr %s is broken or not on-boarded", nodlr.ID)
+	if l1, ok1 := s.nodlrs[l1ID]; ok1 && l1.StripeConnectID != "" {
+		arch.L1ID, arch.L1Stripe = l1.ID, l1.StripeConnectID
 	}
-	arch.L1ID, arch.L1Stripe = l1.ID, l1.StripeConnectID
 
-	l2, ok2 := s.nodlrs[l2ID]
-	if !ok2 || l2.StripeConnectID == "" {
-		return nil, fmt.Errorf("protocol violation: L2 lineage for nodlr %s is broken or not on-boarded", nodlr.ID)
+	if l2, ok2 := s.nodlrs[l2ID]; ok2 && l2.StripeConnectID != "" {
+		arch.L2ID, arch.L2Stripe = l2.ID, l2.StripeConnectID
 	}
-	arch.L2ID, arch.L2Stripe = l2.ID, l2.StripeConnectID
 
 	// 3. Founder: The Tree Head (3%)
 	fID := s.getGenesisFounderNoLock(nodlr.ID)
-	f, okf := s.nodlrs[fID]
-	if !okf || f.StripeConnectID == "" {
-		return nil, fmt.Errorf("protocol violation: Founder head for nodlr %s is broken or not on-boarded", nodlr.ID)
+	if f, okf := s.nodlrs[fID]; okf && f.StripeConnectID != "" {
+		// Only Active founders participate in accrual
+		if f.Status == "active" {
+			arch.FounderID, arch.FounderStripe = f.ID, f.StripeConnectID
+		}
 	}
-	arch.FounderID, arch.FounderStripe = f.ID, f.StripeConnectID
+
+	// 4. Sales Source (Affiliate - 10%)
+	// Note: Sales Source is mapped to the ParentID in this protocol
+	if sales, oks := s.nodlrs[nodlr.ParentID]; oks && sales.StripeConnectID != "" {
+		arch.SalesSourceID = sales.ID
+		arch.SalesSourceStripe = sales.StripeConnectID
+	}
 
 	return arch, nil
 }

@@ -438,28 +438,44 @@ func (s *Service) handleV1CheckoutSession(c *fiber.Ctx) error {
 	})
 }
 
-// ExecuteSovereignAtomicSplit triggers the 5-way deterministic payout.
-// It will fail the entire operation if the architecture is not perfect.
+// ExecuteSovereignAtomicSplit triggers the 6-way deterministic payout.
+// It follows the Participation Protocol: If a participant is missing a Stripe ID, their transfer is skipped.
 func (s *Service) ExecuteSovereignAtomicSplit(totalCents int64, nodeID string, chargeID string) error {
-	// 1. Authoritative Resolution (Hard Error on failure)
+	// 1. Authoritative Resolution
 	arch, err := s.accountStore.GetPayoutArchitecture(nodeID)
 	if err != nil {
-		s.log.Error("CRITICAL ECONOMIC VIOLATION", zap.Error(err), zap.String("nodeID", nodeID))
-		return err // Atomic failure: No funds are moved if architecture is broken
+		s.log.Error("CRITICAL ECONOMIC RESOLUTION FAILURE", zap.Error(err), zap.String("nodeID", nodeID))
+		return err 
 	}
 
-	// 2. Protocol Share Calculation
-	nodlrShare   := (totalCents * 80) / 100
-	l1Share      := (totalCents * 3) / 100
-	l2Share      := (totalCents * 7) / 100
-	founderShare := (totalCents * 3) / 100
+	// 2. Protocol Share Calculation (70/10/3/7/3/7)
+	nodlrShare       := (totalCents * 70) / 100
+	salesSourceShare := (totalCents * 10) / 100
+	l1Share          := (totalCents * 3) / 100
+	l2Share          := (totalCents * 7) / 100
+	founderShare     := (totalCents * 3) / 100
 	// Wnode (7%) remains on platform
 
-	// 3. Mandatory transfers (No conditionals, No fallbacks)
-	s.initiateTransfer(nodlrShare, arch.NodlrStripe, chargeID, "nodlr_80_payout")
-	s.initiateTransfer(l1Share, arch.L1Stripe, chargeID, "affiliate_l1_3")
-	s.initiateTransfer(l2Share, arch.L2Stripe, chargeID, "affiliate_l2_7")
-	s.initiateTransfer(founderShare, arch.FounderStripe, chargeID, "founder_override_3")
+	// 3. Conditional transfers based on Participation
+	if arch.NodlrStripe != "" {
+		s.initiateTransfer(nodlrShare, arch.NodlrStripe, chargeID, "nodlr_70_compute")
+	}
+	
+	if arch.SalesSourceStripe != "" {
+		s.initiateTransfer(salesSourceShare, arch.SalesSourceStripe, chargeID, "sales_source_10_growth")
+	}
+
+	if arch.L1Stripe != "" {
+		s.initiateTransfer(l1Share, arch.L1Stripe, chargeID, "affiliate_l1_3")
+	}
+
+	if arch.L2Stripe != "" {
+		s.initiateTransfer(l2Share, arch.L2Stripe, chargeID, "affiliate_l2_7")
+	}
+
+	if arch.FounderStripe != "" {
+		s.initiateTransfer(founderShare, arch.FounderStripe, chargeID, "founder_override_3")
+	}
 
 	return nil
 }
