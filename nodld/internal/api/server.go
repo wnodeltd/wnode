@@ -145,20 +145,20 @@ func (s *Server) registerRoutes() {
 	// Peer information
 	s.app.Get("/peers", s.handlePeers)
 
-	// Job CRUD
-	s.app.Get("/jobs", s.handleListJobs)
-	s.app.Post("/jobs", s.handleSubmitJob)
-	s.app.Get("/jobs/:id", s.handleGetJob)
-	s.app.Post("/jobs/stream", s.handleStreamJob)
-	s.app.Get("/jobs/:id/stream", s.handlePullJobStream)
-
-	// Pricing
-	s.app.Get("/pricing", s.handleGetPricing)
-	s.app.Get("/pricing/history/:tier", s.handleGetPricingHistory)
-	s.app.Get("/pricing/alerts", s.handleGetPricingAlerts)
-
 	// Node Connectivity & Pairing
 	apiV1 := s.app.Group("/api/v1")
+
+	// Job CRUD (Moved under /api/v1)
+	apiV1.Get("/jobs", s.handleListJobs)
+	apiV1.Post("/jobs", s.handleSubmitJob)
+	apiV1.Get("/jobs/:id", s.handleGetJob)
+	apiV1.Post("/jobs/stream", s.handleStreamJob)
+	apiV1.Get("/jobs/:id/stream", s.handlePullJobStream)
+
+	// Pricing (Moved under /api/v1)
+	apiV1.Get("/pricing", s.handleGetPricing)
+	apiV1.Get("/pricing/history/:tier", s.handleGetPricingHistory)
+	apiV1.Get("/pricing/alerts", s.handleGetPricingAlerts)
 
 	// Account & Affiliates
 	apiV1.Get("/account/me", s.requireLevel(account.RoleStandard), s.handleGetMyAccount)
