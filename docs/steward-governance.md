@@ -88,17 +88,13 @@ The steward may:
 
 - Activate inactive founder accounts,
 - Assign unassigned founder accounts (with public disclosure),
-- Freeze founder accounts only under legal obligation,
 - Publish governance updates,
 - Maintain transparency reports.
 
-The steward may **not**:
-
-- Modify the number of founders,
-- Modify override percentages,
-- Modify lineage rules,
-- Modify identity immutability,
-- Modify the constitutional documents.
+- Modify the constitutional documents,
+- Freeze, change, modify, reassign or tamper with any Founder Account for any reason,
+- Freeze funds owed to Founders,
+- Freeze funds, keep funds, or delay payment of funds to any account.
 
 Governance is **bounded**, not discretionary.
 
