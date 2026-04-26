@@ -1,21 +1,18 @@
-# wnode: The Decentralized Compute Fabric
+# Wnode: The Decentralized Compute Fabric
 
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen)](https://github.com/wnode-one/wnode)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![Audit Status](https://img.shields.io/badge/Audit-99%2F100-gold)](docs/steward-metrics.md)
-
-**Harvest the Idle.** Turn unused CPU/GPU cycles on consumer devices into a global, sustainable, and confidentiality-preserving compute mesh.
+A sovereign, simple to use community‑owned compute network (DEPIN) that harvests old, redundant or idle hardware of any level and transforms it into a globally distributed, confidentiality‑preserving compute layer.
 
 ---
 
 ## 🌐 Vision
 
-wnode is a **Sovereign DePIN (Decentralized Physical Infrastructure Network)** designed to democratize high-performance compute. By activating existing idle resources in homes and offices, we eliminate the need for new hyperscale datacenters, reducing carbon footprints while providing enterprise-grade, RAM-only execution for sensitive workloads.
+Wnode is a Sovereign DePIN that replaces new datacenters with the hardware the world already owns, delivering confidential RAM‑only execution at lower cost while reducing carbon impact and paying participants for the compute they contribute. 3 clicks and earn.
 
-### The Three Pillars
-1.  **Zero-Storage**: No user data ever touches a physical disk.
-2.  **RAM-Only Execution**: Workloads exist only in volatile memory and are wiped instantly.
-3.  **Economic Neutrality**: A hardcoded 80/20 revenue split ensures participants—not the platform—capture the value.
+### The Pillars
+- **Zero‑Storage** - Data never touches a disk.
+- **RAM‑Only Compute** - Everything runs in volatile memory and self‑erases.
+- **Economic Neutrality** - A transparent, immutable affiliate revenue model that evolves into an revenue generating asset and rewards the network, not the middleman or large corporations.
+- **Fully Managed** – The Mesh remains community‑owned, with a steward corporation holding a permanent license to expertly manage and operate the infrastructure on behalf of its owners.
 
 ---
 
@@ -23,7 +20,7 @@ wnode is a **Sovereign DePIN (Decentralized Physical Infrastructure Network)** d
 
 Our documentation is the **Sovereign Source of Truth** for the network's architecture, economics, and governance.
 
-- **[Vision & Architecture](docs/vision-and-architecture.md)**: The "Why" and "How" of wnode.
+- **[Vision & Architecture](docs/vision-and-architecture.md)**: The "Why" and "How" of Wnode.
 - **[Governance & Economics](docs/governance-and-economics.md)**: Payout splits and constitutional locks.
 - **[Steward Constitution](docs/steward-constitution.md)**: The rules that bind the network authority.
 - **[Economic Safeguards](docs/economic-safeguards.md)**: 120-Day holds, Ghost Protocol, and Honeypots.
@@ -107,7 +104,7 @@ npm run dev
 
 ## ⚖️ Economics (80/20 Rule)
 
-wnode is built for fairness. Every job follows a hardcoded commission waterfall:
+Wnode is built for fairness. Every job follows a hardcoded commission waterfall:
 
 - **Operator**: 80% (Direct to Nodlr)
 - **Steward**: 7% (Platform Maintenance)
@@ -137,7 +134,7 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 
 ---
 
-© 2026 wnode Ltd (UK). The sovereign compute marketplace.
+© 2026 Wnode Ltd (UK). The sovereign compute marketplace.
 
 ## Community
 
