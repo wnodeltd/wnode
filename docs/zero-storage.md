@@ -50,10 +50,11 @@ Nodes operate as **stateless RAM‑only execution environments**.
 
 The backend acts as a **stateless router** using the Streaming Coordinator pattern:
 
-1. **Incoming Stream**: Jobs are received as chunked HTTP streams.
+1. **Incoming Stream**: Jobs are received as chunked HTTP streams. For large files, the client automatically splits the payload into independent 512KB sub-jobs.
 2. **Ephemeral Scrambling**: Each chunk is XOR-scrambled in RAM using a per-job ephemeral key.
 3. **Internal Pipes**: Chunks are passed through non-persistent internal pipes (channels) directly to the destination node's stream.
 4. **No Retention**: The backend never holds the full payload and wipes chunk buffers immediately after forwarding.
+5. **Multi-Node Parallelism**: Since each chunk is a standalone job, the mesh distributes them across different physical nodes, maximizing throughput while maintaining zero-storage isolation.
 
 ---
 

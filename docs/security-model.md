@@ -149,12 +149,14 @@ Nodes and the steward never see plaintext.
 
 ### Streaming Based Data Flow
 The network utilizes a chunked streaming pipeline for all job payloads:
-1. **Reception**: Backend receives the job as an HTTP stream.
-2. **Ephemeral Scrambling**: Each chunk is XOR-scrambled in backend RAM using a per-job ephemeral key.
-3. **Pipelined Forwarding**: Scrambled chunks are forwarded immediately to the destination node via internal channels.
-4. **No Retention**: The backend never holds the full payload and wipes chunk buffers immediately after forwarding.
+1. **Client-Side Splitting**: For large jobs, the Mesh Client automatically slices payloads into 512KB independent chunks.
+2. **Multi-Node Distribution**: Each chunk is treated as a separate sub-job, allowing the mesh to distribute processing across multiple isolated physical nodes.
+3. **Reception**: Backend receives each chunk as an HTTP stream.
+4. **Ephemeral Scrambling**: Each chunk is XOR-scrambled in backend RAM using a per-job ephemeral key.
+5. **Pipelined Forwarding**: Scrambled chunks are forwarded immediately to the destination node via internal channels.
+6. **No Retention**: The backend never holds the full payload and wipes chunk buffers immediately after forwarding.
 
-This ensures that even in the event of backend compromise, no whole payloads are available for extraction.
+This multi-node architecture ensures that even if a single node were compromised, it would only hold a fractional, scrambled fragment of the total job, with no access to the parent job's other chunks.
 
 ### TLS Everywhere
 All communication is:

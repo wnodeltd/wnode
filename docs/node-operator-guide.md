@@ -69,6 +69,18 @@ To onboard a new node, the operator:
 4. Registers the node automatically,
 5. Begins receiving jobs.
 
+## Job Processing & Zero-Storage
+
+Nodes process jobs using a streaming, RAM-only execution model:
+
+1. **Task Polling**: The node worker continuously polls the dispatcher for assigned tasks.
+2. **Encrypted Streaming**: For streaming jobs, the node fetches encrypted chunks via a secure ephemeral XOR-scrambled pipe.
+3. **On-the-Fly Decryption**: The node decrypts chunks in RAM using the per-job XOR key provided in the assignment.
+4. **WASM Execution**: The decrypted bundle is executed in the isolated RAM-only WASM runner.
+5. **Mandatory RAM Wipe**: Immediately after execution, the node worker explicitly zeroes out the decrypted buffers in RAM to ensure zero forensic trace.
+
+No job data ever touches the node's disk.
+
 No approval is required. No manual configuration is required.
 
 ## Scaling Node Operations

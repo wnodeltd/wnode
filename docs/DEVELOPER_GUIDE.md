@@ -60,9 +60,27 @@ All tests must pass before a PR can be merged.
 
 - `nodld/` — Go-based backend (Coordinator, Dispatcher, P2P, and Node Worker)
 - `apps/mesh/` — Mesh Portal (Next.js) for job submission and node monitoring
+  - `app/lib/splitAndSubmit.ts` — Core utility for client-side automated splitting and aggregation.
 - `apps/wnoder/` — Operator Dashboard (Next.js) for node management
 - `apps/command/` — Governance Portal (Next.js) for system oversight
 - `docs/` — Comprehensive documentation for the Sovereign Beta 1.0
+
+---
+
+## Automated Job Splitting
+
+Large jobs (>512KB) are automatically split by the client. Developers working on the Mesh UI should use the `splitAndSubmit` utility:
+
+```typescript
+import { splitAndSubmit } from '../lib/splitAndSubmit';
+
+const result = await splitAndSubmit(file, metadata, API_BASE);
+```
+
+This utility handles:
+- Parallel submission (max concurrency: 2)
+- Polling for sub-job completion
+- Unified result aggregation
 
 ---
 
