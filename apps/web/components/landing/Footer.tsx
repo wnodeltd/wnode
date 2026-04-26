@@ -1,34 +1,18 @@
-import Link from "next/link";
-
-interface FooterProps {
-    onContactClick: () => void;
-}
-
-export default function Footer({ onContactClick }: FooterProps) {
+export default function Footer() {
     return (
-        <footer className="py-20 px-8 border-t border-white/15 bg-black">
-            <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-12 mb-20">
-                <div className="flex items-center gap-4">
-                    <span className="text-xl font-bold tracking-tight text-white uppercase">Wnode</span>
+        <footer className="py-20 bg-black border-t border-white/5">
+            <div className="max-w-7xl mx-auto px-8 flex flex-col md:flex-row items-center justify-between gap-8">
+                <div className="flex items-center gap-2">
+                    {/* KEEP_THIS: /logo.png */}
+                    <img src="/logo.png" alt="wnode" className="w-6 h-6 grayscale opacity-50" />
+                    <span className="text-white/30 font-bold uppercase tracking-widest text-xs">wnode © 2026</span>
                 </div>
                 
-                <div className="flex flex-wrap justify-center gap-10 text-sm font-medium text-[var(--text-secondary)]">
-                    <Link href="/" className="hover:text-white transition-colors">Home</Link>
-                    <Link href="/terms" className="hover:text-white transition-colors">Terms</Link>
-                    <Link href="/privacy" className="hover:text-white transition-colors">Privacy</Link>
-                    <Link href="/cookies" className="hover:text-white transition-colors">Cookies</Link>
-                    <button 
-                        onClick={onContactClick}
-                        className="hover:text-white transition-colors"
-                    >
-                        Contact
-                    </button>
-                </div>
-            </div>
-
-            <div className="max-w-6xl mx-auto border-t border-white/15 pt-12 text-center">
-                <div className="text-[10px] text-slate-600 font-medium uppercase tracking-[0.3em]">
-                    © 2026 Wnode Ltd. Sovereign Infrastructure.
+                <div className="flex items-center gap-10">
+                    <a href="/privacy" className="text-white/40 hover:text-white transition-colors text-xs uppercase tracking-[0.2em]">Privacy</a>
+                    <a href="/terms" className="text-white/40 hover:text-white transition-colors text-xs uppercase tracking-[0.2em]">Terms</a>
+                    <a href="https://github.com/wnodeltd/wnode" className="text-white/40 hover:text-white transition-colors text-xs uppercase tracking-[0.2em]">GitHub</a>
+                    <a href="mailto:hello@wnode.one" className="text-white/40 hover:text-white transition-colors text-xs uppercase tracking-[0.2em]">Contact</a>
                 </div>
             </div>
         </footer>

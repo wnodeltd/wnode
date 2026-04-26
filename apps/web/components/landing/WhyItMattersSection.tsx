@@ -1,47 +1,41 @@
-import { Cpu, TrendingUp, Zap, ShieldCheck } from "lucide-react";
+import { Cpu, Zap, Shield, BarChart3 } from "lucide-react";
 
 export default function WhyItMattersSection() {
     const features = [
         {
-            title: "Own Web 4",
-            description: "Compute demand outstrips supply. Decentralized Edge and Mesh compute is the future",
+            title: "Autonomous Mesh Compute",
+            description: "No data centers. Just a resilient, distributed mesh of machines executing jobs in isolated RAM.",
             icon: Cpu,
-            color: "text-cyan-400",
-            borderColor: "border-cyan-500/50"
         },
         {
-            title: "Affilate economics.",
-            description: "Modelled on the most respected and robust Affiliate protocols to create highly leveraged passive income from real world \"in demand\" product.",
-            icon: TrendingUp,
-            color: "text-violet-400",
-            borderColor: "border-violet-500/50"
-        },
-        {
-            title: "No gatekeepers.",
-            description: "Built on mesh infrastructure. No permission required to create, grow, or monetise.",
-            icon: ShieldCheck,
-            color: "text-amber-400",
-            borderColor: "border-amber-500/50"
-        },
-        {
-            title: "Novice-proof.",
-            description: "3 Clicks and earn, add devices and grow your revenue to any scale. Fully automated, fully managed, always yours.",
+            title: "Zero-Friction Onboarding",
+            description: "Go from registration to live compute in seconds. No complex provisioning, just pure deployment.",
             icon: Zap,
-            color: "text-emerald-400",
-            borderColor: "border-emerald-500/50"
+        },
+        {
+            title: "Institutional Governance",
+            description: "Built with long-term integrity at the core. Every decision is transparent, every economic flow is secured.",
+            icon: Shield,
+        },
+        {
+            title: "Investor-Ready Economics",
+            description: "Direct revenue flows through the protocol. Real demand, real utility, real economic sovereignty.",
+            icon: BarChart3,
         }
     ];
 
     return (
-        <section className="section-spacing border-t border-white/15">
-            <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {features.map((f, i) => (
-                    <div key={i} className={`fade-in-section p-6 rounded-[20px] border ${f.borderColor} bg-white/[0.02] backdrop-blur-sm transition-all hover:bg-white/[0.04] flex flex-col`}>
-                        <f.icon className={`w-6 h-6 ${f.color} mb-6`} />
-                        <h3 className="text-xl font-bold mb-4 text-white uppercase tracking-tight">{f.title}</h3>
-                        <p className="text-slate-400 leading-relaxed text-base">{f.description}</p>
-                    </div>
-                ))}
+        <section className="py-32 bg-black border-t border-white/5">
+            <div className="max-w-7xl mx-auto px-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                    {features.map((f, i) => (
+                        <div key={i} className="fade-in-section p-10 border border-white/5 bg-white/[0.02] hover:border-blue-500/30 transition-all group">
+                            <f.icon className="w-8 h-8 text-blue-500 mb-8 group-hover:scale-110 transition-transform" />
+                            <h3 className="text-xl font-bold mb-4 text-white uppercase tracking-tight font-space-grotesk">{f.title}</h3>
+                            <p className="text-slate-400 leading-relaxed text-base">{f.description}</p>
+                        </div>
+                    ))}
+                </div>
             </div>
         </section>
     );

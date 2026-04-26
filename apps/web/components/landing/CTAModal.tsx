@@ -5,6 +5,8 @@ import LeadCaptureForm from "../forms/LeadCaptureForm";
 export type ModalMode = 
     | "beta_tester" 
     | "waitlist" 
+    | "developer"
+    | "investor"
     | "persona_creator" 
     | "persona_founder" 
     | "persona_community" 
@@ -29,6 +31,16 @@ export default function CTAModal({ isOpen, onClose, mode }: CTAModalProps) {
             title: "Join the Waitlist",
             line: "We'll notify you as soon as new node allocations become available.",
             tag: "waitlist"
+        },
+        developer: {
+            title: "Beta Developer",
+            line: "Get early API access and start building on the wnode mesh.",
+            tag: "developer"
+        },
+        investor: {
+            title: "Investor Waitlist",
+            line: "Join the priority list for our upcoming strategic round.",
+            tag: "investor"
         },
         persona_creator: {
             title: "Creator Access",

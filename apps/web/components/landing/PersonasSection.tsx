@@ -9,111 +9,52 @@ interface PersonasSectionProps {
 export default function PersonasSection({ onOpenModal }: PersonasSectionProps) {
     const personas = [
         {
-            title: "Creators & Influencers",
-            hook: "Turn your audience into a real network—with shared upside.",
-            bullets: [
-                "Track referrals and influence automatically.",
-                "Reward the people who actually move the needle.",
-                "Build something that outlives any single platform."
-            ],
-            ctaLabel: "Join as a creator",
-            mode: "persona_creator" as ModalMode
+            title: "Developers",
+            description: "Deploy to a mesh that respects your autonomy. Low latency, high uptime, zero storage.",
+            cta: "Become a Beta Developer",
+            mode: "developer" as ModalMode
         },
         {
-            title: "Entrepreneurs & Founders",
-            hook: "Turn customers, partners, and advocates into a living asset.",
-            bullets: [
-                "Map your ecosystem in real time.",
-                "See who drives growth, not just who pays invoices.",
-                "Design incentives that compound over time."
-            ],
-            ctaLabel: "Join as a founder",
-            mode: "persona_founder" as ModalMode
+            title: "Beta Testers",
+            description: "Join the Sovereign Beta. Be the first to operate nodes and shape the protocol's future.",
+            cta: "Join the Beta",
+            mode: "beta_tester" as ModalMode
         },
         {
-            title: "Community Builders",
-            hook: "Give your community a structure that respects contribution.",
-            bullets: [
-                "Recognise connectors, not just loud voices.",
-                "Make contribution visible and meaningful.",
-                "Build a community that can sustain itself."
-            ],
-            ctaLabel: "Join as a community builder",
-            mode: "persona_community" as ModalMode
+            title: "Evangelists",
+            description: "Help build the wnode movement. Spread the vision of decentralized compute sovereignty.",
+            cta: "Join as Evangelist",
+            mode: "waitlist" as ModalMode
         },
         {
-            title: "Early Adopters",
-            hook: "Be early to a new class of economic infrastructure.",
-            bullets: [
-                "Experiment with new models of ownership.",
-                "Prototype networks that don't fit old categories.",
-                "Help shape how the protocol evolves."
-            ],
-            ctaLabel: "Join as an early adopter",
-            mode: "persona_early_adopter" as ModalMode
+            title: "Investors",
+            description: "Secure your place in the future of the compute economy. Institutional-grade vision.",
+            cta: "Join Investor Waitlist",
+            mode: "investor" as ModalMode
         }
     ];
 
     return (
-        <section className="section-spacing border-t border-white/15">
-            <div className="max-w-4xl mx-auto">
-                <div className="fade-in-section text-center border border-blue-500/40 px-10 py-16 md:px-20 md:py-24 rounded-[40px] bg-white/[0.01] backdrop-blur-sm shadow-2xl">
-                    <div className="mb-12 transform hover:scale-[1.01] transition-transform duration-700">
-                        <img src="/models.png" alt="Sovereign Models" className="w-full h-auto rounded-3xl" />
-                    </div>
-                    <h2 className="text-4xl md:text-6xl font-bold mb-12 text-white uppercase tracking-tight">
-                        COMPUTE IS THE EMERGING CURRENCY
-                    </h2>
-                    
-                    <div className="text-left max-w-2xl mx-auto">
-                        <p className="text-2xl md:text-3xl text-blue-500 font-medium mb-10">Wnode is :-</p>
-                        
-                        <div className="space-y-8">
-                            {[
-                                "Simple to join",
-                                "Use any tech, old or new",
-                                "Guaranteed daily payouts (Stripe Express account needed)",
-                                "A true immutable growing real-world monetised asset",
-                                "Cannot be frozen, removed, changed, or stopped"
-                            ].map((b, i) => (
-                                <div key={i} className="flex items-start gap-6 text-xl md:text-2xl text-slate-300">
-                                    <span className="text-blue-500 font-bold text-3xl leading-none mt-1">•</span>
-                                    <span>{b}</span>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div className="mt-16 flex flex-col sm:flex-row items-center justify-center gap-10">
-                        <div className="flex flex-col items-center gap-4">
+        <section className="py-32 bg-black border-t border-white/5">
+            <div className="max-w-7xl mx-auto px-8">
+                <h2 className="text-4xl md:text-5xl font-bold text-white uppercase tracking-tighter mb-20 font-space-grotesk text-center">
+                    Join the Mesh.
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {personas.map((p, i) => (
+                        <div key={i} className="fade-in-section p-12 border border-white/5 bg-white/[0.01] flex flex-col justify-between hover:bg-white/[0.02] transition-all">
+                            <div>
+                                <h3 className="text-3xl font-bold mb-6 text-white uppercase tracking-tight font-space-grotesk">{p.title}</h3>
+                                <p className="text-xl text-slate-400 mb-10 leading-relaxed">{p.description}</p>
+                            </div>
                             <button 
-                                onClick={() => onOpenModal("beta_tester")}
-                                className="button-apple-primary text-xl px-12 py-5"
+                                onClick={() => onOpenModal(p.mode)}
+                                className="w-full bg-transparent border border-blue-500/50 hover:bg-blue-500/10 text-blue-400 font-bold py-5 uppercase tracking-widest transition-all"
                             >
-                                Become a beta tester
+                                {p.cta}
                             </button>
-                            <a 
-                                href="https://github.com/wnodeltd/wnode" 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="text-orange-500 hover:text-orange-400 font-medium tracking-wide transition-colors flex items-center gap-2"
-                            >
-                                View the project on GitHub
-                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                </svg>
-                            </a>
                         </div>
-                        <button 
-                            onClick={() => onOpenModal("waitlist")}
-                            className="button-apple-secondary text-2xl group"
-                        >
-                            Join the waitlist 
-                            <svg className="w-6 h-6 transform group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                            </svg>
-                        </button>
-                    </div>
+                    ))}
                 </div>
             </div>
         </section>

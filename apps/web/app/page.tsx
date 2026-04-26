@@ -7,7 +7,7 @@ import WhatIsWnodeSection from "../components/landing/WhatIsWnodeSection";
 import WhyItMattersSection from "../components/landing/WhyItMattersSection";
 import PersonasSection from "../components/landing/PersonasSection";
 import TrustSection from "../components/landing/TrustSection";
-import BetaSection from "../components/landing/BetaSection";
+import Footer from "../components/landing/Footer";
 import CTAModal, { ModalMode } from "../components/landing/CTAModal";
 
 export default function LandingPage() {
@@ -20,7 +20,6 @@ export default function LandingPage() {
     }, []);
 
     const openModal = (mode: ModalMode) => {
-        console.log("Opening modal:", mode);
         setModalMode(mode);
         setIsModalOpen(true);
     };
@@ -29,13 +28,13 @@ export default function LandingPage() {
     
     return (
         <AppLayout>
-            <div className="bg-black text-white">
+            <div className="bg-black text-white selection:bg-blue-500/30">
                 <HeroSection onOpenModal={openModal} />
                 <WhatIsWnodeSection />
                 <WhyItMattersSection />
                 <PersonasSection onOpenModal={openModal} />
                 <TrustSection />
-                <BetaSection onOpenModal={openModal} />
+                <Footer />
             </div>
             
             <CTAModal 
