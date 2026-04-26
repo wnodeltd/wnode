@@ -147,6 +147,15 @@ Nodes and the steward never see plaintext.
 
 ## Transport Security
 
+### Streaming Based Data Flow
+The network utilizes a chunked streaming pipeline for all job payloads:
+1. **Reception**: Backend receives the job as an HTTP stream.
+2. **Ephemeral Scrambling**: Each chunk is XOR-scrambled in backend RAM using a per-job ephemeral key.
+3. **Pipelined Forwarding**: Scrambled chunks are forwarded immediately to the destination node via internal channels.
+4. **No Retention**: The backend never holds the full payload and wipes chunk buffers immediately after forwarding.
+
+This ensures that even in the event of backend compromise, no whole payloads are available for extraction.
+
 ### TLS Everywhere
 All communication is:
 

@@ -46,6 +46,17 @@ Nodes operate as **stateless RAM‑only execution environments**.
 
 ---
 
+# Zero‑Storage Routing (Coordinator)
+
+The backend acts as a **stateless router** using the Streaming Coordinator pattern:
+
+1. **Incoming Stream**: Jobs are received as chunked HTTP streams.
+2. **Ephemeral Scrambling**: Each chunk is XOR-scrambled in RAM using a per-job ephemeral key.
+3. **Internal Pipes**: Chunks are passed through non-persistent internal pipes (channels) directly to the destination node's stream.
+4. **No Retention**: The backend never holds the full payload and wipes chunk buffers immediately after forwarding.
+
+---
+
 # What Nodes May Store
 
 Nodes may store **only**:
@@ -109,12 +120,12 @@ Zero‑storage violations are non‑recoverable without remediation.
 
 # RAM‑Only Execution
 
-Zero‑storage requires:
+RAM‑only execution requires:
 
-- All job data to be decrypted in RAM,
-- All ephemeral keys to remain in RAM,
-- All intermediate results to remain in RAM,
-- All buffers to be zeroed after use.
+- **Ephemeral XOR Decryption**: Each chunk is decrypted on-the-fly using the per-job key provided in the Job Envelope.
+- **Incremental Loading**: Decrypted data is fed into the execution engine (e.g., WASM) without persisting to disk.
+- **Mandatory Buffer Wipe**: All transient RAM buffers are explicitly zeroed out (wiped) after module compilation and execution.
+- **No Trace Retention**: All ephemeral keys and intermediate state are destroyed immediately upon job completion.
 
 RAM‑only execution ensures:
 

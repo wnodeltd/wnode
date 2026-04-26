@@ -21,8 +21,9 @@ import (
 	"github.com/obregan/nodl/nodld/internal/p2p"
 	"github.com/obregan/nodl/nodld/internal/pricing"
 	stripeService "github.com/obregan/nodl/nodld/internal/stripe"
-	"github.com/obregan/nodl/nodld/internal/wasm"
 	"github.com/obregan/nodl/nodld/internal/account"
+	"github.com/obregan/nodl/nodld/internal/runner"
+	"github.com/obregan/nodl/nodld/internal/wasm"
 	"github.com/obregan/nodl/nodld/internal/money"
 	"github.com/obregan/nodl/nodld/internal/acquisition"
 	"github.com/obregan/nodl/nodld/internal/forensics"
@@ -75,6 +76,7 @@ func main() {
 		log.Fatal("failed to load/create p2p identity", zap.Error(err))
 	}
 
+
 	// ── P2P Host ──────────────────────────────────────────────────────────────
 	p2pHost, err := p2p.New(ctx, cfg.P2PPort, priv, cfg.P2PBootstrapPeers, log)
 	if err != nil {
@@ -82,6 +84,12 @@ func main() {
 	}
 	defer p2pHost.Close()
 	log.Info("libp2p host online", zap.String("peerID", p2pHost.ID()))
+
+	// ── WASM Runner ───────────────────────────────────────────────────────────
+	wasmRunner, err := wasm.NewRunner(ctx, p2pHost.ID(), log)
+	if err != nil {
+		log.Fatal("WASM runner failed to start", zap.Error(err))
+	}
 
 	// ── Forensic Integrity Layer ─────────────────────────────────────────────
 	forensicsStore := forensics.NewStore("SOVEREIGN_SECRET_2026", "NODL_SALT")
@@ -101,12 +109,12 @@ func main() {
 	dispatcher := jobs.NewDispatcher(store, p2pHost.Registry(), accountStore, forensicsStore, log)
 	go dispatcher.Run(ctx)
 
-	// ── WASM Runner ───────────────────────────────────────────────────────────
-	_, err = wasm.NewRunner(ctx, p2pHost.ID(), log)
-	if err != nil {
-		log.Fatal("WASM runner failed to start", zap.Error(err))
-	}
 	log.Info("Wazero runtime online", zap.String("status", "ready"))
+	
+	// ── Node Worker ──────────────────────────────────────────────────────────
+	apiBase := fmt.Sprintf("http://localhost:%d", cfg.APIPort)
+	nodeWorker := runner.NewWorker(p2pHost.ID(), dispatcher, store, wasmRunner, apiBase, log)
+	go nodeWorker.Run(ctx)
 
 	// ── Stripe Service ────────────────────────────────────────────────────────
 	stripeSvc := stripeService.NewService(

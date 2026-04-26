@@ -44,7 +44,7 @@ func TestPriorityRouting(t *testing.T) {
 	// --- TEST 1: Priority Hit ---
 	t.Run("Priority Hit", func(t *testing.T) {
 		wasm := []byte{0xde, 0xad, 0xbe, 0xef}
-		job, err := dispatcher.Submit(context.Background(), client.ID, wasm, 10.0, 1000)
+		job, err := dispatcher.Submit(context.Background(), client.ID, wasm, 10.0, 1000, DeliveryLegacy)
 		if err != nil {
 			t.Fatalf("Failed to submit job: %v", err)
 		}
@@ -69,7 +69,7 @@ func TestPriorityRouting(t *testing.T) {
 	t.Run("Fallback", func(t *testing.T) {
 		// Submit job from a client with no Sales Source
 		wasm := []byte{0xca, 0xfe, 0xba, 0xbe}
-		job, err := dispatcher.Submit(context.Background(), "UNKNOWN_CLIENT", wasm, 5.0, 500)
+		job, err := dispatcher.Submit(context.Background(), "UNKNOWN_CLIENT", wasm, 5.0, 500, DeliveryLegacy)
 		if err != nil {
 			t.Fatalf("Failed to submit job: %v", err)
 		}
@@ -90,7 +90,7 @@ func TestPriorityRouting(t *testing.T) {
 	// --- TEST 3: Fairness Audit (Commission Flow) ---
 	t.Run("Fairness Audit", func(t *testing.T) {
 		wasm := []byte{0xde, 0xad, 0xbe, 0xef}
-		_, _ = dispatcher.Submit(context.Background(), client.ID, wasm, 100.0, 1000) // $100.00 = 10000 cents
+		_, _ = dispatcher.Submit(context.Background(), client.ID, wasm, 100.0, 1000, DeliveryLegacy) // $100.00 = 10000 cents
 
 		// Node B (General) handles the job (Sales Source node was "offline" or "busy")
 		_, jobID, _ := dispatcher.GetTaskForNode(context.Background(), nodeB)

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from 'react';
+import { splitAndSubmit } from '../lib/splitAndSubmit';
 
 export interface JobBundle {
     id: string;
@@ -29,7 +30,7 @@ export interface Job {
 interface JobsContextType {
     bundles: JobBundle[];
     jobs: Job[];
-    submitJob: (file: File, metadata: { budget: number, targetCycles: number }) => Promise<string>;
+    submitJob: (file: File, metadata: { budget: number, targetCycles: number }) => Promise<{ id: string, result: string }>;
     deleteBundle: (id: string) => void;
     refreshJobs: () => void;
 }
@@ -75,33 +76,23 @@ export function JobsProvider({ children }: { children: ReactNode }) {
     }, [fetchJobs]);
 
     const submitJob = async (file: File, metadata: { budget: number, targetCycles: number }) => {
-        const formData = new FormData();
-        formData.append('wasm', file);
-        formData.append('manifest', JSON.stringify(metadata));
-
-        const resp = await fetch(`${API_BASE}/jobs`, {
-            method: 'POST',
-            body: formData,
-        });
-
-        if (!resp.ok) {
-            const err = await resp.json();
-            throw new Error(err.error || 'Upload failed');
-        }
-
-        const result = await resp.json();
+        // Delegate to automated splitting and aggregation utility
+        const unifiedResult = await splitAndSubmit(file, metadata, API_BASE);
+        
+        // For the UI, we represent this as a single virtual job bundle
+        const virtualId = `JOB-${crypto.randomUUID().slice(0, 4).toUpperCase()}`;
         
         // Add to local bundles for UI storage view
         const newBundle: JobBundle = {
-            id: `BUNDLE-${result.id.slice(0,3).toUpperCase()}`,
+            id: virtualId,
             name: file.name,
             size: `${(file.size / (1024 * 1024)).toFixed(1)} MB`,
             timestamp: new Date().toLocaleString()
         };
         setBundles(prev => [newBundle, ...prev]);
 
-        fetchJobs(); // Trigger immediate refresh
-        return result.id;
+        fetchJobs();
+        return { id: virtualId, result: unifiedResult };
     };
 
     const deleteBundle = (id: string) => {

@@ -58,10 +58,11 @@ All tests must pass before a PR can be merged.
 
 ## Project Structure
 
-- `/backend` — routing, streaming, identity, and job dispatch  
-- `/portal` — UI layers (cmd, mesh, nodlr, wnode.one)  
-- `/docs` — governance, security, and contributor documentation  
-- `/docker` — deployment configuration  
+- `nodld/` — Go-based backend (Coordinator, Dispatcher, P2P, and Node Worker)
+- `apps/mesh/` — Mesh Portal (Next.js) for job submission and node monitoring
+- `apps/wnoder/` — Operator Dashboard (Next.js) for node management
+- `apps/command/` — Governance Portal (Next.js) for system oversight
+- `docs/` — Comprehensive documentation for the Sovereign Beta 1.0
 
 ---
 

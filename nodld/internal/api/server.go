@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 	"os"
+	"bufio"
 
 	"github.com/gofiber/contrib/websocket"
 	"github.com/gofiber/fiber/v2"
@@ -148,6 +149,8 @@ func (s *Server) registerRoutes() {
 	s.app.Get("/jobs", s.handleListJobs)
 	s.app.Post("/jobs", s.handleSubmitJob)
 	s.app.Get("/jobs/:id", s.handleGetJob)
+	s.app.Post("/jobs/stream", s.handleStreamJob)
+	s.app.Get("/jobs/:id/stream", s.handlePullJobStream)
 
 	// Pricing
 	s.app.Get("/pricing", s.handleGetPricing)
@@ -347,9 +350,10 @@ func (s *Server) handleListJobs(c *fiber.Ctx) error {
 
 // JobSubmitRequest is the JSON manifest included with job submission.
 type JobSubmitRequest struct {
-	MeshClientID string  `json:"meshClientId"`
-	Budget       float64 `json:"budget"`
-	TargetCycles int64   `json:"targetCycles"`
+	MeshClientID string            `json:"meshClientId"`
+	Budget       float64           `json:"budget"`
+	TargetCycles int64             `json:"targetCycles"`
+	DeliveryMode jobs.DeliveryMode `json:"deliveryMode"`
 }
 
 func (s *Server) handleSubmitJob(c *fiber.Ctx) error {
@@ -380,7 +384,7 @@ func (s *Server) handleSubmitJob(c *fiber.Ctx) error {
 		}
 	}
 
-	job, err := s.dispatcher.Submit(c.Context(), req.MeshClientID, wasmBytes, req.Budget, req.TargetCycles)
+	job, err := s.dispatcher.Submit(c.Context(), req.MeshClientID, wasmBytes, req.Budget, req.TargetCycles, req.DeliveryMode)
 	if err != nil {
 		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
 	}
@@ -420,16 +424,110 @@ func (s *Server) handleWebSocket(c *websocket.Conn) {
 	}
 }
 
+func (s *Server) handleStreamJob(c *fiber.Ctx) error {
+	// Read manifest
+	manifest := c.FormValue("manifest")
+	var req JobSubmitRequest
+	if manifest != "" {
+		if err := json.Unmarshal([]byte(manifest), &req); err != nil {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid manifest JSON"})
+		}
+	}
+	req.DeliveryMode = jobs.DeliveryStreaming
+
+	// Get file stream
+	file, err := c.FormFile("wasm")
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "missing wasm stream"})
+	}
+
+	f, err := file.Open()
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	// Submit job metadata (zero-storage)
+	job, err := s.dispatcher.Submit(c.Context(), req.MeshClientID, nil, req.Budget, req.TargetCycles, req.DeliveryMode)
+	if err != nil {
+		f.Close()
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	// XOR stream wrapper
+	xorStream := jobs.NewXORStream(f, job.XORKey)
+
+	// Pipe in background (Zero-Storage)
+	go func() {
+		defer f.Close()
+		defer s.dispatcher.CloseStream(job.ID)
+
+		buf := make([]byte, 16384) // 16KB chunks
+		for {
+			n, err := xorStream.Read(buf)
+			if n > 0 {
+				// Push encrypted chunk to dispatcher data pipe
+				if err := s.dispatcher.PushStreamChunk(job.ID, append([]byte{}, buf[:n]...)); err != nil {
+					s.log.Error("stream push failed", zap.String("jobID", job.ID), zap.Error(err))
+					return
+				}
+			}
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				s.log.Error("stream read failed", zap.String("jobID", job.ID), zap.Error(err))
+				return
+			}
+		}
+	}()
+
+	s.Broadcast(fiber.Map{"event": "job.submitted.streaming", "jobID": job.ID})
+
+	return c.Status(fiber.StatusCreated).JSON(jobToMap(job))
+}
+
+func (s *Server) handlePullJobStream(c *fiber.Ctx) error {
+	id := c.Params("id")
+	job := s.store.Get(id)
+	if job == nil || job.DeliveryMode != jobs.DeliveryStreaming {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "streaming job not found"})
+	}
+
+	// Stream the data chunks to the node
+	c.Context().SetContentType("application/octet-stream")
+	c.Context().SetBodyStreamWriter(func(w *bufio.Writer) {
+		for {
+			chunk, ok := s.dispatcher.PullStreamChunk(id)
+			if !ok {
+				break
+			}
+			if _, err := w.Write(chunk); err != nil {
+				break
+			}
+			if err := w.Flush(); err != nil {
+				break
+			}
+		}
+	})
+	return nil
+}
+
 func jobToMap(j *jobs.Job) fiber.Map {
-	return fiber.Map{
+	m := fiber.Map{
 		"id":           j.ID,
 		"status":       j.Status,
+		"deliveryMode": j.DeliveryMode,
+		"engineType":   j.EngineType,
 		"budget":       j.Budget,
 		"targetCycles": j.TargetCycles,
 		"proofCount":   j.ProofCount,
 		"createdAt":    j.CreatedAt,
 		"updatedAt":    j.UpdatedAt,
 	}
+	if len(j.XORKey) > 0 {
+		m["xorKey"] = fmt.Sprintf("%x", j.XORKey)
+	}
+	return m
 }
 
 func (s *Server) handleGetPricing(c *fiber.Ctx) error {

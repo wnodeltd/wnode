@@ -9,11 +9,11 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"go.uber.org/zap"
-	"github.com/obregan/nodl/nodld/internal/p2p"
 	"github.com/obregan/nodl/nodld/internal/account"
 	"github.com/obregan/nodl/nodld/internal/compute"
 	"github.com/obregan/nodl/nodld/internal/forensics"
+	"github.com/obregan/nodl/nodld/internal/p2p"
+	"go.uber.org/zap"
 )
 
 // JobStatus represents the lifecycle state of a compute job.
@@ -33,18 +33,41 @@ type Assignment struct {
 	AssignedAt time.Time
 }
 
+// DeliveryMode defines how a job payload is handled and transported.
+type DeliveryMode string
+
+const (
+	DeliveryLegacy    DeliveryMode = "legacy"    // Whole-payload, stored in RAM
+	DeliveryStreaming DeliveryMode = "streaming" // Chunked, XOR-encrypted, zero-storage
+)
+
 // Job is the core unit of compute work on the Nodl mesh.
 type Job struct {
 	ID           string
-	MeshClientID string    `json:"meshClientId"` // The client who submitted the job
-	WASMPayload  []byte
-	Budget       float64   // USD
-	TargetCycles int64
-	Status       JobStatus
-	Assignments  []Assignment
-	ProofCount   int       // number of verified Proof-of-Work receipts received
-	CreatedAt    time.Time
-	UpdatedAt    time.Time
+	MeshClientID string       `json:"meshClientId"` // The client who submitted the job
+	DeliveryMode DeliveryMode `json:"deliveryMode"`
+	EngineType   string       `json:"engineType"`   // e.g. "wasm", "native"
+	WASMPayload  []byte       `json:"wasmPayload,omitempty"` // Only for DeliveryLegacy
+	XORKey       []byte       `json:"xorKey,omitempty"`     // Ephemeral key for DeliveryStreaming
+	Budget       float64      `json:"budget"`       // USD
+	TargetCycles int64        `json:"targetCycles"`
+	Status       JobStatus    `json:"status"`
+	Assignments  []Assignment `json:"assignments"`
+	ProofCount   int          `json:"proofCount"`   // number of verified Proof-of-Work receipts received
+	CreatedAt    time.Time    `json:"createdAt"`
+	UpdatedAt    time.Time    `json:"updatedAt"`
+}
+
+// JobEnvelope represents the engine-agnostic metadata and stream linkage for a job.
+type JobEnvelope struct {
+	JobID        string            `json:"job_id"`
+	ClientID     string            `json:"client_id"`
+	NodeID       string            `json:"node_id,omitempty"`
+	EngineType   string            `json:"engine_type"`
+	ContentType  string            `json:"content_type"`
+	DeliveryMode DeliveryMode      `json:"delivery_mode"`
+	Metadata     map[string]string `json:"metadata,omitempty"`
+	SubmittedAt  time.Time         `json:"submitted_at"`
 }
 
 // Store is a thread-safe in-memory job registry.
@@ -106,6 +129,10 @@ type Dispatcher struct {
 	log          *zap.Logger
 	jobCounter   uint64
 
+	// streams links a jobID to a live data pipe (Zero-Storage)
+	streams map[string]chan []byte
+	streamsMu sync.RWMutex
+
 	// proofCh receives proof-of-work receipts from the WASM runner or peers
 	proofCh chan ProofReceipt
 }
@@ -126,22 +153,40 @@ func NewDispatcher(store *Store, registry *p2p.Registry, accountStore *account.S
 		accountStore: accountStore,
 		forensics:    forensics,
 		log:          log,
+		streams:      make(map[string]chan []byte),
 		proofCh:      make(chan ProofReceipt, 256),
 	}
 }
 
 // Submit creates a Job entry and marks it active.
 // In Phase 1 the job is run locally; Phase 2 fans out to peers via pubsub.
-func (d *Dispatcher) Submit(ctx context.Context, meshClientID string, wasm []byte, budget float64, targetCycles int64) (*Job, error) {
+func (d *Dispatcher) Submit(ctx context.Context, meshClientID string, wasm []byte, budget float64, targetCycles int64, mode DeliveryMode) (*Job, error) {
+	if mode == "" {
+		mode = DeliveryLegacy
+	}
+
+	jobID := uuid.New().String()
+
 	job := &Job{
-		ID:           uuid.New().String(),
+		ID:           jobID,
 		MeshClientID: meshClientID,
+		DeliveryMode: mode,
+		EngineType:   "wasm",
 		WASMPayload:  wasm,
 		Budget:       budget,
 		TargetCycles: targetCycles,
 		Status:       StatusPending,
 		CreatedAt:    time.Now(),
 		UpdatedAt:    time.Now(),
+	}
+
+	if mode == DeliveryStreaming {
+		job.WASMPayload = nil // Ensure zero-storage for streaming
+		key, _ := GenerateEphemeralKey()
+		job.XORKey = key
+		d.streamsMu.Lock()
+		d.streams[jobID] = make(chan []byte, 10) // Small buffer for chunked stream
+		d.streamsMu.Unlock()
 	}
 
 	d.store.Add(job)
@@ -206,11 +251,55 @@ func (d *Dispatcher) GetTaskForNode(ctx context.Context, hwDNA string) ([]byte, 
 	jobsList := d.store.List()
 	for _, j := range jobsList {
 		if j.Status == StatusPending || j.Status == StatusActive {
+			if j.DeliveryMode == DeliveryStreaming {
+				return []byte("STREAMING_ACTIVE"), j.ID, nil
+			}
 			return j.WASMPayload, j.ID, nil
 		}
 	}
 
 	return nil, "", fmt.Errorf("no jobs available")
+}
+
+// PushStreamChunk injects a single encrypted chunk into the job's data pipe.
+func (d *Dispatcher) PushStreamChunk(jobID string, chunk []byte) error {
+	d.streamsMu.RLock()
+	ch, ok := d.streams[jobID]
+	d.streamsMu.RUnlock()
+
+	if !ok {
+		return fmt.Errorf("job %s not in streaming mode or pipe closed", jobID)
+	}
+
+	select {
+	case ch <- chunk:
+		return nil
+	case <-time.After(5 * time.Second):
+		return fmt.Errorf("stream timeout: no node consuming job %s", jobID)
+	}
+}
+
+// PullStreamChunk waits for the next data chunk for the given job.
+func (d *Dispatcher) PullStreamChunk(jobID string) ([]byte, bool) {
+	d.streamsMu.RLock()
+	ch, ok := d.streams[jobID]
+	d.streamsMu.RUnlock()
+
+	if !ok {
+		return nil, false
+	}
+
+	chunk, ok := <-ch
+	return chunk, ok
+}
+
+// CloseStream shuts down the data pipe for a job.
+func (d *Dispatcher) CloseStream(jobID string) {
+	d.streamsMu.Lock()
+	defer d.streamsMu.Unlock()
+	if ch, ok := d.streams[jobID]; ok {
+		close(ch)
+	}
 }
 
 

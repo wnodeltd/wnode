@@ -122,12 +122,14 @@ The client encrypts:
 
 The steward and nodes never see unencrypted data.
 
-### 3. Submission
-The client sends:
+### 3. Submission & Splitting
+The client submits jobs via the **Mesh Portal** or API:
 
-- Encrypted chunks,
-- Job metadata,
-- Mesh Client ID.
+- **Small Jobs**: Submitted as a single encrypted stream directly to the coordinator.
+- **Large Jobs**: Automatically sliced into chunks (e.g., 512KB) by the client-side worker.
+- **Multi-Node Distribution**: Each chunk is submitted as an independent sub-job, allowing the mesh to process different parts of a single large file across multiple nodes in parallel.
+- **Retry Logic**: Failed chunks are automatically retried up to 3 times before the parent job is aborted.
+- **Aggregation**: The client-side utility tracks all sub-job IDs and aggregates the results into a single unified response for the user.
 
 ### 4. Routing
 The steward selects a node based on:
