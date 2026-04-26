@@ -137,8 +137,7 @@ The steward license:
 
 - Can be transferred,
 - Can be sold,
-- Can be inherited,
-- Can be revoked for violations.
+- Cannot be modified without 100% consensus of the owners.
 
 The license does **not** grant:
 
@@ -157,7 +156,6 @@ A steward transition occurs when:
 
 - The current steward sells the license,
 - The steward voluntarily steps down,
-- The steward is removed for violations,
 - A new steward is appointed by contractual agreement.
 
 During transition:
