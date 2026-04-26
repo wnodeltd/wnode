@@ -76,7 +76,7 @@ The steward may **not**:
 - Change founder tree structure,
 - Create new founder accounts,
 - Delete founder accounts,
-- Reassign founder accounts.
+- Reassign any accounts (without permission from the legal owner, or by jurisdictional court order, or by will & testament of deceased owner, or by written and notarised permission of current owner explicitly citing details of new owner).
 
 Economic rights are **constitutional**, not steward‑controlled.
 
