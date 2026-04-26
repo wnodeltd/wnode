@@ -49,7 +49,6 @@ The steward may:
 - Enforce zero‑storage and RAM‑execution rules,
 - Maintain performance scoring,
 - Adjust compute pricing tiers (within documented boundaries),
-- Activate or deactivate founder accounts (never modify override),
 - Manage system‑wide configuration that does not affect economics or identity,
 - Maintain audit logs,
 - Coordinate with Stripe for payouts.
