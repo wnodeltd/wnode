@@ -40,6 +40,12 @@ const IconRenderer = ({ type }: { type: string }) => {
   return <WarningIcon />;
 };
 
+const StatusLabel = ({ type, name }: { type: string, name: string }) => {
+  if (type === "check") return name;
+  if (type === "warning") return "LIMITED";
+  return "UNAVAILABLE";
+};
+
 export function ComparisonMinimal() {
   return (
     <section className="w-full bg-black py-24 px-8 overflow-hidden">
@@ -58,7 +64,7 @@ export function ComparisonMinimal() {
                   <div key={i} className="flex flex-col items-center gap-2 py-2 mb-2 hover:bg-white/[0.03] transition-colors duration-150 rounded-lg group">
                     <IconRenderer type={f.wnode} />
                     <span className="text-[10px] md:text-xs text-white text-center opacity-80 group-hover:opacity-100 transition-opacity uppercase tracking-tight max-w-[120px]">
-                      {f.name}
+                      <StatusLabel type={f.wnode} name={f.name} />
                     </span>
                   </div>
                 ))}
@@ -72,8 +78,8 @@ export function ComparisonMinimal() {
                 {features.map((f, i) => (
                   <div key={i} className="flex flex-col items-center gap-2 py-2 mb-2 hover:bg-white/[0.03] transition-colors duration-150 rounded-lg group">
                     <IconRenderer type={f.cloud} />
-                    <span className="text-[10px] md:text-xs text-gray-500 text-center opacity-80 group-hover:opacity-100 transition-opacity uppercase tracking-tight max-w-[120px]">
-                      {f.name}
+                    <span className="text-[10px] md:text-xs text-gray-500 text-center opacity-80 group-hover:opacity-100 transition-opacity uppercase tracking-widest max-w-[120px] font-bold">
+                      <StatusLabel type={f.cloud} name={f.name} />
                     </span>
                   </div>
                 ))}
@@ -87,8 +93,8 @@ export function ComparisonMinimal() {
                 {features.map((f, i) => (
                   <div key={i} className="flex flex-col items-center gap-2 py-2 mb-2 hover:bg-white/[0.03] transition-colors duration-150 rounded-lg group">
                     <IconRenderer type={f.other} />
-                    <span className="text-[10px] md:text-xs text-gray-600 text-center opacity-80 group-hover:opacity-100 transition-opacity uppercase tracking-tight max-w-[120px]">
-                      {f.name}
+                    <span className="text-[10px] md:text-xs text-gray-600 text-center opacity-80 group-hover:opacity-100 transition-opacity uppercase tracking-widest max-w-[120px] font-bold">
+                      <StatusLabel type={f.other} name={f.name} />
                     </span>
                   </div>
                 ))}
