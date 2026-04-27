@@ -17,8 +17,16 @@ export default function ManagementGovernancePage() {
                         
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-8">
                             <div className="flex justify-between items-center border-b border-white/5 pb-4">
-                                <span className="text-white/60 uppercase tracking-widest text-sm">Nodlr Pool</span>
+                                <span className="text-white/60 uppercase tracking-widest text-sm">Compute Node</span>
                                 <span className="text-2xl font-bold text-white font-space-grotesk">70%</span>
+                            </div>
+                            <div className="flex justify-between items-center border-b border-white/5 pb-4">
+                                <span className="text-white/60 uppercase tracking-widest text-sm">Level 1 Affiliate</span>
+                                <span className="text-2xl font-bold text-white font-space-grotesk">3%</span>
+                            </div>
+                            <div className="flex justify-between items-center border-b border-white/5 pb-4">
+                                <span className="text-white/60 uppercase tracking-widest text-sm">Level 2 Affiliate</span>
+                                <span className="text-2xl font-bold text-white font-space-grotesk">7%</span>
                             </div>
                             <div className="flex justify-between items-center border-b border-white/5 pb-4">
                                 <span className="text-white/60 uppercase tracking-widest text-sm">Sales Source</span>
@@ -29,15 +37,7 @@ export default function ManagementGovernancePage() {
                                 <span className="text-2xl font-bold text-white font-space-grotesk">7%</span>
                             </div>
                             <div className="flex justify-between items-center border-b border-white/5 pb-4">
-                                <span className="text-white/60 uppercase tracking-widest text-sm">L2 Affiliate</span>
-                                <span className="text-2xl font-bold text-white font-space-grotesk">7%</span>
-                            </div>
-                            <div className="flex justify-between items-center border-b border-white/5 pb-4">
-                                <span className="text-white/60 uppercase tracking-widest text-sm">L1 Affiliate</span>
-                                <span className="text-2xl font-bold text-white font-space-grotesk">3%</span>
-                            </div>
-                            <div className="flex justify-between items-center border-b border-white/5 pb-4">
-                                <span className="text-white/60 uppercase tracking-widest text-sm">Founder Tree</span>
+                                <span className="text-white/60 uppercase tracking-widest text-sm">Founder Affiliate Bonus</span>
                                 <span className="text-2xl font-bold text-white font-space-grotesk">3%</span>
                             </div>
                         </div>

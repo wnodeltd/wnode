@@ -37,6 +37,49 @@ export default function PersonasSection({ onOpenModal }: PersonasSectionProps) {
     return (
         <section className="py-32 bg-black border-t border-white/5">
             <div className="max-w-7xl mx-auto px-8">
+                {/* Wnode Economic Constitution Section */}
+                <div className="mb-40 p-12 border border-white/10 bg-white/[0.02] rounded-[2.5rem] space-y-10 max-w-5xl mx-auto backdrop-blur-3xl shadow-2xl">
+                    <h3 className="text-2xl font-bold uppercase tracking-[0.3em] text-blue-500 border-b border-white/10 pb-8 text-center">Wnode Economic Constitution</h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-x-24 gap-y-10">
+                        {/* Column 1 */}
+                        <div className="space-y-10">
+                            <div className="flex justify-between items-center border-b border-white/5 pb-4">
+                                <span className="text-white/60 uppercase tracking-[0.2em] text-xs font-bold">Compute Node</span>
+                                <span className="text-3xl font-bold text-white font-space-grotesk">70%</span>
+                            </div>
+                            <div className="flex justify-between items-center border-b border-white/5 pb-4">
+                                <span className="text-white/60 uppercase tracking-[0.2em] text-xs font-bold">Level 1 Affiliate</span>
+                                <span className="text-3xl font-bold text-white font-space-grotesk">3%</span>
+                            </div>
+                            <div className="flex justify-between items-center border-b border-white/5 pb-4">
+                                <span className="text-white/60 uppercase tracking-[0.2em] text-xs font-bold">Level 2 Affiliate</span>
+                                <span className="text-3xl font-bold text-white font-space-grotesk">7%</span>
+                            </div>
+                        </div>
+
+                        {/* Column 2 */}
+                        <div className="space-y-10">
+                            <div className="flex justify-between items-center border-b border-white/5 pb-4">
+                                <span className="text-white/60 uppercase tracking-[0.2em] text-xs font-bold">Sales Source</span>
+                                <span className="text-3xl font-bold text-white font-space-grotesk">10%</span>
+                            </div>
+                            <div className="flex justify-between items-center border-b border-white/5 pb-4">
+                                <span className="text-white/60 uppercase tracking-[0.2em] text-xs font-bold">Management Licensee</span>
+                                <span className="text-3xl font-bold text-white font-space-grotesk">7%</span>
+                            </div>
+                            <div className="flex justify-between items-center border-b border-white/5 pb-4">
+                                <span className="text-white/60 uppercase tracking-[0.2em] text-xs font-bold">Founder Affiliate Bonus</span>
+                                <span className="text-3xl font-bold text-white font-space-grotesk">3%</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p className="text-white/30 text-[10px] uppercase tracking-[0.2em] pt-6 text-center leading-relaxed max-w-2xl mx-auto">
+                        Note: All allocations are hard-coded into the protocol's deterministic ledger engine to ensure zero leakage and constitutional integrity.
+                    </p>
+                </div>
+
                 <h2 className="text-4xl md:text-5xl font-bold text-white uppercase tracking-tighter mb-20 font-space-grotesk text-center">
                     Join Wnode.
                 </h2>
