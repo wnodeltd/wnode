@@ -148,7 +148,7 @@ export default function PersonasSection({ onOpenModal }: PersonasSectionProps) {
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {personas.map((p, i) => (
-                        <div key={i} className={`fade-in-section p-12 border ${p.borderColor} rounded-[5px] bg-white/[0.01] flex flex-col justify-between hover:bg-white/[0.02] transition-all`}>
+                        <div key={i} className={`fade-in-section p-12 border ${p.borderColor} rounded-[10px] bg-white/[0.01] flex flex-col justify-between hover:bg-white/[0.02] transition-all`}>
                             <div>
                                 <div className="flex items-center gap-4 mb-6">
                                     <span className={p.iconColor}><p.icon /></span>
