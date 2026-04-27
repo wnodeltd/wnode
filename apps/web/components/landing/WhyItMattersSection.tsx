@@ -24,8 +24,8 @@ export default function WhyItMattersSection() {
             border: "border-lime-400/50"
         },
         {
-            title: "Investor-Ready Economics",
-            description: "Direct revenue flows through the protocol. Real demand, real utility, real economic sovereignty.",
+            title: "Trustless Economics",
+            description: "All money is managed by Stripe with payments made daily direct to your bank account",
             icon: BarChart3,
             color: "text-fuchsia-500",
             border: "border-fuchsia-500/50"

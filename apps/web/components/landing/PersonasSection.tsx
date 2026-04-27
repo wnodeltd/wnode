@@ -6,6 +6,27 @@ interface PersonasSectionProps {
     onOpenModal: (mode: ModalMode) => void;
 }
 
+const Icons = {
+    Cpu: () => (
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="15" x2="23" y2="15"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="15" x2="4" y2="15"></line></svg>
+    ),
+    User: () => (
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+    ),
+    Users: () => (
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+    ),
+    Zap: () => (
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+    ),
+    Shield: () => (
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+    ),
+    Award: () => (
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
+    )
+};
+
 export default function PersonasSection({ onOpenModal }: PersonasSectionProps) {
     const personas = [
         {
@@ -44,32 +65,50 @@ export default function PersonasSection({ onOpenModal }: PersonasSectionProps) {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-x-24 gap-y-10">
                         {/* Column 1 */}
                         <div className="space-y-10">
-                            <div className="flex justify-between items-center border-b border-white/15 pb-4">
-                                <span className="text-white/60 uppercase tracking-[0.2em] text-xs font-bold">Compute Node</span>
+                            <div className="flex justify-between items-center border-b border-white/5 pb-4">
+                                <div className="flex items-center gap-4">
+                                    <span className="text-blue-500 opacity-80"><Icons.Cpu /></span>
+                                    <span className="text-white/60 uppercase tracking-[0.2em] text-xs font-bold">Compute Node</span>
+                                </div>
                                 <span className="text-3xl font-bold text-white font-space-grotesk">70%</span>
                             </div>
-                            <div className="flex justify-between items-center border-b border-white/15 pb-4">
-                                <span className="text-white/60 uppercase tracking-[0.2em] text-xs font-bold">Level 1 Affiliate</span>
+                            <div className="flex justify-between items-center border-b border-white/5 pb-4">
+                                <div className="flex items-center gap-4">
+                                    <span className="text-purple-500 opacity-80"><Icons.User /></span>
+                                    <span className="text-white/60 uppercase tracking-[0.2em] text-xs font-bold">Level 1 Affiliate</span>
+                                </div>
                                 <span className="text-3xl font-bold text-white font-space-grotesk">3%</span>
                             </div>
-                            <div className="flex justify-between items-center border-b border-white/15 pb-4">
-                                <span className="text-white/60 uppercase tracking-[0.2em] text-xs font-bold">Level 2 Affiliate</span>
+                            <div className="flex justify-between items-center border-b border-white/5 pb-4">
+                                <div className="flex items-center gap-4">
+                                    <span className="text-pink-500 opacity-80"><Icons.Users /></span>
+                                    <span className="text-white/60 uppercase tracking-[0.2em] text-xs font-bold">Level 2 Affiliate</span>
+                                </div>
                                 <span className="text-3xl font-bold text-white font-space-grotesk">7%</span>
                             </div>
                         </div>
 
                         {/* Column 2 */}
                         <div className="space-y-10">
-                            <div className="flex justify-between items-center border-b border-white/15 pb-4">
-                                <span className="text-white/60 uppercase tracking-[0.2em] text-xs font-bold">Sales Source</span>
+                            <div className="flex justify-between items-center border-b border-white/5 pb-4">
+                                <div className="flex items-center gap-4">
+                                    <span className="text-amber-500 opacity-80"><Icons.Zap /></span>
+                                    <span className="text-white/60 uppercase tracking-[0.2em] text-xs font-bold">Sales Source</span>
+                                </div>
                                 <span className="text-3xl font-bold text-white font-space-grotesk">10%</span>
                             </div>
-                            <div className="flex justify-between items-center border-b border-white/15 pb-4">
-                                <span className="text-white/60 uppercase tracking-[0.2em] text-xs font-bold">Management Licensee</span>
+                            <div className="flex justify-between items-center border-b border-white/5 pb-4">
+                                <div className="flex items-center gap-4">
+                                    <span className="text-teal-500 opacity-80"><Icons.Shield /></span>
+                                    <span className="text-white/60 uppercase tracking-[0.2em] text-xs font-bold">Management Licensee</span>
+                                </div>
                                 <span className="text-3xl font-bold text-white font-space-grotesk">7%</span>
                             </div>
-                            <div className="flex justify-between items-center border-b border-white/15 pb-4">
-                                <span className="text-white/60 uppercase tracking-[0.2em] text-xs font-bold">Founder Affiliate Bonus</span>
+                            <div className="flex justify-between items-center border-b border-white/5 pb-4">
+                                <div className="flex items-center gap-4">
+                                    <span className="text-indigo-500 opacity-80"><Icons.Award /></span>
+                                    <span className="text-white/60 uppercase tracking-[0.2em] text-xs font-bold">Founder Affiliate Bonus</span>
+                                </div>
                                 <span className="text-3xl font-bold text-white font-space-grotesk">3%</span>
                             </div>
                         </div>
