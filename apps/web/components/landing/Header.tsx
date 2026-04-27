@@ -11,6 +11,7 @@ export default function Header({ onContactClick }: HeaderProps) {
     const [lastScrollY, setLastScrollY] = useState(0);
     const [scrolled, setScrolled] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [governanceOpen, setGovernanceOpen] = useState(false);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -35,6 +36,14 @@ export default function Header({ onContactClick }: HeaderProps) {
 
     const navLinks = [
         { name: "Home", href: "/" },
+        { 
+            name: "Governance", 
+            isDropdown: true,
+            subLinks: [
+                { name: "Wnode Mesh", href: "/governance/mesh", color: "text-slate-500" },
+                { name: "Wnode Management", href: "/governance/management", color: "text-slate-500" }
+            ]
+        },
         { name: "Privacy", href: "/privacy" },
         { name: "Terms", href: "/terms" },
         { name: "GitHub", href: "https://github.com/wnodeltd/wnode" },
@@ -65,35 +74,62 @@ export default function Header({ onContactClick }: HeaderProps) {
             <div className={`fixed inset-0 bg-black z-[70] transition-all duration-500 ${
                 mobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
             }`}>
-                <div className="flex flex-col items-center justify-center h-full space-y-12">
+                <div className="flex flex-col items-center justify-center h-full space-y-8 overflow-y-auto pt-20">
                     {navLinks.map((link) => (
-                        <a 
-                            key={link.name} 
-                            href={link.href} 
-                            onClick={() => setMobileMenuOpen(false)}
-                            className="text-2xl font-bold uppercase tracking-[0.4em] text-slate-400 hover:text-white transition-all"
-                        >
-                            {link.name}
-                        </a>
+                        link.isDropdown ? (
+                            <div key={link.name} className="flex flex-col items-center space-y-6">
+                                <button 
+                                    onClick={() => setGovernanceOpen(!governanceOpen)}
+                                    className="text-2xl font-bold uppercase tracking-[0.4em] text-slate-400 hover:text-white transition-all flex items-center gap-4"
+                                >
+                                    {link.name}
+                                    <span className={`transition-transform duration-300 text-slate-600 ${governanceOpen ? "rotate-180" : ""}`}>↓</span>
+                                </button>
+                                <div className={`flex flex-col items-center space-y-6 overflow-hidden transition-all duration-500 ${governanceOpen ? "max-h-60 opacity-100" : "max-h-0 opacity-0"}`}>
+                                    {link.subLinks?.map((sub) => (
+                                        <a 
+                                            key={sub.name}
+                                            href={sub.href} 
+                                            onClick={() => setMobileMenuOpen(false)}
+                                            className="text-2xl font-bold uppercase tracking-[0.4em] text-slate-500 hover:text-white transition-all"
+                                        >
+                                            {sub.name}
+                                        </a>
+                                    ))}
+                                </div>
+                            </div>
+                        ) : (
+                            <a 
+                                key={link.name} 
+                                href={link.href} 
+                                onClick={() => setMobileMenuOpen(false)}
+                                className="text-2xl font-bold uppercase tracking-[0.4em] text-slate-400 hover:text-white transition-all"
+                            >
+                                {link.name}
+                            </a>
+                        )
                     ))}
-                    <button 
-                        onClick={() => {
-                            setMobileMenuOpen(false);
-                            onContactClick();
-                        }}
-                        className="bg-white text-black px-12 py-4 rounded-full font-bold text-lg"
-                    >
-                        Contact
-                    </button>
-                    <a 
-                        href="https://discord.gg/5BNhsfg5Br"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={() => setMobileMenuOpen(false)}
-                        className="bg-[#5865F2] hover:bg-[#4752C4] text-white px-12 py-4 rounded-full font-bold text-lg transition-all"
-                    >
-                        Discord
-                    </a>
+
+                    <div className="pt-8 flex flex-col items-center space-y-6">
+                        <button 
+                            onClick={() => {
+                                setMobileMenuOpen(false);
+                                onContactClick();
+                            }}
+                            className="bg-white text-black px-12 py-4 rounded-full font-bold text-lg"
+                        >
+                            Contact
+                        </button>
+                        <a 
+                            href="https://discord.gg/5BNhsfg5Br"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={() => setMobileMenuOpen(false)}
+                            className="bg-[#5865F2] hover:bg-[#4752C4] text-white px-12 py-4 rounded-full font-bold text-lg transition-all"
+                        >
+                            Discord
+                        </a>
+                    </div>
                 </div>
             </div>
         </>

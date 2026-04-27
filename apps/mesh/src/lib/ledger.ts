@@ -1,7 +1,7 @@
 import { PoolClient } from 'pg';
 import Stripe from 'stripe';
 
-export type LedgerRole = 'platform' | 'l1' | 'l2' | 'founder' | 'nodlrs_pool';
+export type LedgerRole = 'platform' | 'l1' | 'l2' | 'founder' | 'nodlrs_pool' | 'sales_source' | 'management';
 export type LedgerDirection = 'credit' | 'debit';
 
 export interface LedgerEntry {
@@ -16,39 +16,50 @@ export interface LedgerEntry {
 /**
  * Deterministic allocation engine for Stripe payments.
  * 
- * Rules:
- * - 80% -> nodlrs_pool
- * - 5% -> platform
- * - 2% -> l1 (if exists)
- * - 6% -> l2 (if exists)
- * - 3% -> founder (override)
+ * Wnode Economic Constitution (Hard-Coded):
+ * - 10% -> Sales Source
+ * - 70% -> Nodlr Pool
+ * - 3%  -> L1 Affiliate
+ * - 7%  -> L2 Affiliate
+ * - 7%  -> Management Licensee
+ * - 3%  -> Founder Tree
  * 
  * Rounding Strategy:
  * All fees are calculated using integer floor division.
- * The 'nodlrs_pool' (or platform if pool is 0) receives the remainder to ensure zero leakage.
+ * The 'nodlrs_pool' receives the total remainder to ensure zero leakage.
  */
 export function calculateAllocations(
   grossAmount: number,
   currency: string,
-  metadata: { userId?: string; l1Id?: string; l2Id?: string; founderId?: string }
+  metadata: { userId?: string; l1Id?: string; l2Id?: string; founderId?: string; salesSourceId?: string }
 ): LedgerEntry[] {
   const entries: LedgerEntry[] = [];
   let remaining = grossAmount;
 
-  // 1. Platform (5%)
-  const platformAmount = Math.floor(grossAmount * 0.05);
+  // 1. Sales Source (10%)
+  const salesSourceAmount = Math.floor(grossAmount * 0.10);
   entries.push({
-    role: 'platform',
-    amount: platformAmount,
+    userId: metadata.salesSourceId,
+    role: 'sales_source',
+    amount: salesSourceAmount,
     currency,
-    direction: 'credit',
-    meta: { type: 'fee' }
+    direction: 'credit'
   });
-  remaining -= platformAmount;
+  remaining -= salesSourceAmount;
 
-  // 2. Level 1 Affiliate (2%)
+  // 2. Management Licensee (7%)
+  const managementAmount = Math.floor(grossAmount * 0.07);
+  entries.push({
+    role: 'management',
+    amount: managementAmount,
+    currency,
+    direction: 'credit'
+  });
+  remaining -= managementAmount;
+
+  // 3. Level 1 Affiliate (3%)
   if (metadata.l1Id) {
-    const l1Amount = Math.floor(grossAmount * 0.02);
+    const l1Amount = Math.floor(grossAmount * 0.03);
     entries.push({
       userId: metadata.l1Id,
       role: 'l1',
@@ -59,9 +70,9 @@ export function calculateAllocations(
     remaining -= l1Amount;
   }
 
-  // 3. Level 2 Affiliate (6%)
+  // 4. Level 2 Affiliate (7%)
   if (metadata.l2Id) {
-    const l2Amount = Math.floor(grossAmount * 0.06);
+    const l2Amount = Math.floor(grossAmount * 0.07);
     entries.push({
       userId: metadata.l2Id,
       role: 'l2',
@@ -72,7 +83,7 @@ export function calculateAllocations(
     remaining -= l2Amount;
   }
 
-  // 4. Founder Override (3%)
+  // 5. Founder (3%)
   if (metadata.founderId) {
     const founderAmount = Math.floor(grossAmount * 0.03);
     entries.push({
@@ -85,14 +96,13 @@ export function calculateAllocations(
     remaining -= founderAmount;
   }
 
-  // 5. Nodl'rs Pool (Remainder, approx 80-84%)
-  // We use the remainder here to ensure total equals gross exactly.
+  // 6. Nodl'rs Pool (70% Nominal, plus any unallocated affiliate/founder slippage)
   entries.push({
     role: 'nodlrs_pool',
     amount: remaining,
     currency,
     direction: 'credit',
-    userId: metadata.userId // Usually associated with the buyer's account as source
+    userId: metadata.userId
   });
 
   return entries;
@@ -107,8 +117,7 @@ export async function allocateLedgerForStripeEvent(
 ): Promise<void> {
   const stripeEventId = event.id;
 
-  // 1. Idempotency Check & Lock (Implicitly handled by UNIQUE constraint on stripe_event_id, 
-  // but we can explicitly check to return early and avoid log noise)
+  // 1. Idempotency Check & Lock
   const existingEvent = await client.query(
     'SELECT status FROM stripe_events WHERE stripe_event_id = $1 FOR UPDATE',
     [stripeEventId]
@@ -119,8 +128,6 @@ export async function allocateLedgerForStripeEvent(
       console.log(`[Ledger] Event ${stripeEventId} already processed.`);
       return;
     }
-    // If pending/failed, we might want to continue or throw depending on strategy.
-    // For now, let's assume we proceed if it's not 'processed'.
   } else {
     // Insert initial record
     await client.query(
@@ -166,6 +173,7 @@ export async function allocateLedgerForStripeEvent(
     l1Id: metadata.l1Id,
     l2Id: metadata.l2Id,
     founderId: metadata.founderId,
+    salesSourceId: metadata.salesSourceId,
   });
 
   // 4. Write Ledger Rows
@@ -191,5 +199,5 @@ export async function allocateLedgerForStripeEvent(
     ['processed', stripeEventId]
   );
 
-  console.log(`[Ledger] Successfully allocated ${grossAmount} ${currency} for event ${stripeEventId}`);
+  console.log(`[Ledger] Successfully allocated ${grossAmount} ${currency} for event ${stripeEventId} using 10/70/3/7/7/3 model`);
 }
