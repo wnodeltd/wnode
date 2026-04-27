@@ -48,14 +48,14 @@ export function ComparisonMinimal() {
           How Wnode Compares
         </h2>
 
-        <div className="rounded-xl border border-gray-800/60 p-8">
+        <div className="rounded-xl border border-white/25 p-8 bg-white/[0.01]">
           <div className="grid grid-cols-3 gap-8">
             {/* Column 1: Wnode */}
             <div className="flex flex-col">
-              <h3 className="text-gray-300 text-base font-medium mb-6 text-center uppercase tracking-wider">Wnode</h3>
+              <h3 className="text-white font-bold text-base mb-6 text-center uppercase tracking-wider">Wnode</h3>
               <div className="flex flex-col w-full">
                 {features.map((f, i) => (
-                  <div key={i} className="flex flex-col items-center gap-2 py-2 mb-2 hover:bg-gray-900/40 transition-colors duration-150 rounded-lg group">
+                  <div key={i} className="flex flex-col items-center gap-2 py-2 mb-2 hover:bg-white/[0.03] transition-colors duration-150 rounded-lg group">
                     <IconRenderer type={f.wnode} />
                     <span className="text-[10px] md:text-xs text-white text-center opacity-80 group-hover:opacity-100 transition-opacity uppercase tracking-tight max-w-[120px]">
                       {f.name}
@@ -66,13 +66,13 @@ export function ComparisonMinimal() {
             </div>
 
             {/* Column 2: AWS / GCP / Azure */}
-            <div className="flex flex-col border-l border-gray-800">
-              <h3 className="text-gray-300 text-base font-medium mb-6 text-center uppercase tracking-wider">AWS / GCP / Azure</h3>
+            <div className="flex flex-col border-l border-white/15">
+              <h3 className="text-gray-500 text-base font-medium mb-6 text-center uppercase tracking-wider">AWS / GCP / Azure</h3>
               <div className="flex flex-col w-full">
                 {features.map((f, i) => (
-                  <div key={i} className="flex flex-col items-center gap-2 py-2 mb-2 hover:bg-gray-900/40 transition-colors duration-150 rounded-lg group">
+                  <div key={i} className="flex flex-col items-center gap-2 py-2 mb-2 hover:bg-white/[0.03] transition-colors duration-150 rounded-lg group">
                     <IconRenderer type={f.cloud} />
-                    <span className="text-[10px] md:text-xs text-gray-400 text-center opacity-80 group-hover:opacity-100 transition-opacity uppercase tracking-tight max-w-[120px]">
+                    <span className="text-[10px] md:text-xs text-gray-500 text-center opacity-80 group-hover:opacity-100 transition-opacity uppercase tracking-tight max-w-[120px]">
                       {f.name}
                     </span>
                   </div>
@@ -81,13 +81,13 @@ export function ComparisonMinimal() {
             </div>
 
             {/* Column 3: Other DePINs */}
-            <div className="flex flex-col border-l border-gray-800">
-              <h3 className="text-gray-300 text-base font-medium mb-6 text-center uppercase tracking-wider">Other DePINs</h3>
+            <div className="flex flex-col border-l border-white/15">
+              <h3 className="text-gray-600 text-base font-medium mb-6 text-center uppercase tracking-wider">Other DePINs</h3>
               <div className="flex flex-col w-full">
                 {features.map((f, i) => (
-                  <div key={i} className="flex flex-col items-center gap-2 py-2 mb-2 hover:bg-gray-900/40 transition-colors duration-150 rounded-lg group">
+                  <div key={i} className="flex flex-col items-center gap-2 py-2 mb-2 hover:bg-white/[0.03] transition-colors duration-150 rounded-lg group">
                     <IconRenderer type={f.other} />
-                    <span className="text-[10px] md:text-xs text-gray-500 text-center opacity-80 group-hover:opacity-100 transition-opacity uppercase tracking-tight max-w-[120px]">
+                    <span className="text-[10px] md:text-xs text-gray-600 text-center opacity-80 group-hover:opacity-100 transition-opacity uppercase tracking-tight max-w-[120px]">
                       {f.name}
                     </span>
                   </div>
