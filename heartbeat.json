@@ -1,86 +1,6 @@
 [
   {
     "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 1 | BRIDGE_ID: 12D3KooWNnQ2KA9pSB5M1vzAgfD9D87KGwViPJM6V9x47WPKDpqM",
-    "timestamp": "2026-04-27T15:56:16+02:00",
-    "type": "success"
-  },
-  {
-    "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 1 | BRIDGE_ID: 12D3KooWNnQ2KA9pSB5M1vzAgfD9D87KGwViPJM6V9x47WPKDpqM",
-    "timestamp": "2026-04-27T15:56:21+02:00",
-    "type": "success"
-  },
-  {
-    "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 1 | BRIDGE_ID: 12D3KooWNnQ2KA9pSB5M1vzAgfD9D87KGwViPJM6V9x47WPKDpqM",
-    "timestamp": "2026-04-27T15:56:26+02:00",
-    "type": "success"
-  },
-  {
-    "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 1 | BRIDGE_ID: 12D3KooWNnQ2KA9pSB5M1vzAgfD9D87KGwViPJM6V9x47WPKDpqM",
-    "timestamp": "2026-04-27T15:56:31+02:00",
-    "type": "success"
-  },
-  {
-    "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 1 | BRIDGE_ID: 12D3KooWNnQ2KA9pSB5M1vzAgfD9D87KGwViPJM6V9x47WPKDpqM",
-    "timestamp": "2026-04-27T15:56:36+02:00",
-    "type": "success"
-  },
-  {
-    "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 1 | BRIDGE_ID: 12D3KooWNnQ2KA9pSB5M1vzAgfD9D87KGwViPJM6V9x47WPKDpqM",
-    "timestamp": "2026-04-27T15:56:41+02:00",
-    "type": "success"
-  },
-  {
-    "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 1 | BRIDGE_ID: 12D3KooWNnQ2KA9pSB5M1vzAgfD9D87KGwViPJM6V9x47WPKDpqM",
-    "timestamp": "2026-04-27T15:56:46+02:00",
-    "type": "success"
-  },
-  {
-    "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 1 | BRIDGE_ID: 12D3KooWNnQ2KA9pSB5M1vzAgfD9D87KGwViPJM6V9x47WPKDpqM",
-    "timestamp": "2026-04-27T15:56:51+02:00",
-    "type": "success"
-  },
-  {
-    "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 1 | BRIDGE_ID: 12D3KooWNnQ2KA9pSB5M1vzAgfD9D87KGwViPJM6V9x47WPKDpqM",
-    "timestamp": "2026-04-27T15:56:56+02:00",
-    "type": "success"
-  },
-  {
-    "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 1 | BRIDGE_ID: 12D3KooWNnQ2KA9pSB5M1vzAgfD9D87KGwViPJM6V9x47WPKDpqM",
-    "timestamp": "2026-04-27T15:57:01+02:00",
-    "type": "success"
-  },
-  {
-    "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 1 | BRIDGE_ID: 12D3KooWNnQ2KA9pSB5M1vzAgfD9D87KGwViPJM6V9x47WPKDpqM",
-    "timestamp": "2026-04-27T15:57:06+02:00",
-    "type": "success"
-  },
-  {
-    "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 1 | BRIDGE_ID: 12D3KooWNnQ2KA9pSB5M1vzAgfD9D87KGwViPJM6V9x47WPKDpqM",
-    "timestamp": "2026-04-27T15:57:11+02:00",
-    "type": "success"
-  },
-  {
-    "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 1 | BRIDGE_ID: 12D3KooWNnQ2KA9pSB5M1vzAgfD9D87KGwViPJM6V9x47WPKDpqM",
-    "timestamp": "2026-04-27T15:57:16+02:00",
-    "type": "success"
-  },
-  {
-    "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 1 | BRIDGE_ID: 12D3KooWNnQ2KA9pSB5M1vzAgfD9D87KGwViPJM6V9x47WPKDpqM",
-    "timestamp": "2026-04-27T15:57:21+02:00",
-    "type": "success"
-  },
-  {
-    "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 1 | BRIDGE_ID: 12D3KooWNnQ2KA9pSB5M1vzAgfD9D87KGwViPJM6V9x47WPKDpqM",
-    "timestamp": "2026-04-27T15:57:26+02:00",
-    "type": "success"
-  },
-  {
-    "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 1 | BRIDGE_ID: 12D3KooWNnQ2KA9pSB5M1vzAgfD9D87KGwViPJM6V9x47WPKDpqM",
-    "timestamp": "2026-04-27T15:57:31+02:00",
-    "type": "success"
-  },
-  {
-    "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 1 | BRIDGE_ID: 12D3KooWNnQ2KA9pSB5M1vzAgfD9D87KGwViPJM6V9x47WPKDpqM",
     "timestamp": "2026-04-27T15:57:36+02:00",
     "type": "success"
   },
@@ -147,6 +67,86 @@
   {
     "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 1 | BRIDGE_ID: 12D3KooWNnQ2KA9pSB5M1vzAgfD9D87KGwViPJM6V9x47WPKDpqM",
     "timestamp": "2026-04-27T15:58:41+02:00",
+    "type": "success"
+  },
+  {
+    "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 1 | BRIDGE_ID: 12D3KooWNnQ2KA9pSB5M1vzAgfD9D87KGwViPJM6V9x47WPKDpqM",
+    "timestamp": "2026-04-27T15:58:46+02:00",
+    "type": "success"
+  },
+  {
+    "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 1 | BRIDGE_ID: 12D3KooWNnQ2KA9pSB5M1vzAgfD9D87KGwViPJM6V9x47WPKDpqM",
+    "timestamp": "2026-04-27T15:58:51+02:00",
+    "type": "success"
+  },
+  {
+    "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 1 | BRIDGE_ID: 12D3KooWNnQ2KA9pSB5M1vzAgfD9D87KGwViPJM6V9x47WPKDpqM",
+    "timestamp": "2026-04-27T15:58:56+02:00",
+    "type": "success"
+  },
+  {
+    "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 1 | BRIDGE_ID: 12D3KooWNnQ2KA9pSB5M1vzAgfD9D87KGwViPJM6V9x47WPKDpqM",
+    "timestamp": "2026-04-27T15:59:01+02:00",
+    "type": "success"
+  },
+  {
+    "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 1 | BRIDGE_ID: 12D3KooWNnQ2KA9pSB5M1vzAgfD9D87KGwViPJM6V9x47WPKDpqM",
+    "timestamp": "2026-04-27T15:59:06+02:00",
+    "type": "success"
+  },
+  {
+    "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 1 | BRIDGE_ID: 12D3KooWNnQ2KA9pSB5M1vzAgfD9D87KGwViPJM6V9x47WPKDpqM",
+    "timestamp": "2026-04-27T15:59:11+02:00",
+    "type": "success"
+  },
+  {
+    "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 1 | BRIDGE_ID: 12D3KooWNnQ2KA9pSB5M1vzAgfD9D87KGwViPJM6V9x47WPKDpqM",
+    "timestamp": "2026-04-27T15:59:16+02:00",
+    "type": "success"
+  },
+  {
+    "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 1 | BRIDGE_ID: 12D3KooWNnQ2KA9pSB5M1vzAgfD9D87KGwViPJM6V9x47WPKDpqM",
+    "timestamp": "2026-04-27T15:59:21+02:00",
+    "type": "success"
+  },
+  {
+    "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 1 | BRIDGE_ID: 12D3KooWNnQ2KA9pSB5M1vzAgfD9D87KGwViPJM6V9x47WPKDpqM",
+    "timestamp": "2026-04-27T15:59:26+02:00",
+    "type": "success"
+  },
+  {
+    "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 1 | BRIDGE_ID: 12D3KooWNnQ2KA9pSB5M1vzAgfD9D87KGwViPJM6V9x47WPKDpqM",
+    "timestamp": "2026-04-27T15:59:31+02:00",
+    "type": "success"
+  },
+  {
+    "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 1 | BRIDGE_ID: 12D3KooWNnQ2KA9pSB5M1vzAgfD9D87KGwViPJM6V9x47WPKDpqM",
+    "timestamp": "2026-04-27T15:59:36+02:00",
+    "type": "success"
+  },
+  {
+    "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 1 | BRIDGE_ID: 12D3KooWNnQ2KA9pSB5M1vzAgfD9D87KGwViPJM6V9x47WPKDpqM",
+    "timestamp": "2026-04-27T15:59:41+02:00",
+    "type": "success"
+  },
+  {
+    "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 1 | BRIDGE_ID: 12D3KooWNnQ2KA9pSB5M1vzAgfD9D87KGwViPJM6V9x47WPKDpqM",
+    "timestamp": "2026-04-27T15:59:46+02:00",
+    "type": "success"
+  },
+  {
+    "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 1 | BRIDGE_ID: 12D3KooWNnQ2KA9pSB5M1vzAgfD9D87KGwViPJM6V9x47WPKDpqM",
+    "timestamp": "2026-04-27T15:59:51+02:00",
+    "type": "success"
+  },
+  {
+    "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 1 | BRIDGE_ID: 12D3KooWNnQ2KA9pSB5M1vzAgfD9D87KGwViPJM6V9x47WPKDpqM",
+    "timestamp": "2026-04-27T15:59:56+02:00",
+    "type": "success"
+  },
+  {
+    "message": "SYSTEM STATUS: NOMINAL | ACTIVE_PEERS: 1 | BRIDGE_ID: 12D3KooWNnQ2KA9pSB5M1vzAgfD9D87KGwViPJM6V9x47WPKDpqM",
+    "timestamp": "2026-04-27T16:00:01+02:00",
     "type": "success"
   }
 ]

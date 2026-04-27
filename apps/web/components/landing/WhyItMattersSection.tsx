@@ -25,7 +25,7 @@ export default function WhyItMattersSection() {
         },
         {
             title: "Trustless Economics",
-            description: "All money is managed by Stripe with payments made daily direct to your bank account",
+            description: "All money is managed by Stripe with payments made direct to your bank account daily",
             icon: BarChart3,
             color: "text-fuchsia-500",
             border: "border-fuchsia-500/50"
