@@ -27,9 +27,9 @@ export default function PersonasSection({ onOpenModal }: PersonasSectionProps) {
             mode: "waitlist" as ModalMode
         },
         {
-            title: "Investors",
+            title: "Node Owners",
             description: "Secure your place in the future of the compute economy. Institutional-grade vision.",
-            cta: "Join Investor Waitlist",
+            cta: "Join Node Waitlist",
             mode: "investor" as ModalMode
         }
     ];
@@ -38,7 +38,7 @@ export default function PersonasSection({ onOpenModal }: PersonasSectionProps) {
         <section className="py-32 bg-black border-t border-white/5">
             <div className="max-w-7xl mx-auto px-8">
                 <h2 className="text-4xl md:text-5xl font-bold text-white uppercase tracking-tighter mb-20 font-space-grotesk text-center">
-                    Join the Mesh.
+                    Join Wnode.
                 </h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                     {personas.map((p, i) => (
@@ -49,7 +49,11 @@ export default function PersonasSection({ onOpenModal }: PersonasSectionProps) {
                             </div>
                             <button 
                                 onClick={() => onOpenModal(p.mode)}
-                                className="w-full bg-transparent border border-blue-500/50 hover:bg-blue-500/10 text-blue-400 font-bold py-5 uppercase tracking-widest transition-all"
+                                className={`w-full font-bold py-5 uppercase tracking-widest transition-all ${
+                                    p.mode === "investor" 
+                                    ? "bg-purple-600 hover:bg-purple-500 text-white shadow-[0_0_40px_rgba(168,85,247,0.4)]" 
+                                    : "bg-transparent border border-blue-500/50 hover:bg-blue-500/10 text-blue-400"
+                                }`}
                             >
                                 {p.cta}
                             </button>

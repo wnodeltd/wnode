@@ -6,8 +6,8 @@ import HeroSection from "../components/landing/HeroSection";
 import WhatIsWnodeSection from "../components/landing/WhatIsWnodeSection";
 import WhyItMattersSection from "../components/landing/WhyItMattersSection";
 import PersonasSection from "../components/landing/PersonasSection";
+import { ComparisonMinimal } from "../components/landing/ComparisonMinimal";
 import TrustSection from "../components/landing/TrustSection";
-import Footer from "../components/landing/Footer";
 import CTAModal, { ModalMode } from "../components/landing/CTAModal";
 
 export default function LandingPage() {
@@ -33,8 +33,15 @@ export default function LandingPage() {
                 <WhatIsWnodeSection />
                 <WhyItMattersSection />
                 <PersonasSection onOpenModal={openModal} />
-                <TrustSection />
-                <Footer />
+                <ComparisonMinimal />
+                <div className="max-w-7xl mx-auto px-8 py-20 fade-in-section">
+                    <img 
+                        src="/model.png" 
+                        alt="Wnode Sovereign Compute Model" 
+                        className="w-full h-auto rounded-[2rem] border border-white/5 shadow-2xl" 
+                    />
+                </div>
+                <TrustSection onOpenModal={openModal} />
             </div>
             
             <CTAModal 

@@ -18,42 +18,42 @@ export default function HeroSection({ onOpenModal }: HeroSectionProps) {
 
             <div className="max-w-6xl w-full mx-auto z-10 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
                 <div className="fade-in-section text-left">
-                    <h1 className="text-5xl md:text-7xl font-bold tracking-tight leading-[0.95] text-white mb-8 uppercase font-space-grotesk">
-                        THE MESH <br />
-                        <span className="text-blue-500">IS THE NEW</span> <br />
-                        COMPUTE.
+                    <h1 className="text-4xl md:text-6xl font-bold tracking-tight leading-[0.95] text-white mb-8 uppercase font-space-grotesk">
+                        COMPUTE IS THE <br />
+                        <span className="text-blue-500">NEW GOLDRUSH</span> <br />
+                        STAKE YOUR CLAIM.
                     </h1>
                     
                     <p className="text-xl md:text-2xl text-slate-400 mb-12 max-w-xl leading-relaxed">
-                        Autonomous compute for developers. <br />
-                        Sovereign economics for investors. <br />
-                        The decentralized backbone of Web 4.
+                        Any device, old or new, any scale <br />
+                        Build an immutable Asset <br />
+                        <span className="text-blue-500">Multiple Passive Income Streams</span>
                     </p>
 
                     <div className="flex flex-col sm:flex-row items-center gap-6">
                         <button 
                             onClick={() => onOpenModal("developer")}
-                            className="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white text-lg font-bold px-10 py-5 rounded-none transition-all shadow-[0_0_40px_rgba(59,130,246,0.3)] uppercase tracking-widest"
+                            className="w-full sm:w-auto sm:min-w-[280px] bg-blue-600 hover:bg-blue-500 text-white text-lg font-bold px-10 py-5 rounded-none transition-all shadow-[0_0_40px_rgba(59,130,246,0.3)] uppercase tracking-widest"
                         >
                             Become a Beta Developer
                         </button>
                         <button 
                             onClick={() => onOpenModal("investor")}
-                            className="w-full sm:w-auto bg-transparent border border-white/20 hover:border-white/40 text-white text-lg font-bold px-10 py-5 rounded-none transition-all uppercase tracking-widest"
+                            className="w-full sm:w-auto sm:min-w-[280px] bg-purple-600 hover:bg-purple-500 text-white text-lg font-bold px-10 py-5 rounded-none transition-all shadow-[0_0_40px_rgba(168,85,247,0.4)] uppercase tracking-widest"
                         >
-                            Join Investor Waitlist
+                            Join Node Waitlist
                         </button>
                     </div>
                 </div>
 
                 <div className="hidden lg:block relative">
-                    {/* REPLACE_THIS: Abstract Mesh Visual */}
-                    <div className="relative aspect-square w-full flex items-center justify-center">
+                    <div className="relative w-full flex items-center justify-center">
                         <div className="absolute inset-0 bg-blue-500/10 blur-[120px] rounded-full animate-pulse" />
-                        {/* Placeholder for generated mesh image */}
-                        <div className="w-full h-full border border-blue-500/20 rounded-full flex items-center justify-center">
-                             <div className="text-blue-500/30 text-xs tracking-widest uppercase">Abstract Mesh Visual</div>
-                        </div>
+                        <img 
+                            src="/steps.png" 
+                            alt="How Wnode Works" 
+                            className="relative z-10 w-full h-auto drop-shadow-[0_0_30px_rgba(59,130,246,0.2)]"
+                        />
                     </div>
                 </div>
             </div>
