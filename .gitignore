@@ -69,3 +69,4 @@ wnoded/stripe.env
 .git_askpass.sh
 *.key
 *.env
+.turbo/
