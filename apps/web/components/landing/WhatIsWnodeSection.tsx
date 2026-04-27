@@ -1,6 +1,6 @@
 export default function WhatIsWnodeSection() {
     return (
-        <section className="py-32 bg-black border-t border-white/5">
+        <section className="py-32 bg-black border-t border-white/15">
             <div className="max-w-6xl mx-auto text-center px-8 fade-in-section">
                 <h2 className="text-2xl md:text-4xl font-bold text-white tracking-wider leading-tight font-space-grotesk mb-16">
                     Wnode Is A Sovereign Mesh Of Compute Power. <br />
@@ -14,7 +14,7 @@ export default function WhatIsWnodeSection() {
                     <img 
                         src="/devices.png" 
                         alt="Wnode Ecosystem" 
-                        className="relative w-full h-auto rounded-[2rem] border border-white/5 shadow-2xl transition-all duration-700 group-hover:border-blue-500/20" 
+                        className="relative w-full h-auto rounded-[2rem] border border-white/15 shadow-2xl transition-all duration-700 group-hover:border-blue-500/20" 
                     />
                 </div>
             </div>

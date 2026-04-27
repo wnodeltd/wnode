@@ -38,7 +38,7 @@ export default function LandingPage() {
                     <img 
                         src="/model.png" 
                         alt="Wnode Sovereign Compute Model" 
-                        className="w-full h-auto rounded-[2rem] border border-white/5 shadow-2xl mb-12" 
+                        className="w-full h-auto rounded-[2rem] border border-white/15 shadow-2xl mb-12" 
                     />
                     <div className="flex flex-col items-center">
                         <span className="text-blue-400 text-[10px] font-bold uppercase tracking-[0.4em] mb-3">Join The Community</span>

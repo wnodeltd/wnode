@@ -61,7 +61,7 @@ export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
         return (
             <div className="fixed inset-0 z-[110] flex items-center justify-center p-6">
                 <div className="absolute inset-0 bg-black/80 backdrop-blur-xl" onClick={onClose} />
-                <div className="relative w-full max-w-xl bg-black/95 border border-white/10 rounded-[2.5rem] p-12 text-center shadow-2xl animate-in zoom-in duration-500">
+                <div className="relative w-full max-w-xl bg-black/95 border border-white/25 rounded-[2.5rem] p-12 text-center shadow-2xl animate-in zoom-in duration-500">
                     <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-blue-500/10 text-blue-500 mb-8">
                         <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -78,7 +78,7 @@ export default function ContactModal({ isOpen, onClose }: ContactModalProps) {
     return (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-6 overflow-y-auto">
             <div className="absolute inset-0 bg-black/80 backdrop-blur-xl" onClick={onClose} />
-            <div className="relative w-full max-w-2xl bg-black/95 border border-white/10 rounded-[2.5rem] p-10 md:p-14 shadow-2xl animate-in fade-in slide-in-from-bottom-8 duration-500 my-auto">
+            <div className="relative w-full max-w-2xl bg-black/95 border border-white/25 rounded-[2.5rem] p-10 md:p-14 shadow-2xl animate-in fade-in slide-in-from-bottom-8 duration-500 my-auto">
                 <button onClick={onClose} className="absolute top-8 right-8 text-slate-500 hover:text-white transition-colors">
                     <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />

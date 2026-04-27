@@ -6,7 +6,7 @@ interface TrustSectionProps {
 
 export default function TrustSection({ onOpenModal }: TrustSectionProps) {
     return (
-        <section className="py-40 bg-black border-t border-white/5 relative overflow-hidden">
+        <section className="py-40 bg-black border-t border-white/15 relative overflow-hidden">
             {/* Subtle Glow Background */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-blue-600/5 blur-[120px] rounded-full pointer-events-none" />
 
@@ -45,7 +45,7 @@ export default function TrustSection({ onOpenModal }: TrustSectionProps) {
                     </button>
                 </div>
 
-                <div className="mt-32 pt-20 border-t border-white/5 flex flex-col items-center">
+                <div className="mt-32 pt-20 border-t border-white/15 flex flex-col items-center">
                     <img 
                         src="/topology.png" 
                         alt="Wnode Network Topology" 

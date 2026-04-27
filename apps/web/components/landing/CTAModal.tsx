@@ -72,7 +72,7 @@ export default function CTAModal({ isOpen, onClose, mode }: CTAModalProps) {
                 className="absolute inset-0 bg-black/60 backdrop-blur-md" 
                 onClick={onClose}
             />
-            <div className="relative w-full max-w-xl bg-[#1c1c1e] border border-white/5 rounded-[2.5rem] p-12 shadow-2xl overflow-hidden group">
+            <div className="relative w-full max-w-xl bg-[#1c1c1e] border border-white/15 rounded-[2.5rem] p-12 shadow-2xl overflow-hidden group">
                 {/* Subtle Glow */}
                 <div className="absolute -top-24 -left-24 w-48 h-48 bg-blue-500/10 blur-[80px] rounded-full pointer-events-none" />
                 

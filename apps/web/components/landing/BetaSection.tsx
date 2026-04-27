@@ -40,7 +40,7 @@ export default function BetaSection({ onOpenModal }: BetaSectionProps) {
                         </a>
                     </div>
 
-                    <div className="mt-20 flex flex-col items-center gap-6 border-t border-white/10 pt-16">
+                    <div className="mt-20 flex flex-col items-center gap-6 border-t border-white/25 pt-16">
                         <h3 className="text-2xl font-semibold text-white uppercase tracking-wider">Join the Developer Community</h3>
                         <a
                             href="https://discord.gg/EUXJMZsFCt"

@@ -4,7 +4,7 @@ interface FooterProps {
 
 export default function Footer({ onContactClick }: FooterProps) {
     return (
-        <footer className="py-20 bg-black border-t border-white/5">
+        <footer className="py-20 bg-black border-t border-white/15">
             <div className="max-w-7xl mx-auto px-8 flex flex-col md:flex-row items-center justify-between gap-8">
                 <div className="flex items-center gap-2">
                     {/* KEEP_THIS: /logo.png */}
@@ -25,7 +25,7 @@ export default function Footer({ onContactClick }: FooterProps) {
                         {/* Invisible bridge to prevent menu from closing when moving mouse */}
                         <div className="absolute bottom-full left-1/2 -translate-x-1/2 w-full h-8 pointer-events-none group-hover:pointer-events-auto" />
 
-                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 bg-black border border-white/10 p-6 rounded-2xl opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-all flex flex-col gap-4 min-w-[220px] shadow-[0_-20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl">
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 bg-black border border-white/25 p-6 rounded-2xl opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-all flex flex-col gap-4 min-w-[220px] shadow-[0_-20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl">
                             <a href="/governance/mesh" className="text-white/40 hover:text-white text-[10px] uppercase tracking-widest transition-colors">Wnode Mesh</a>
                             <a href="/governance/management" className="text-white/40 hover:text-white text-[10px] uppercase tracking-widest transition-colors">Wnode Management</a>
                         </div>
