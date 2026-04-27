@@ -49,8 +49,16 @@ export default function TrustSection({ onOpenModal }: TrustSectionProps) {
                     <img 
                         src="/topology.png" 
                         alt="Wnode Network Topology" 
-                        className="w-full max-w-5xl h-auto shadow-[0_0_50px_rgba(59,130,246,0.1)] rounded-3xl" 
+                        className="w-full max-w-5xl h-auto shadow-[0_0_50px_rgba(59,130,246,0.1)] rounded-3xl mb-12" 
                     />
+                    <a 
+                        href="https://discord.gg/5BNhsfg5Br"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="bg-[#5865F2] hover:bg-[#4752C4] text-white px-12 py-4 rounded-full font-bold text-lg transition-all shadow-2xl"
+                    >
+                        Discord
+                    </a>
                 </div>
             </div>
         </section>

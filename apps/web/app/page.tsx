@@ -34,12 +34,23 @@ export default function LandingPage() {
                 <WhyItMattersSection />
                 <PersonasSection onOpenModal={openModal} />
                 <ComparisonMinimal />
-                <div className="max-w-7xl mx-auto px-8 py-20 fade-in-section">
+                <div className="max-w-7xl mx-auto px-8 py-20 fade-in-section flex flex-col items-center">
                     <img 
                         src="/model.png" 
                         alt="Wnode Sovereign Compute Model" 
-                        className="w-full h-auto rounded-[2rem] border border-white/5 shadow-2xl" 
+                        className="w-full h-auto rounded-[2rem] border border-white/5 shadow-2xl mb-12" 
                     />
+                    <div className="flex flex-col items-center">
+                        <span className="text-blue-400 text-[10px] font-bold uppercase tracking-[0.4em] mb-3">Join The Community</span>
+                        <a 
+                            href="https://discord.gg/5BNhsfg5Br"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="bg-[#5865F2] hover:bg-[#4752C4] text-white px-10 py-3 rounded-full font-bold text-base transition-all shadow-2xl"
+                        >
+                            Discord
+                        </a>
+                    </div>
                 </div>
                 <TrustSection onOpenModal={openModal} />
             </div>

@@ -85,6 +85,15 @@ export default function Header({ onContactClick }: HeaderProps) {
                     >
                         Contact
                     </button>
+                    <a 
+                        href="https://discord.gg/5BNhsfg5Br"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="bg-[#5865F2] hover:bg-[#4752C4] text-white px-12 py-4 rounded-full font-bold text-lg transition-all"
+                    >
+                        Discord
+                    </a>
                 </div>
             </div>
         </>
