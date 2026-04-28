@@ -9,12 +9,6 @@ interface HeroSectionProps {
 export default function HeroSection({ onOpenModal }: HeroSectionProps) {
     return (
         <section className="relative min-h-screen flex flex-col items-center justify-center px-8 pt-40 pb-20 overflow-hidden bg-black">
-            {/* Header / Brand */}
-            <div className="absolute top-12 left-12 flex items-center gap-4 z-20">
-                {/* KEEP_THIS: /logo.png */}
-                <img src="/logo.png" alt="wnode" className="w-10 h-10" />
-                <span className="font-space-grotesk text-2xl tracking-tighter font-bold text-white uppercase">wnode</span>
-            </div>
 
             <div className="max-w-6xl w-full mx-auto z-10 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
                 <div className="fade-in-section text-left">

@@ -4,11 +4,6 @@ export default function CookiePage() {
     return (
         <AppLayout>
             <div className="relative pt-40 pb-24 px-8">
-                {/* Logo and Brand - Replicated from Hero */}
-                <div className="absolute top-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-4 z-20">
-                    <img src="/logo.png" alt="wnode logo" className="w-16 h-16" />
-                    <span className="font-roboto text-xl tracking-[0.3em] uppercase font-light text-slate-500">wnode</span>
-                </div>
 
                 <div className="max-w-4xl mx-auto">
                 <div className="fade-in-section">

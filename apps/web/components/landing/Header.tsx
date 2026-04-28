@@ -11,7 +11,7 @@ export default function Header({ onContactClick }: HeaderProps) {
     const [lastScrollY, setLastScrollY] = useState(0);
     const [scrolled, setScrolled] = useState(false);
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    const [governanceOpen, setGovernanceOpen] = useState(false);
+    const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
     useEffect(() => {
         const handleScroll = () => {
@@ -36,19 +36,31 @@ export default function Header({ onContactClick }: HeaderProps) {
 
     const navLinks = [
         { name: "Home", href: "/" },
-        { 
-            name: "Governance", 
+        {
+            name: "About",
             isDropdown: true,
             subLinks: [
-                { name: "Wnode Mesh", href: "/governance/mesh", color: "text-slate-500" },
+                { name: "Founder's Note", href: "/about/founders-note", color: "text-slate-500" },
+                { name: "Wnode Governance", href: "/governance/mesh", color: "text-slate-500" },
                 { name: "Wnode Management", href: "/governance/management", color: "text-slate-500" }
             ]
         },
-        { name: "Privacy", href: "/privacy" },
-        { name: "Terms", href: "/terms" },
+        {
+            name: "Legal",
+            isDropdown: true,
+            subLinks: [
+                { name: "Terms", href: "/terms", color: "text-slate-500" },
+                { name: "Privacy", href: "/privacy", color: "text-slate-500" },
+                { name: "Cookies", href: "/cookies", color: "text-slate-500" }
+            ]
+        },
         { name: "GitHub", href: "https://github.com/wnodeltd/wnode" },
         { name: "Partners", href: "/partners" },
     ];
+
+    const toggleDropdown = (name: string) => {
+        setOpenDropdown(openDropdown === name ? null : name);
+    };
 
     return (
         <>
@@ -57,7 +69,16 @@ export default function Header({ onContactClick }: HeaderProps) {
             } ${
                 isVisible ? "block" : "hidden"
             }`}>
-                <div className="max-w-7xl mx-auto px-8 flex justify-end items-center">
+                <div className="max-w-7xl mx-auto px-8 flex justify-between items-center">
+                    {/* Logo / Brand */}
+                    <a href="/" className="flex items-center gap-4 group">
+                        <img src="/logo.png" alt="wnode" className="w-10 h-10 transition-transform group-hover:scale-110" />
+                        <div className="flex flex-col">
+                            <span className="font-space-grotesk text-2xl tracking-tighter font-bold text-white uppercase leading-none">wnode</span>
+                            <span className="text-[10px] uppercase tracking-widest text-blue-500 font-bold mt-1">Planetary Compute Mesh</span>
+                        </div>
+                    </a>
+
                     {/* Burger Button - Visible on all screen sizes */}
                     <button 
                         className="text-white z-[90] relative w-8 h-8 flex flex-col justify-center items-center gap-1.5"
@@ -74,24 +95,24 @@ export default function Header({ onContactClick }: HeaderProps) {
             <div className={`fixed inset-0 bg-black z-[70] transition-all duration-500 ${
                 mobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
             }`}>
-                <div className="flex flex-col items-center justify-center h-full space-y-8 overflow-y-auto pt-20">
+                <div className="flex flex-col items-center justify-center h-full space-y-12 overflow-y-auto pt-20 pb-20">
                     {navLinks.map((link) => (
                         link.isDropdown ? (
                             <div key={link.name} className="flex flex-col items-center space-y-6">
                                 <button 
-                                    onClick={() => setGovernanceOpen(!governanceOpen)}
+                                    onClick={() => toggleDropdown(link.name)}
                                     className="text-2xl font-bold uppercase tracking-[0.4em] text-slate-400 hover:text-white transition-all flex items-center gap-4"
                                 >
                                     {link.name}
-                                    <span className={`transition-transform duration-300 text-slate-600 ${governanceOpen ? "rotate-180" : ""}`}>↓</span>
+                                    <span className={`transition-transform duration-300 text-slate-600 ${openDropdown === link.name ? "rotate-180" : ""}`}>↓</span>
                                 </button>
-                                <div className={`flex flex-col items-center space-y-6 overflow-hidden transition-all duration-500 ${governanceOpen ? "max-h-60 opacity-100" : "max-h-0 opacity-0"}`}>
+                                <div className={`flex flex-col items-center space-y-6 overflow-hidden transition-all duration-500 ${openDropdown === link.name ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"}`}>
                                     {link.subLinks?.map((sub) => (
                                         <a 
                                             key={sub.name}
                                             href={sub.href} 
                                             onClick={() => setMobileMenuOpen(false)}
-                                            className="text-2xl font-bold uppercase tracking-[0.4em] text-slate-500 hover:text-white transition-all"
+                                            className="text-xl font-bold uppercase tracking-[0.4em] text-slate-500 hover:text-white transition-all text-center px-8"
                                         >
                                             {sub.name}
                                         </a>
