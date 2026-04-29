@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 export interface CRMRecord {
     nodlrId: string;
     email: string;
+    name?: string;
     stripeAccountId: string;
     status: string;
     nodes: string[];
@@ -38,11 +39,34 @@ export function useAccount() {
                     setAccount(data);
                 } else {
                     setError('Failed to fetch account');
+                    // Fallback to local auth data if bypass is active
+                    applyBypassFallback();
                 }
             } catch (err) {
                 setError('Network error');
+                // Fallback to local auth data if bypass is active
+                applyBypassFallback();
             } finally {
                 setLoading(false);
+            }
+        };
+
+        const applyBypassFallback = () => {
+            const bypass = localStorage.getItem('nodl_auth_bypass');
+            if (bypass === 'true') {
+                const email = localStorage.getItem('nodl_user_email') || 'stephen@wnode.one';
+                const userId = localStorage.getItem('nodl_user_id') || '100001-0426-01-AA';
+                console.warn('[useAccount] Backend unreachable, using auth bypass fallback');
+                setAccount({
+                    nodlrId: userId,
+                    email: email,
+                    stripeAccountId: '',
+                    status: 'active',
+                    nodes: [],
+                    affiliates: [],
+                    createdAt: new Date().toISOString(),
+                    name: email.split('@')[0],
+                });
             }
         };
 

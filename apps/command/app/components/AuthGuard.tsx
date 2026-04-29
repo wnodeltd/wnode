@@ -19,10 +19,20 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
 
             const jwt = localStorage.getItem("nodl_jwt");
             const userStr = localStorage.getItem("nodl_user");
+            const authBypass = localStorage.getItem("nodl_auth_bypass");
 
             if (!jwt || !userStr) {
                 console.warn("[AuthGuard] No token or user found, redirecting to /auth/login");
                 router.push("/auth/login");
+                return;
+            }
+
+            // If auth bypass is active (dev seed account), trust localStorage
+            // without requiring backend verification
+            if (authBypass === "true") {
+                console.log("[AuthGuard] Auth bypass active, skipping backend verification");
+                setIsVerified(true);
+                setIsLoading(false);
                 return;
             }
 
@@ -47,8 +57,13 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
                 }
             } catch (error) {
                 console.error("[AuthGuard] Error verifying session:", error);
-                // If backend is unreachable, we can't confirm status 200
-                setIsVerified(false);
+                // If backend is unreachable but we have local auth, trust it
+                if (jwt && userStr) {
+                    console.warn("[AuthGuard] Backend unreachable, falling back to local auth");
+                    setIsVerified(true);
+                } else {
+                    setIsVerified(false);
+                }
             } finally {
                 setIsLoading(false);
             }
