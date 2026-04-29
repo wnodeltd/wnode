@@ -1,145 +1,126 @@
-# Wnode: The Decentralized Compute Fabric
+# 🌍 Wnode — The Planetary Compute Mesh
+### Turn your idle devices into real daily income.
 
-A sovereign, simple to use community‑owned compute network (DEPIN) that harvests old, redundant or idle hardware of any level and transforms it into a globally distributed, confidentiality‑preserving compute layer.
-
----
-
-## 🌐 Vision
-
-Wnode is a Sovereign DePIN that replaces new datacenters with the hardware the world already owns, delivering confidential RAM‑only execution at lower cost while reducing carbon impact and paying participants for the compute they contribute. 3 clicks and earn.
-
-### The Pillars
-- **Zero‑Storage** - Data never touches a disk.
-- **RAM‑Only Compute** - Everything runs in volatile memory and self‑erases.
-- **Economic Neutrality** - A transparent, immutable affiliate revenue model that evolves into an revenue generating asset and rewards the network, not the middleman or large corporations.
-- **Fully Managed** – The Mesh remains community‑owned, with a steward corporation holding a permanent license to expertly manage and operate the infrastructure on behalf of its owners.
+**Phones, laptops, EVs, smart TVs, and more become part of a shared, community‑owned compute network.**  
+**No crypto. No wallets. Daily payouts in real currency via Stripe.**  
+**Wnode MVP is live and open for beta testers.**
 
 ---
 
-## 📚 Canonical Documentation
-
-Our documentation is the **Sovereign Source of Truth** for the network's architecture, economics, and governance.
-
-- **[Vision & Architecture](docs/vision-and-architecture.md)**: The "Why" and "How" of Wnode.
-- **[Governance & Economics](docs/governance-and-economics.md)**: Payout splits and constitutional locks.
-- **[Steward Constitution](docs/steward-constitution.md)**: The rules that bind the network authority.
-- **[Economic Safeguards](docs/economic-safeguards.md)**: 120-Day holds, Ghost Protocol, and Honeypots.
-- **[RAM Execution Model](docs/ram-execution-model.md)**: Technical security guarantees.
-- **[Compute Tiers](docs/compute-tiers.md)**: Hardware specs from Tiny to Ultra GPU.
+![Wnode Command Dashboard](web/images/cmd.png)
 
 ---
 
-## 🏗️ Architecture
+## 💡 Why Wnode Exists
+The world already has more compute power than all data centres combined — sitting idle in billions of pockets, homes, offices, factories, and cars. 
 
-```mermaid
-graph TD
-    subgraph Clients
-        Mesh[Mesh Portal: Compute Buyers]
-        Command[Command: Network Admin]
-    end
+We don’t need more concrete, more cooling towers, or more power‑hungry server farms.  
+**Wnode connects what already exists** and turns unused compute into a shared resource that pays the people who run it.
 
-    subgraph "The Steward (nodld)"
-        API[Fiber API / WebSockets]
-        Dispatcher[Job Dispatcher]
-        Registry[P2P Hardware Registry]
-        Stripe[Stripe Connect Payouts]
-    end
-
-    subgraph "The Mesh (Nodlrs)"
-        WASM[Wazero RAM-Only Sandbox]
-        Peer1[Node A: Class A+]
-        Peer2[Node B: Class B]
-        Peer3[Node C: Class C]
-    end
-
-    Mesh --> API
-    API --> Dispatcher
-    Dispatcher --> Peer1
-    Dispatcher --> Peer2
-    Dispatcher --> Peer3
-    Peer1 --> WASM
-    Peer2 --> WASM
-    Peer3 --> WASM
-    Dispatcher --> Stripe
-```
+This is compute infrastructure owned by everyone — not another hyperscaler.
 
 ---
 
-## 🚀 Quick Start
+## ⚙️ How It Works
+1.  **Install the Node Operator app** (lightweight, simple) or run the node via WASM directly in your browser/device. 🖱️
+2.  **Your device contributes spare CPU/GPU when idle.** 🔋
+3.  **Real workloads** (ML inference, rendering, batch jobs, etc.) are processed. 🧠
+4.  **You get paid daily** in real currency via Stripe. 💰
 
-### Prerequisites
-- **Go 1.22+**
-- **Node.js 18+** (for frontend portals)
-- **Stripe Account** (for Nodlr payouts)
+Designed to be accessible to everyone — from non‑technical users with old devices to developers and entrepreneurs building teams.
 
-### Run the Backend (Steward)
-```bash
-cd nodld
-cp .env.example .env
-go mod tidy
-go run ./cmd/nodld
-```
-
-### Run the Command Dashboard
-```bash
-cd apps/command
-npm install
-npm run dev
-```
+![Member Overview](web/images/meshdash.png)
 
 ---
 
-## 🛠️ Project Structure
-
-| Directory | Description |
-| :--- | :--- |
-| **`/nodld`** | Core Go daemon handling P2P, Jobs, and Payments. |
-| **`/docs`** | Canonical documentation library. |
-| **`/apps/command`** | Admin control plane for network oversight. |
-| **`/apps/mesh`** | Buyer marketplace for compute procurement. |
-| **`/apps/nodlr`** | Provider portal for node management and earnings. |
-| **`/apps/shared`** | Shared UI components and logic. |
+## 👥 Who It’s For
+*   **Everyday people** — Turn old devices into passive income. 🏠
+*   **Entrepreneurs** — Build teams, onboard others, and earn from the network you grow. 📈
+*   **Developers** — Run nodes, contribute code, improve the mesh. 💻
+*   **Early believers** — Help shape a community‑owned compute network. ✨
 
 ---
 
-## ⚖️ Economics (80/20 Rule)
-
-Wnode is built for fairness. Every job follows a hardcoded commission waterfall:
-
-- **Operator**: 80% (Direct to Nodlr)
-- **Steward**: 7% (Platform Maintenance)
-- **Affiliate Tree**: 10% (Growth Incentive: 3% L1, 7% L2)
-- **Founder**: 3% (Genesis Override)
-
-*Note: All withdrawals are subject to a **120-Day Compliance Hold** to ensure network integrity.*
+## 🚦 Current Status
+**MVP Live** — Beta testing and final bug‑fixing underway.  
+We’re actively looking for:
+*   Beta node operators 🧑‍💻
+*   Early task submitters 📤
+*   Developers & contributors 🛠️
+*   Community builders 🤝
 
 ---
 
-## 🔐 Security & Integrity
-
-- **libp2p Mesh**: Uses WebRTC Direct, WebTransport, and Noise-encrypted channels.
-- **Hardware DNA**: Enforces the **1M1N (One Machine One Node)** rule to prevent virtualization farms.
-- **Ghost Protocol**: Automatically shadow-benches compromised or malicious nodes.
-- **Honeypot Checks**: Periodic timing-based audits to detect VMs via hardware jitter.
-
----
-
-## 🤝 Contributing
-
-We welcome community participation. Please review our **[Steward Update Policy](docs/steward-update-policy.md)** before submitting pull requests.
-
-## 📄 License
-
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+## 🏗️ Core Components
+*   **Lightweight Node Operator desktop app** (Coming Soon)
+*   **WASM node** for browsers and lightweight devices
+*   **Decentralised mesh coordination protocol**
+*   **Distributed task scheduling & execution**
+*   **Compute verification layer**
+*   **Transparent revenue distribution** (Stripe payouts)
+*   **DAO governance** (1 Soul = 1 Vote)
 
 ---
 
-© 2026 Wnode Ltd (UK). The sovereign compute marketplace.
+## 📱 Supported Devices
+Anything with a CPU or GPU:
+*   **Smartphones** 📱
+*   **Laptops & desktops** 💻
+*   **EVs & smart vehicles** 🚗
+*   **Robots** 🤖
+*   **Smart TVs** 📺
+*   **IoT devices** 🔌
+*   **Servers & workstations** 🖥️
 
-## Community
+---
 
-Join the Wnode developer community on Discord:
+## 📈 Economics — Simple & Transparent
+![Nodlr Dashboard](web/images/Nodlr-—-Harvest-the-Idle-04-29-2026_09_37_AM%20(1).png)
 
-<a href="https://discord.gg/EUXJMZsFCt">
-  <img src="https://img.shields.io/badge/Join%20Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" />
-</a>
+*   **Node Operators**: Earn the majority of the compute revenue their devices generate.
+*   **Community Builders / Affiliates**: Earn 3% on Level 1 and 7% on Level 2 from the compute revenue of devices you help onboard.
+*   **Steward (Management Licencee)**: Receives a fixed, capped operational fee.
+*   **DAO**: Holds ultimate governance (upgrades, economics, direction).
+
+**Daily payouts via Stripe in real FIAT, no tokens, no volatility, no friction.**
+
+---
+
+## 🚀 Getting Started (Beta)
+Ready to run your first node?
+*   → **Node Operator App** (coming soon)
+*   → **Run via WASM** — [live now](docs) (see `/docs`)
+
+Full installation guides and troubleshooting are in the `/docs` folder.  
+*This is an early MVP — expect occasional bugs. Your feedback directly shapes the project.*
+
+**Join the community:**
+*   [Discord](https://discord.gg/EUXJMZsFCt) 💬
+*   [Website](https://wnode.one) 🌐
+
+---
+
+## 🛠️ For Developers & Contributors
+We welcome contributions across code, architecture, testing, and documentation.
+*   [Architecture overview](docs/vision-and-architecture.md)
+*   [Building from source](docs/DEVELOPER_GUIDE.md)
+*   [Contributing guidelines](docs/CONTRIBUTING.md)
+*   [Open issues & discussions](https://github.com/wnode/wnode/issues)
+
+---
+
+## 🗺️ Roadmap
+*   **MVP Beta** (current) 📍
+*   **Stability improvements** & expanded device support
+*   **DAO activation**
+*   **Expanded workloads**
+*   **Robotics & EV optimisation**
+*   **Global scaling**
+
+---
+
+**Wnode belongs to the community.**  
+Run a node. Earn real income. Help build the alternative to centralised cloud infrastructure.
+
+---
+© 2026 Wnode Ltd. The planetary compute mesh.
