@@ -34,7 +34,25 @@ export default function DashboardLayout({
     const router = useRouter();
     const pathname = usePathname();
     const { avatar, uploadAvatar } = useAvatar();
-    const { account, loading } = useAccount();
+    const { account: fetchedAccount, loading } = useAccount();
+    
+    // Provide fallback account when bypass is active but backend is unreachable
+    const account = fetchedAccount || (() => {
+        if (typeof window !== 'undefined' && localStorage.getItem('nodl_auth_bypass') === 'true') {
+            const email = localStorage.getItem('nodl_user_email') || 'stephen@wnode.one';
+            return {
+                nodlrId: localStorage.getItem('nodl_user_id') || '100001-0426-01-AA',
+                email,
+                name: email.split('@')[0],
+                stripeAccountId: '',
+                status: 'active',
+                nodes: [],
+                affiliates: [],
+                createdAt: new Date().toISOString(),
+            };
+        }
+        return null;
+    })();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isBannerDismissed, setIsBannerDismissed] = useState(false);
     const [mounted, setMounted] = useState(false);
@@ -76,7 +94,8 @@ export default function DashboardLayout({
     useEffect(() => {
         if (!loading) {
             const token = localStorage.getItem('nodl_jwt');
-            if (!token || !account) {
+            const authBypass = localStorage.getItem('nodl_auth_bypass');
+            if (!token || (!account && authBypass !== 'true')) {
                 console.warn('[Dashboard Guard] Access denied. Redirecting to login.');
                 router.push('/login');
             }
@@ -92,7 +111,9 @@ export default function DashboardLayout({
     }
 
     if (!account) {
-        return null; // Will redirect via useEffect
+        // If auth bypass is active, provide a minimal fallback
+        const bypass = typeof window !== 'undefined' && localStorage.getItem('nodl_auth_bypass') === 'true';
+        if (!bypass) return null; // Will redirect via useEffect
     }
 
     const handlePhotoClick = () => {
