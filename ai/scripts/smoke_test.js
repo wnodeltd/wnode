@@ -10,8 +10,8 @@ async function smoke() {
   const job = { id: "smoke-1", type: "score", payload: { test: true } };
   const result = await runAiJob(job);
   
-  if (result.status === "ok" && result.data.modelLoaded) {
-    console.log("Model loaded");
+  if (result.status === "ok") {
+    console.log(`Model Exists: ${result.data.modelExists}`);
   }
 
   console.log("SMOKE TEST RESULT:", result);
