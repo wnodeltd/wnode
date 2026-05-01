@@ -13,6 +13,7 @@ import "leaflet/dist/leaflet.css";
 import NodlInspector from "./components/NodlInspector";
 import dynamic from 'next/dynamic';
 import AiMeshInsight from "./components/AiMeshInsight";
+import AiIntelligencePanel from "./components/AiIntelligencePanel";
 
 const FleetMap = dynamic(() => import("@shared/components/FleetMap"), {
     ssr: false,
@@ -239,7 +240,7 @@ export default function CommandCentrePage() {
                         </div>
                     </div>
                     <div className="lg:col-span-1">
-                        <AiMeshInsight />
+                        <AiIntelligencePanel />
                     </div>
                 </div>
             </main>
