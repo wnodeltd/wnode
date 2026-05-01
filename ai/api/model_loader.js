@@ -6,11 +6,27 @@ const fs = require("fs");
 const path = require("path");
 
 /**
+ * Robustly finds the model path across different environments.
+ */
+function getModelPath() {
+  const possiblePaths = [
+    path.join(__dirname, "..", "models", "tiny-local-model.onnx"),
+    path.join(process.cwd(), "ai", "models", "tiny-local-model.onnx"),
+    path.join(process.cwd(), "..", "..", "ai", "models", "tiny-local-model.onnx"),
+  ];
+
+  for (const p of possiblePaths) {
+    if (fs.existsSync(p)) return p;
+  }
+  return possiblePaths[0]; // Fallback
+}
+
+/**
  * Loads the model file from disk and verifies its presence.
  */
 function loadModel() {
   try {
-    const modelPath = path.join(__dirname, "..", "models", "tiny-local-model.onnx");
+    const modelPath = getModelPath();
     
     if (!fs.existsSync(modelPath)) {
       return { ok: false, exists: false };
@@ -34,7 +50,7 @@ function loadModel() {
 async function runTinyInference(inputText) {
   try {
     const ort = require("onnxruntime-node");
-    const modelPath = path.join(__dirname, "..", "models", "tiny-local-model.onnx");
+    const modelPath = getModelPath();
 
     const session = await ort.InferenceSession.create(modelPath, {
       executionProviders: ["cpu"]
@@ -75,7 +91,7 @@ async function runTinyInference(inputText) {
 async function runEmbedding(text) {
   try {
     const ort = require("onnxruntime-node");
-    const modelPath = path.join(__dirname, "..", "models", "tiny-local-model.onnx");
+    const modelPath = getModelPath();
 
     const session = await ort.InferenceSession.create(modelPath, {
       executionProviders: ["cpu"]
@@ -131,7 +147,7 @@ async function runEmbedding(text) {
 async function runTinyGeneration(prompt) {
   try {
     const ort = require("onnxruntime-node");
-    const modelPath = path.join(__dirname, "..", "models", "tiny-local-model.onnx");
+    const modelPath = getModelPath();
 
     const session = await ort.InferenceSession.create(modelPath, {
       executionProviders: ["cpu"]

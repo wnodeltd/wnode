@@ -106,19 +106,19 @@ export default function AiIntelligencePanel() {
             {testResult.type === 'inference' && (
               <div className="text-slate-300">
                 Shape: {JSON.stringify(testResult.outputShape)}<br/>
-                Preview: {testResult.outputPreview.slice(0, 3).map((n: number) => n.toFixed(2)).join(', ')}...
+                Preview: {testResult.outputPreview?.slice(0, 3).map((n: number) => n.toFixed(2)).join(', ')}...
               </div>
             )}
             {testResult.type === 'embedding' && (
               <div className="text-slate-300">
                 Dims: {testResult.dims}<br/>
-                Preview: {testResult.preview.slice(0, 3).map((n: number) => n.toFixed(2)).join(', ')}...
+                Preview: {testResult.preview?.slice(0, 3).map((n: number) => n.toFixed(2)).join(', ')}...
               </div>
             )}
             {testResult.type === 'generation' && (
               <div className="text-slate-300">
                 Text: <span className="text-white italic">"{testResult.completion}"</span><br/>
-                Tokens: {testResult.tokensPreview.slice(0, 3).join(', ')}...
+                Tokens: {testResult.tokensPreview?.slice(0, 3).join(', ')}...
               </div>
             )}
           </div>
