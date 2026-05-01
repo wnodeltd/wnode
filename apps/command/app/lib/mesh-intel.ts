@@ -4,6 +4,7 @@
  */
 
 import { MeshNode, MeshTask, MeshMetrics } from './mesh-client';
+import { runAiJob } from "@ai/ai_router";
 
 export interface MeshHealthReport {
     status: 'HEALTHY' | 'DEGRADED' | 'CRITICAL';
@@ -234,10 +235,6 @@ export function generateDiagnosticsReport(
  */
 export async function getAiMeshInsight(metrics: MeshMetrics) {
     try {
-        // Dynamic import to avoid issues in non-Node environments if necessary
-        // but for now we follow the spec and assume it's available.
-        const { runAiJob } = require('@ai/ai_router');
-        
         const job = {
             id: `intel-${Date.now()}`,
             type: 'score',
