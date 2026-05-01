@@ -194,12 +194,16 @@ export function generateDiagnosticsReport(
     health: MeshHealthReport, 
     bottlenecks: BottleneckInfo[], 
     anomalies: NodeAnomaly[], 
-    insights: TaskInsight[]
+    insights: TaskInsight[],
+    aiScore?: number
 ): string {
     let report = "OPERATOR DIAGNOSTIC REPORT\n";
     report += "==========================\n\n";
 
     report += `Current Status: ${health.status}\n`;
+    if (aiScore !== undefined) {
+        report += `AI Health Score: ${(aiScore * 100).toFixed(1)}%\n`;
+    }
     report += `Summary: ${health.message}\n\n`;
 
     if (bottlenecks.length > 0) {
@@ -223,4 +227,30 @@ export function generateDiagnosticsReport(
     }
 
     return report;
+}
+
+/**
+ * Interface for AI layer integration
+ */
+export async function getAiMeshInsight(metrics: MeshMetrics) {
+    try {
+        // Dynamic import to avoid issues in non-Node environments if necessary
+        // but for now we follow the spec and assume it's available.
+        const { runAiJob } = require('@ai/ai_router');
+        
+        const job = {
+            id: `intel-${Date.now()}`,
+            type: 'score',
+            payload: { metrics }
+        };
+
+        const result = await runAiJob(job);
+        if (result.status === 'ok') {
+            return result.data.score;
+        }
+        return undefined;
+    } catch (err) {
+        console.error('AI Intel Error:', err);
+        return undefined;
+    }
 }

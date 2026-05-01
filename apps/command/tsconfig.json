@@ -25,7 +25,8 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./*"],
-      "@shared/*": ["../shared/*"]
+      "@shared/*": ["../shared/*"],
+      "@ai/*": ["../../ai/api/*"]
     }
   },
   "include": [
