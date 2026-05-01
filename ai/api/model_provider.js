@@ -3,7 +3,7 @@
  */
 
 const { getProvider } = require("./provider_loader");
-const { loadModel, runTinyInference } = require("./model_loader");
+const { loadModel, runTinyInference, runEmbedding } = require("./model_loader");
 
 /**
  * Runs the job through the specific model provider.
@@ -13,6 +13,17 @@ async function runModel(job) {
   const provider = getProvider();
 
   if (provider === "tiny-local") {
+    // Phase 4f: Embedding support
+    if (job.payload && job.payload.input && job.payload.input.startsWith("embed:")) {
+      const text = job.payload.input.replace("embed:", "").trim();
+      const embedding = await runEmbedding(text);
+      return {
+        jobId: job.id,
+        status: "ok",
+        data: { provider: "tiny-local", embedding }
+      };
+    }
+
     // Phase 4e: Conditional inference
     if (job.payload && job.payload.input && job.payload.input.startsWith("infer:")) {
       const inputText = job.payload.input.replace("infer:", "").trim();
