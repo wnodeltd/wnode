@@ -2,21 +2,15 @@
  * Wnode AI — Adapter
  */
 
-require("./ai_types");
+const { runModel } = require("./model_provider");
 
 /**
- * Executes an AI job.
+ * Executes an AI job by routing it to the model provider.
  * @param {Object} job
  */
 async function runJob(job) {
   try {
-    if (job.type === "score") {
-      return { jobId: job.id, status: "ok", data: { score: 0.5 } };
-    }
-    if (job.type === "route") {
-      return { jobId: job.id, status: "ok", data: { target: "node-1" } };
-    }
-    return { jobId: job.id, status: "error", error: "Unknown job type" };
+    return await runModel(job);
   } catch (err) {
     return { jobId: job.id, status: "error", error: err.message };
   }
