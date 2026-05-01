@@ -11,18 +11,20 @@ const { getProvider } = require("./provider_loader");
 async function runModel(job) {
   const provider = getProvider();
 
-  if (provider === "stub") {
+  // Phase 3d: Enforce tiny-local only
+  if (provider === "tiny-local") {
     return {
       jobId: job.id,
       status: "ok",
-      data: { provider: "stub", score: 0.42 }
+      data: { provider: "tiny-local", score: 0.42 }
     };
   }
 
+  // Final fallback (should not be reachable in Phase 3d)
   return {
     jobId: job.id,
     status: "error",
-    error: `Unknown provider: ${provider}`
+    error: "AI Provider Locked to tiny-local"
   };
 }
 
