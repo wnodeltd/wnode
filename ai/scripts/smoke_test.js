@@ -12,6 +12,9 @@ async function smoke() {
   
   if (result.status === "ok") {
     console.log(`Model Exists: ${result.data.modelExists}`);
+    if (result.data.modelExists) {
+      console.log(`Model Format: ${result.data.format}`);
+    }
   }
 
   console.log("SMOKE TEST RESULT:", result);
