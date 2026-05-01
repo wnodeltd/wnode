@@ -1,5 +1,6 @@
 import { PoolClient } from 'pg';
 import Stripe from 'stripe';
+import { runAiJob } from "@ai/ai_router";
 
 export type LedgerRole = 'platform' | 'l1' | 'l2' | 'founder' | 'nodlrs_pool' | 'sales_source' | 'management';
 export type LedgerDirection = 'credit' | 'debit';
@@ -200,4 +201,25 @@ export async function allocateLedgerForStripeEvent(
   );
 
   console.log(`[Ledger] Successfully allocated ${grossAmount} ${currency} for event ${stripeEventId} using 10/70/3/7/7/3 model`);
+}
+
+/**
+ * AI Insight Hook for Ledger (Phase 3b)
+ */
+export async function getAiLedgerInsight(ledgerState: any[]) {
+  try {
+    const job = {
+      id: "ledger-insight",
+      type: "score",
+      payload: { size: ledgerState.length }
+    };
+    const result = await runAiJob(job);
+    if (result.status === "ok") {
+      return result.data;
+    }
+    return null;
+  } catch (err) {
+    console.error("[AI Ledger Error]", err);
+    return null;
+  }
 }
