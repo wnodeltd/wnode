@@ -1,0 +1,39 @@
+'use client';
+
+import React, { useEffect, useState } from 'react';
+
+export default function AiMeshInsight() {
+  const [insight, setInsight] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/mesh/ai-insight')
+      .then(res => res.json())
+      .then(data => {
+        setInsight(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('[AI UI Error]', err);
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) return <div className="p-4 text-gray-500 animate-pulse">AI thinking...</div>;
+
+  return (
+    <div className="p-4 bg-gray-900 border border-gray-800 rounded-lg shadow-lg">
+      <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 flex items-center">
+        <span className="w-2 h-2 bg-blue-500 rounded-full mr-2 animate-pulse"></span>
+        AI Mesh Insight
+      </h3>
+      {insight && insight.status === 'ok' ? (
+        <div className="text-lg font-medium text-white">
+          Network Efficiency Score: <span className="text-blue-400">{(insight.data.score * 100).toFixed(0)}%</span>
+        </div>
+      ) : (
+        <div className="text-gray-500 italic">AI engine offline or calibrating.</div>
+      )}
+    </div>
+  );
+}
