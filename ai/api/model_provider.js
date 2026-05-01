@@ -19,7 +19,7 @@ async function runModel(job) {
       status: "ok",
       data: { 
         provider: "tiny-local", 
-        modelLoaded: model.ok 
+        modelExists: model.exists 
       }
     };
   }
