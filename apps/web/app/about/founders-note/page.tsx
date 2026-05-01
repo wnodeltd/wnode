@@ -4,15 +4,6 @@ export default function FoundersNotePage() {
     return (
         <AppLayout>
             <div className="relative pt-40 pb-24 px-8">
-                {/* Logo and Brand - Replicated from Hero */}
-                <div className="absolute top-12 left-12 flex items-center gap-4 z-20">
-                    <img src="/logo.png" alt="wnode" className="w-10 h-10" />
-                    <div className="flex flex-col">
-                        <span className="font-space-grotesk text-2xl tracking-tighter font-bold text-white uppercase leading-none">wnode</span>
-                        <span className="text-[10px] uppercase tracking-widest text-blue-500 font-bold mt-1">Planetary Compute Mesh</span>
-                    </div>
-                </div>
-
                 <div className="max-w-4xl mx-auto">
                         <div className="flex items-center gap-6 mb-8">
                             <div className="relative w-20 h-20 md:w-24 md:h-24 overflow-hidden rounded-full border-2 border-blue-500/50 shadow-xl shrink-0">
