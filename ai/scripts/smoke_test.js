@@ -21,16 +21,26 @@ async function smoke() {
     payload: { input: "infer: hello world" } 
   };
   const resInfer = await runAiJob(jobInfer);
+  if (resInfer.status === "ok" && resInfer.data.inference && resInfer.data.inference.ok) {
+    console.log("Inference OK. Shape:", resInfer.data.inference.outputShape);
+  }
+
+  // Test 3: Embedding
+  console.log("\nRunning Embedding Test...");
+  const jobEmbed = {
+    id: "smoke-embed",
+    type: "score",
+    payload: { input: "embed: hello world this is a test" }
+  };
+  const resEmbed = await runAiJob(jobEmbed);
   
-  if (resInfer.status === "ok" && resInfer.data.inference) {
-    const inf = resInfer.data.inference;
-    if (inf.ok) {
-      console.log("Inference OK");
-      console.log("Output Shape:", inf.outputShape);
-      console.log("Output Preview:", inf.outputPreview);
-    } else {
-      console.error("Inference Failed:", inf.error);
-    }
+  if (resEmbed.status === "ok" && resEmbed.data.embedding && resEmbed.data.embedding.ok) {
+    const emb = resEmbed.data.embedding;
+    console.log("Embedding OK");
+    console.log("Dims:", emb.dims);
+    console.log("Preview (First 10):", emb.embedding.slice(0, 10));
+  } else {
+    console.error("Embedding Failed:", resEmbed.error || (resEmbed.data && resEmbed.data.embedding && resEmbed.data.embedding.error));
   }
 
   console.log("\nSMOKE TEST COMPLETE");
