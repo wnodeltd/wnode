@@ -19,7 +19,8 @@ async function runModel(job) {
       status: "ok",
       data: { 
         provider: "tiny-local", 
-        modelExists: model.exists 
+        modelExists: model.exists,
+        format: "onnx"
       }
     };
   }
