@@ -3,6 +3,7 @@
  */
 
 const { getProvider } = require("./provider_loader");
+const { loadModel } = require("./model_loader");
 
 /**
  * Runs the job through the specific model provider.
@@ -11,16 +12,18 @@ const { getProvider } = require("./provider_loader");
 async function runModel(job) {
   const provider = getProvider();
 
-  // Phase 3d: Enforce tiny-local only
   if (provider === "tiny-local") {
+    const model = loadModel();
     return {
       jobId: job.id,
       status: "ok",
-      data: { provider: "tiny-local", score: 0.42 }
+      data: { 
+        provider: "tiny-local", 
+        modelLoaded: model.ok 
+      }
     };
   }
 
-  // Final fallback (should not be reachable in Phase 3d)
   return {
     jobId: job.id,
     status: "error",
