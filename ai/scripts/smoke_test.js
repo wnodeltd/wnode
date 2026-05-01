@@ -33,14 +33,26 @@ async function smoke() {
     payload: { input: "embed: hello world this is a test" }
   };
   const resEmbed = await runAiJob(jobEmbed);
-  
   if (resEmbed.status === "ok" && resEmbed.data.embedding && resEmbed.data.embedding.ok) {
-    const emb = resEmbed.data.embedding;
-    console.log("Embedding OK");
-    console.log("Dims:", emb.dims);
-    console.log("Preview (First 10):", emb.embedding.slice(0, 10));
+    console.log("Embedding OK. Dims:", resEmbed.data.embedding.dims);
+  }
+
+  // Test 4: Generation
+  console.log("\nRunning Generation Test...");
+  const jobGen = {
+    id: "smoke-gen",
+    type: "score",
+    payload: { input: "gen: hello world" }
+  };
+  const resGen = await runAiJob(jobGen);
+  
+  if (resGen.status === "ok" && resGen.data.completion && resGen.data.completion.ok) {
+    const gen = resGen.data.completion;
+    console.log("Generation OK");
+    console.log("Completion Text:", gen.completion);
+    console.log("First 10 Tokens:", gen.tokens.slice(0, 10));
   } else {
-    console.error("Embedding Failed:", resEmbed.error || (resEmbed.data && resEmbed.data.embedding && resEmbed.data.embedding.error));
+    console.error("Generation Failed:", resGen.error || (resGen.data && resGen.data.completion && resGen.data.completion.error));
   }
 
   console.log("\nSMOKE TEST COMPLETE");
