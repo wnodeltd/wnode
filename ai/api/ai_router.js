@@ -1,20 +1,15 @@
 /**
  * Wnode AI — Router Facade
- *
- * Exposes a single function to run AI jobs via a single adapter instance.
  */
 
-const { AiAdapter } = require('./ai_adapter');
-
-const adapter = new AiAdapter();
+const { runJob: runAdapterJob } = require("./ai_adapter");
 
 /**
  * Runs an AI job via the configured adapter.
- * @param {import('./ai_types').AiJob} job
- * @returns {Promise<import('./ai_types').AiResult>}
+ * @param {Object} job
  */
 async function runAiJob(job) {
-  return await adapter.runJob(job);
+  return await runAdapterJob(job);
 }
 
 module.exports = { runAiJob };
