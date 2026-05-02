@@ -89,10 +89,10 @@ export default function IdentityHeader() {
         <div className="flex items-center gap-4 select-none">
             <div className="text-right flex flex-col items-end min-w-0">
                 <span className="text-[17px] text-white font-normal tracking-tight truncate max-w-[200px] font-sans">
-                    {user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : (user.name || user.displayName || "Unknown Operator")}
+                    {user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : (user.name || user.displayName || user.email?.split('@')[0] || "Operator")}
                 </span>
                 <span className="text-[14px] text-[#3B82F6] font-normal tracking-widest uppercase mt-0.5 font-sans">
-                    {user.account_id || user.id || user.protocolId || "0000-0000"}
+                    {user.account_id || (user.id ? `ID_${user.id.slice(0, 8)}` : "Session Active")}
                 </span>
             </div>
 
