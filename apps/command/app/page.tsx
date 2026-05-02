@@ -155,8 +155,8 @@ export default function CommandCentrePage() {
                     {error && <span className="text-[10px] text-red-500 uppercase font-bold tracking-widest">{error}</span>}
                 </div>
 
-                {/* Row 1: Vitals */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
+                {/* Row 1: Vitals + AI */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mt-6">
                     {metrics.map((m) => (
                         <MetricCard
                             key={m.label}
@@ -167,6 +167,7 @@ export default function CommandCentrePage() {
                             subValue={m.sub}
                         />
                     ))}
+                    <AiIntelligencePanel />
                 </div>
 
                 {/* Row 2: Operational Metrics */}
@@ -189,56 +190,6 @@ export default function CommandCentrePage() {
                     loading={loading}
                     onNodeSelect={handleNodeSelect}
                 />
-
-                {/* Protocol + Summary */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div className="bg-white/[0.02] border border-white/10 p-6 rounded-[5px] flex flex-col h-[380px] shadow-sm transition-all hover:bg-white/[0.03]">
-                        <div className="flex items-center gap-3 mb-5 pb-3 border-b border-white/5">
-                            <Shield className="w-4 h-4 text-[#22D3EE] opacity-70" />
-                            <span className="text-[11px] font-bold text-white uppercase tracking-[0.2em]">Protocol Integrity Trace</span>
-                        </div>
-                        <div className="space-y-3 flex-1 overflow-y-auto custom-scrollbar pr-2">
-                            {integrity.map((item) => (
-                                <div key={item.name} className="flex items-center justify-between py-3 px-4 rounded-[5px] group border border-white/5 bg-white/[0.01] hover:bg-white/[0.03] transition-colors">
-                                    <span className="text-[10px] font-bold text-slate-400 group-hover:text-white transition-colors uppercase tracking-widest">{item.name}</span>
-                                    <div className="flex items-center gap-3">
-                                        <span className="text-[10px] font-mono text-slate-500 tracking-tighter uppercase font-bold">{item.status}</span>
-                                        <div className={`w-1.5 h-1.5 rounded-full ${item.light === 'bg-green-500' ? 'bg-[#22D3EE] shadow-[0_0_8px_#22D3EE]' : 'bg-yellow-500'}`} />
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                        <div className="mt-5">
-                            <div className="p-4 bg-black/40 border border-white/5 rounded-[5px] flex flex-col gap-3 relative overflow-hidden">
-                                <span className="text-[10px] text-slate-600 uppercase tracking-widest font-bold">Network Summary</span>
-                                <div className="space-y-2">
-                                    <div className="flex justify-between items-baseline">
-                                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Registry Sync</span>
-                                        <span className={`text-[10px] font-mono font-bold ${stats ? 'text-green-400' : 'text-yellow-400'}`}>{stats ? 'STABLE' : 'SYNCING'}</span>
-                                    </div>
-                                    <div className="flex justify-between items-baseline">
-                                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Fleet Coverage</span>
-                                        <span className="text-[10px] font-mono font-bold text-white">{stats?.totalNodes || 0} Peers</span>
-                                    </div>
-                                    <div className="flex justify-between items-baseline">
-                                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Total Compute</span>
-                                        <span className="text-[10px] font-mono font-bold text-[#22D3EE]">{stats?.totalCores || 0} Cores</span>
-                                    </div>
-                                    <div className="flex justify-between items-baseline">
-                                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Data Store</span>
-                                        <span className={`text-[10px] font-mono font-bold ${stats?.redisStatus === 'active' ? 'text-green-400' : 'text-yellow-400'}`}>
-                                            {stats?.redisStatus === 'active' ? 'REDIS' : 'IN-MEMORY'}
-                                        </span>
-                                    </div>
-                                </div>
-                                <div className="absolute top-0 right-0 w-20 h-20 bg-[#22D3EE]/5 rounded-full blur-2xl" />
-                            </div>
-                        </div>
-                    </div>
-                    <div className="lg:col-span-1">
-                        <AiIntelligencePanel />
-                    </div>
-                </div>
             </main>
 
             {/* Telemetry Feed */}

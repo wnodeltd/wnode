@@ -1,14 +1,12 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Brain, Cpu, Database, Activity, Check, X, Loader2 } from 'lucide-react';
+import { Brain, Loader2 } from 'lucide-react';
 
 export default function AiIntelligencePanel() {
   const [status, setStatus] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [testResult, setTestResult] = useState<any>(null);
-  const [runningTest, setRunningTest] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     fetch('/api/ai/status')
@@ -19,138 +17,66 @@ export default function AiIntelligencePanel() {
       })
       .catch(err => {
         console.error('AI status fetch failed:', err);
-        setError('AI status unavailable');
+        setError(true);
         setLoading(false);
       });
   }, []);
 
-  const runTest = async (mode: string) => {
-    setRunningTest(mode);
-    setTestResult(null);
-    try {
-      const res = await fetch('/api/ai/test', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mode })
-      });
-      const data = await res.json();
-      if (data.ok) {
-        setTestResult(data);
-      } else {
-        setError(data.error);
-      }
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setRunningTest(null);
+  const getStatusText = () => {
+    if (error || !status) return 'Offline';
+    if (status.modelExists && status.hasInference && status.hasEmbeddings && status.hasGeneration) {
+      return 'Online';
     }
+    if (status.modelExists) return 'Degraded';
+    return 'Offline';
+  };
+
+  const getStatusColor = () => {
+    const text = getStatusText();
+    if (text === 'Online') return 'text-green-400';
+    if (text === 'Degraded') return 'text-yellow-400';
+    return 'text-red-400';
+  };
+
+  const getDotColor = () => {
+    const text = getStatusText();
+    if (text === 'Online') return 'bg-green-500';
+    if (text === 'Degraded') return 'bg-yellow-500';
+    return 'bg-red-500';
   };
 
   if (loading) {
     return (
-      <div className="bg-white/[0.02] border border-white/10 p-6 rounded-[5px] flex items-center justify-center h-full">
-        <Loader2 className="w-6 h-6 text-cyan-400 animate-spin" />
-      </div>
-    );
-  }
-
-  if (error && !status) {
-    return (
-      <div className="bg-white/[0.02] border border-white/10 p-6 rounded-[5px] text-red-400 text-xs font-bold uppercase tracking-widest">
-        {error}
+      <div className="bg-white/[0.04] shadow-[0_4px_25px_rgba(0,0,0,0.4)] border border-white/20 p-5 rounded-[5px] flex items-center justify-center h-[114px]">
+        <Loader2 className="w-4 h-4 text-neutral-500 animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="bg-white/[0.02] border border-white/10 p-6 rounded-[5px] flex flex-col h-full shadow-sm transition-all hover:bg-white/[0.03]">
-      <div className="flex items-center gap-3 mb-5 pb-3 border-b border-white/5">
-        <Brain className="w-4 h-4 text-purple-400 opacity-70" />
-        <span className="text-[11px] font-bold text-white uppercase tracking-[0.2em]">AI / Tiny-Local Model</span>
-      </div>
-
-      <div className="space-y-4 flex-1">
-        <div className="grid grid-cols-2 gap-2">
-          <div className="p-2 bg-black/20 rounded border border-white/5 flex flex-col">
-            <span className="text-[8px] text-slate-500 uppercase font-bold tracking-widest">Provider</span>
-            <span className="text-[10px] text-white font-mono">{status?.provider}</span>
-          </div>
-          <div className="p-2 bg-black/20 rounded border border-white/5 flex flex-col">
-            <span className="text-[8px] text-slate-500 uppercase font-bold tracking-widest">Status</span>
-            <span className={`text-[10px] font-mono ${status?.modelExists ? 'text-green-400' : 'text-red-400'}`}>
-              {status?.modelExists ? 'PRESENT' : 'MISSING'}
+    <div className="bg-white/[0.04] shadow-[0_4px_25px_rgba(0,0,0,0.4)] border border-white/20 p-5 rounded-[5px] flex flex-col gap-1 group truncate transition-all hover:bg-white/[0.06] backdrop-blur-sm h-[114px]">
+      <span className="text-[17px] text-white font-normal uppercase tracking-tight font-sans">
+        AI - Mesh Maestro
+      </span>
+      <div className="flex items-center justify-between">
+        <div className="flex flex-col">
+          <div className="flex items-center gap-2">
+            <div className={`w-2 h-2 rounded-full ${getDotColor()} shadow-sm`} />
+            <span className={`text-[22px] font-normal tracking-tighter ${getStatusColor()}`}>
+              {getStatusText()}
             </span>
           </div>
+          <span className="text-[14px] text-[#3B82F6] font-normal font-sans tracking-widest mt-0.5 truncate max-w-[150px]">
+            Model: {status?.provider || 'Unknown'}
+          </span>
         </div>
-
-        <div className="p-2 bg-black/20 rounded border border-white/5 flex flex-col">
-          <span className="text-[8px] text-slate-500 uppercase font-bold tracking-widest">Model Path</span>
-          <span className="text-[9px] text-slate-400 font-mono truncate">{status?.modelPath}</span>
-        </div>
-
-        <div className="flex justify-between px-1">
-          <Capability label="Inference" active={status?.hasInference} />
-          <Capability label="Embeddings" active={status?.hasEmbeddings} />
-          <Capability label="Generation" active={status?.hasGeneration} />
-        </div>
-
-        <div className="grid grid-cols-3 gap-2 pt-2">
-          <TestButton label="Inference" mode="inference" running={runningTest === 'inference'} onClick={() => runTest('inference')} />
-          <TestButton label="Embedding" mode="embedding" running={runningTest === 'embedding'} onClick={() => runTest('embedding')} />
-          <TestButton label="Generation" mode="generation" running={runningTest === 'generation'} onClick={() => runTest('generation')} />
-        </div>
-
-        {testResult && (
-          <div className="mt-4 p-3 bg-black/40 border border-purple-500/30 rounded text-[9px] font-mono animate-in fade-in slide-in-from-top-1">
-            <div className="text-purple-400 font-bold mb-1 uppercase">Test Output ({testResult.type}):</div>
-            {testResult.type === 'inference' && (
-              <div className="text-slate-300">
-                Shape: {JSON.stringify(testResult.outputShape)}<br/>
-                Preview: {testResult.outputPreview?.slice(0, 3).map((n: number) => n.toFixed(2)).join(', ')}...
-              </div>
-            )}
-            {testResult.type === 'embedding' && (
-              <div className="text-slate-300">
-                Dims: {testResult.dims}<br/>
-                Preview: {testResult.preview?.slice(0, 3).map((n: number) => n.toFixed(2)).join(', ')}...
-              </div>
-            )}
-            {testResult.type === 'generation' && (
-              <div className="text-slate-300">
-                Text: <span className="text-white italic">"{testResult.completion}"</span><br/>
-                Tokens: {testResult.tokensPreview?.slice(0, 3).join(', ')}...
-              </div>
-            )}
-          </div>
-        )}
-        
-        {error && testResult === null && (
-           <div className="mt-2 text-[9px] text-red-500 font-bold uppercase">{error}</div>
-        )}
+        <Brain className="w-4 h-4 text-[#3B82F6] opacity-40 group-hover:opacity-100 transition-opacity" />
+      </div>
+      <div className="mt-auto">
+        <span className="text-[9px] text-slate-500 uppercase font-bold tracking-widest">
+          Capabilities: Inf, Emb, Gen
+        </span>
       </div>
     </div>
-  );
-}
-
-function Capability({ label, active }: { label: string; active: boolean }) {
-  return (
-    <div className="flex items-center gap-1.5">
-      {active ? <Check className="w-2.5 h-2.5 text-green-500" /> : <X className="w-2.5 h-2.5 text-red-500" />}
-      <span className="text-[9px] text-slate-400 uppercase font-bold tracking-tight">{label}</span>
-    </div>
-  );
-}
-
-function TestButton({ label, running, onClick, mode }: { label: string; running: boolean; onClick: () => void; mode: string }) {
-  return (
-    <button
-      onClick={onClick}
-      disabled={running}
-      className={`px-2 py-1.5 rounded text-[8px] font-bold uppercase tracking-widest transition-all ${
-        running ? 'bg-slate-800 text-slate-500 cursor-not-allowed' : 'bg-purple-600/20 hover:bg-purple-600/40 text-purple-300 border border-purple-500/30'
-      }`}
-    >
-      {running ? 'Running...' : `Test ${label}`}
-    </button>
   );
 }
