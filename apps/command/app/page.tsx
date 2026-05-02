@@ -20,8 +20,10 @@ const FleetMap = dynamic(() => import("@shared/components/FleetMap"), {
 });
 import MetricCard from "@shared/components/MetricCard";
 import IdentityHeader from "@shared/components/IdentityHeader";
+import { usePageTitle } from "./components/PageTitleContext";
 
 export default function CommandCentrePage() {
+    usePageTitle("COMMAND CENTRE OPERATIONS");
     const [isTelemetryOpen, setIsTelemetryOpen] = useState(false);
     const [nodes, setNodes] = useState<any[]>([]);
     const [nodlrs, setNodlrs] = useState<any[]>([]);
@@ -147,12 +149,6 @@ export default function CommandCentrePage() {
     return (
         <>
             <main className="flex-1 px-8 pt-2 pb-20 overflow-y-auto space-y-6 custom-scrollbar h-full relative">
-                <div className="flex items-center justify-between mt-2">
-                    <h1 className="text-xl font-bold text-white drop-shadow">
-                        COMMAND CENTRE OPERATIONS
-                    </h1>
-                    <IdentityHeader />
-                </div>
                 <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-cyan-400/5 rounded-full blur-[120px] pointer-events-none -z-10" />
 
                 <div className="flex items-center gap-6 justify-end">
