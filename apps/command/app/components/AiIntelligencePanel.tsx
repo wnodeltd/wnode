@@ -45,6 +45,14 @@ export default function AiIntelligencePanel() {
     return 'bg-red-500';
   };
 
+  const getModelName = () => {
+    if (!status?.modelPath) return 'Unknown';
+    const parts = status.modelPath.split('/');
+    let filename = parts[parts.length - 1];
+    filename = filename.replace(/\.gguf$/, '').replace(/\.onnx$/, '');
+    return filename;
+  };
+
   if (loading) {
     return (
       <div className="bg-white/[0.04] shadow-[0_4px_25px_rgba(0,0,0,0.4)] border border-white/20 p-5 rounded-[5px] flex items-center justify-center h-[114px]">
@@ -67,7 +75,7 @@ export default function AiIntelligencePanel() {
             </span>
           </div>
           <span className="text-[14px] text-[#3B82F6] font-normal font-sans tracking-widest mt-0.5 truncate max-w-[150px]">
-            Model: tiny-local
+            Model: {getModelName()}
           </span>
         </div>
         <Brain className="w-4 h-4 text-[#3B82F6] opacity-40 group-hover:opacity-100 transition-opacity" />
