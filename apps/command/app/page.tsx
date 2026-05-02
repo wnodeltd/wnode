@@ -57,7 +57,7 @@ export default function CommandCentrePage() {
             }
         } catch (err) {
             console.error("Dashboard fetch failed:", err);
-            setError("Failed to synchronize with backend registry.");
+            setError("Backend Offline");
             setBackendOnline(false);
         } finally {
             setLoading(false);
