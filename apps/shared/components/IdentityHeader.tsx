@@ -92,7 +92,7 @@ export default function IdentityHeader() {
                     {user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : (user.name || user.displayName || user.email?.split('@')[0] || "Operator")}
                 </span>
                 <span className="text-[14px] text-[#3B82F6] font-normal tracking-widest uppercase mt-0.5 font-sans">
-                    {user.account_id || (user.id ? `ID_${user.id.slice(0, 8)}` : "Session Active")}
+                    {user.account_id ? (user.account_id.length > 12 ? `ID_${user.account_id.slice(0, 8)}` : user.account_id) : (user.id ? `ID_${user.id.slice(0, 8)}` : "Session Active")}
                 </span>
             </div>
 
