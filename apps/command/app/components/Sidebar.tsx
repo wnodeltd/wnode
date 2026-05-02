@@ -51,6 +51,7 @@ export default function Sidebar() {
 
     const allItems = [
         { name: 'Dashboard', href: '/', icon: LayoutDashboard, roles: ['owner', 'management', 'customer_service', 'visitor'], iconColor: 'text-blue-400' },
+        { name: 'Intelligence', href: '/intelligence', icon: Brain, roles: ['owner', 'management', 'customer_service', 'visitor'], iconColor: 'text-purple-400' },
         { name: "Nodes", href: '/nodls', icon: Activity, roles: ['owner', 'management', 'customer_service', 'visitor'], iconColor: 'text-cyan-400' },
         { name: 'Pricing', href: '/pricing', icon: BarChart3, roles: ['owner', 'management', 'visitor'], iconColor: 'text-amber-400' },
         { name: "nodl'rs", href: '/providers', icon: Zap, roles: ['owner', 'management', 'visitor'], iconColor: 'text-orange-500' },
