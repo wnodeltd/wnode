@@ -14,13 +14,19 @@ export function PageTitleProvider({ children }: { children: ReactNode }) {
     const [pageTitle, setPageTitle] = useState("");
     const [pageSubtitle, setPageSubtitle] = useState("");
 
-    const updateTitle = (title: string, subtitle?: string) => {
+    const updateTitle = React.useCallback((title: string, subtitle?: string) => {
         setPageTitle(title);
         setPageSubtitle(subtitle || "");
-    };
+    }, []);
+
+    const value = React.useMemo(() => ({
+        pageTitle,
+        pageSubtitle,
+        setPageTitle: updateTitle
+    }), [pageTitle, pageSubtitle, updateTitle]);
 
     return (
-        <PageTitleContext.Provider value={{ pageTitle, pageSubtitle, setPageTitle: updateTitle }}>
+        <PageTitleContext.Provider value={value}>
             {children}
         </PageTitleContext.Provider>
     );
@@ -37,11 +43,13 @@ export function usePageTitle(title?: string, subtitle?: string) {
         throw new Error("usePageTitle must be used within a PageTitleProvider");
     }
 
+    const { setPageTitle } = context;
+
     useEffect(() => {
         if (title) {
-            context.setPageTitle(title, subtitle);
+            setPageTitle(title, subtitle);
         }
-    }, [title, subtitle, context]);
+    }, [title, subtitle, setPageTitle]);
 
     return context;
 }
