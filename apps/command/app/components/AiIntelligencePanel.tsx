@@ -67,7 +67,7 @@ export default function AiIntelligencePanel() {
             </span>
           </div>
           <span className="text-[14px] text-[#3B82F6] font-normal font-sans tracking-widest mt-0.5 truncate max-w-[150px]">
-            Model: {status?.provider || 'Unknown'}
+            Model: tiny-local
           </span>
         </div>
         <Brain className="w-4 h-4 text-[#3B82F6] opacity-40 group-hover:opacity-100 transition-opacity" />
