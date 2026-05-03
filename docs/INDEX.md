@@ -7,6 +7,9 @@
 - [Security Model](security-model.md)
 - [Data Flow](data-flow.md)
 
+## AI Subsystems
+- [Mesh Maestro Intelligence](mesh-maestro-intelligence.md)
+
 ## Technical Specifications
 - [Node Contract](NODE_CONTRACT.md)
 - [Job Envelope Specification](JOB_ENVELOPE_SPEC.md)
