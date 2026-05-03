@@ -4,7 +4,6 @@
  */
 
 import { MeshNode, MeshTask, MeshMetrics } from './mesh-client';
-import { runAiJob } from "@ai/ai_router";
 
 export interface MeshHealthReport {
     status: 'HEALTHY' | 'DEGRADED' | 'CRITICAL';
@@ -230,24 +229,3 @@ export function generateDiagnosticsReport(
     return report;
 }
 
-/**
- * Interface for AI layer integration
- */
-export async function getAiMeshInsight(metrics: MeshMetrics) {
-    try {
-        const job = {
-            id: `intel-${Date.now()}`,
-            type: 'score',
-            payload: { metrics }
-        };
-
-        const result = await runAiJob(job);
-        if (result.status === 'ok') {
-            return result.data.score;
-        }
-        return undefined;
-    } catch (err) {
-        console.error('AI Intel Error:', err);
-        return undefined;
-    }
-}
