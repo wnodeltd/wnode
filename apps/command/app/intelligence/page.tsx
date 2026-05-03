@@ -67,7 +67,7 @@ export default function IntelligencePage() {
   ];
 
   return (
-    <main className="flex-1 px-8 pt-0 pb-10 overflow-y-auto custom-scrollbar h-full relative">
+    <main className="flex-1 px-8 pt-8 pb-10 overflow-y-auto custom-scrollbar h-full relative">
       {/* Ambient glow */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-purple-500/5 rounded-full blur-[120px] pointer-events-none -z-10" />
 
@@ -98,10 +98,10 @@ export default function IntelligencePage() {
           
           {/* A. Insights Box */}
           <div className="bg-white/[0.02] border border-white/10 rounded-[5px] p-3 h-[220px] flex flex-col relative overflow-hidden">
-             <div className="flex items-center gap-2 mb-3 px-1">
-                <Info className="w-3 h-3 text-purple-400" />
-                <span className="text-[9px] uppercase font-bold tracking-widest text-slate-500">System Insights</span>
-             </div>
+          <div className="px-4 py-3 border-b border-white/5 flex items-center gap-3 bg-white/[0.01] -mx-3 -mt-3 mb-3">
+             <Info className="w-3.5 h-3.5 text-purple-400" />
+             <span className="text-[11px] uppercase font-bold tracking-widest text-white">System Insights</span>
+          </div>
              <div className="flex-1 overflow-y-auto custom-scrollbar pr-2">
                 <ul className="flex flex-col gap-3">
                   {INSIGHTS.map((text, i) => (
@@ -122,10 +122,10 @@ export default function IntelligencePage() {
 
           {/* B. Chat History Box */}
           <div className="bg-white/[0.02] border border-white/10 rounded-[5px] p-3 h-[220px] flex flex-col relative overflow-hidden">
-             <div className="flex items-center gap-2 mb-3 px-1">
-                <History className="w-3 h-3 text-slate-500" />
-                <span className="text-[9px] uppercase font-bold tracking-widest text-slate-500">Chat History</span>
-             </div>
+          <div className="px-4 py-3 border-b border-white/5 flex items-center gap-3 bg-white/[0.01] -mx-3 -mt-3 mb-3">
+             <History className="w-3.5 h-3.5 text-slate-400" />
+             <span className="text-[11px] uppercase font-bold tracking-widest text-white">Chat History</span>
+          </div>
              <div className="flex-1 flex items-center justify-center">
                 <span className="text-[10px] text-slate-600 italic">No previous sessions</span>
              </div>
@@ -139,7 +139,7 @@ export default function IntelligencePage() {
           <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
             <div className="flex items-center gap-3">
               <Brain className="w-4 h-4 text-purple-400" />
-              <span className="text-[10px] uppercase font-bold tracking-widest text-slate-400">
+              <span className="text-[11px] uppercase font-bold tracking-widest text-white">
                 Mesh Maestro Cockpit
               </span>
             </div>

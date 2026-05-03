@@ -14,27 +14,39 @@ export function useIntelligenceStatus() {
   useEffect(() => {
     async function fetchMetrics() {
       try {
-        const [statusRes, insightRes, filesRes, modelRes] = await Promise.all([
-          fetch('/api/intelligence/status').catch(() => null),
-          fetch('/api/intelligence/latest-insight').catch(() => null),
-          fetch('/api/intelligence/files-indexed').catch(() => null),
-          fetch('/api/intelligence/model').catch(() => null)
-        ]);
+        // Fetch from AI status (same as Dashboard)
+        const aiRes = await fetch('/api/ai/status').catch(() => null);
+        const aiData = aiRes && aiRes.ok ? await aiRes.json().catch(() => null) : null;
 
-        const statusData = statusRes?.ok ? await statusRes.json() : null;
-        const insightData = insightRes?.ok ? await insightRes.json() : null;
-        const filesData = filesRes?.ok ? await filesRes.json() : null;
-        const modelData = modelRes?.ok ? await modelRes.json() : null;
-        console.log("Model API returned:", modelData);
+        // Fetch other metrics if they exist
+        const intelRes = await fetch('/api/intelligence/status').catch(() => null);
+        const intelData = intelRes && intelRes.ok ? await intelRes.json().catch(() => null) : null;
 
-        // Real data is now populated dynamically from the updated backend API routes
+        const insightRes = await fetch('/api/intelligence/latest-insight').catch(() => null);
+        const insightData = insightRes && insightRes.ok ? await insightRes.json().catch(() => null) : null;
+
+        const filesRes = await fetch('/api/intelligence/files-indexed').catch(() => null);
+        const filesData = filesRes && filesRes.ok ? await filesRes.json().catch(() => null) : null;
+
+        // Parse model name precisely like AiIntelligencePanel.tsx
+        let modelName = "Unknown";
+        if (aiData?.modelPath) {
+          const path = aiData.modelPath.toLowerCase();
+          if (path.endsWith('.onnx')) modelName = 'Onnx';
+          else if (path.endsWith('.gguf')) modelName = 'GGUF';
+          else {
+            const parts = aiData.modelPath.split('/');
+            modelName = parts[parts.length - 1] || 'Unknown';
+          }
+        }
+
         setStatus(prev => ({
           ...prev,
-          aiStatus: statusData?.aiStatus ?? prev.aiStatus,
-          trainingMode: statusData?.trainingMode ?? prev.trainingMode,
-          latestInsight: insightData?.text ?? prev.latestInsight,
-          filesIndexed: filesData ?? prev.filesIndexed,
-          modelName: modelData ? modelData.modelName : prev.modelName
+          aiStatus: intelData?.aiStatus ?? (aiData ? "Online" : "Offline"),
+          trainingMode: intelData?.trainingMode ?? "Disabled",
+          latestInsight: insightData?.text ?? "No anomalies detected",
+          filesIndexed: filesData ?? { indexed: 0, total: 0 },
+          modelName: modelName
         }));
       } catch (err) {
         console.error('Failed to fetch intelligence metrics:', err);
@@ -42,7 +54,8 @@ export function useIntelligenceStatus() {
     }
     
     fetchMetrics();
-    // Optional polling could be added here later
+    const interval = setInterval(fetchMetrics, 5000);
+    return () => clearInterval(interval);
   }, []);
   
   return status;
