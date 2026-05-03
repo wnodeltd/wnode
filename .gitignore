@@ -72,4 +72,4 @@ wnoded/stripe.env
 .turbo/
 
 # AI model files (server-only, too large for Git)
-ai/model/
+ai/models/*
