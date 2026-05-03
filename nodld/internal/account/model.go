@@ -39,7 +39,18 @@ const (
 	RoleOperator         UserRole = "operator"         // Nodlr node provider (80%)
 	RoleBuyer           UserRole = "buyer"            // Mesh compute buyer
 	RoleStandard        UserRole = "standard"         // Legacy default
+	RoleObserver        UserRole = "observer"         // Global read-only
 )
+
+var ObserverPermissions = []string{
+	"read_all",
+	"view_nodes",
+	"view_financials",
+	"view_affiliates",
+	"view_personnel",
+	"view_settings",
+	"view_system",
+}
 
 const (
 	PctOperator        = 0.70 // The node operator providing compute (Compute)
@@ -54,12 +65,16 @@ const (
 type Nodlr struct {
 	ID                    string          `json:"id"`
 	Email                 string          `json:"email"`
+	Password              string          `json:"password,omitempty"`
+	FirstName             string          `json:"firstName,omitempty"`
+	LastName              string          `json:"lastName,omitempty"`
 	MeshClientID          string          `json:"meshClientId"`
 	StripeConnectID       string          `json:"stripeConnectId"`
 	StripeAccountID       string          `json:"stripeAccountId"` // Phase 3 Mapping
 	FounderStripeAccountID *string         `json:"founderStripeAccountId"`
 	NodlrStripeAccountID   *string         `json:"nodlrStripeAccountId"`
 	Role                  UserRole        `json:"role"`
+	Permissions           []string        `json:"permissions,omitempty"`
 	PayoutStatus          PayoutStatus    `json:"payoutStatus"`
 	IntegrityScore        int             `json:"integrityScore"` // 0-1000
 	IsFrozen              bool            `json:"isFrozen"`       // Constitutional hold

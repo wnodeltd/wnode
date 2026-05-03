@@ -150,9 +150,9 @@ func (s *Server) registerRoutes() {
 
 	// Job CRUD (Moved under /api/v1)
 	apiV1.Get("/jobs", s.handleListJobs)
-	apiV1.Post("/jobs", s.handleSubmitJob)
+	apiV1.Post("/jobs", s.requireLevel(account.RoleStandard), s.handleSubmitJob)
 	apiV1.Get("/jobs/:id", s.handleGetJob)
-	apiV1.Post("/jobs/stream", s.handleStreamJob)
+	apiV1.Post("/jobs/stream", s.requireLevel(account.RoleStandard), s.handleStreamJob)
 	apiV1.Get("/jobs/:id/stream", s.handlePullJobStream)
 
 	// Pricing (Moved under /api/v1)
@@ -161,6 +161,8 @@ func (s *Server) registerRoutes() {
 	apiV1.Get("/pricing/alerts", s.handleGetPricingAlerts)
 
 	// Account & Affiliates
+	apiV1.Get("/account/lookup", s.handleLookupAccount)
+	apiV1.Post("/account/create", s.handleCreateAccount)
 	apiV1.Get("/account/me", s.requireLevel(account.RoleStandard), s.handleGetMyAccount)
 	apiV1.Get("/account/:id", s.requireLevel(account.RoleVisitor), s.handleGetAccount)
 	apiV1.Put("/account/:id", s.requireLevel(account.RoleCustomerService), s.handleUpdateAccount)
@@ -195,9 +197,9 @@ func (s *Server) registerRoutes() {
 	apiV1.Get("/system/pulse", s.handleGetSystemPulse)
 	apiV1.Get("/impact", s.handleGetImpact)
 	apiV1.Get("/meta/tiers", s.handleGetMetaTiers)
-	apiV1.Post("/nodes/pairing-code/create", s.handleCreatePairingCode)
-	apiV1.Post("/nodes/pairing-code/consume", s.handleConsumePairingCode)
-	apiV1.Post("/nodes/register", s.handleRegisterNode)
+	apiV1.Post("/nodes/pairing-code/create", s.requireLevel(account.RoleStandard), s.handleCreatePairingCode)
+	apiV1.Post("/nodes/pairing-code/consume", s.requireLevel(account.RoleStandard), s.handleConsumePairingCode)
+	apiV1.Post("/nodes/register", s.requireLevel(account.RoleStandard), s.handleRegisterNode)
 	apiV1.Get("/nodes", s.handleListNodes)
 	apiV1.Get("/nodes/verify-token", s.requireDeviceToken(), s.handleVerifyToken)
 	
@@ -675,6 +677,10 @@ func (s *Server) isOwner(c *fiber.Ctx) bool {
 	// Master Key Protocol: stephen@wnode.one is the universal authoritative owner
 	return (email == "stephen@wnode.one" || email == "stephen@nodl.one") && id == "100001-0426-01-AA"
 }
+// IsObserver checks if the account has the global read-only observer role.
+func (s *Server) IsObserver(a *account.Nodlr) bool {
+	return a.Role == account.RoleObserver
+}
 
 // requireLevel enforces the RBAC levels.
 func (s *Server) requireLevel(minLevel account.UserRole) fiber.Handler {
@@ -710,6 +716,7 @@ func (s *Server) requireLevel(minLevel account.UserRole) fiber.Handler {
 			account.RoleExecutive:       95,
 			account.RoleShareholder:     85,
 			account.RoleManagement:      80,
+			account.RoleObserver:        80, // High visibility, but blocked from mutations below
 			account.RoleCustomerService: 60,
 			account.RoleVisitor:         40,
 			account.RoleFounder:         30, // economic only, but higher than buyer
@@ -720,6 +727,11 @@ func (s *Server) requireLevel(minLevel account.UserRole) fiber.Handler {
 
 		if rolePriority[requester.Role] < rolePriority[minLevel] {
 			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": "insufficient permissions"})
+		}
+
+		// Enforce read-only semantics for Observer
+		if c.Method() != "GET" && s.IsObserver(requester) {
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": "observer_read_only"})
 		}
 
 		// Set locals for handlers
@@ -1166,4 +1178,78 @@ func (s *Server) validateMeshClientID(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{"status": "valid"})
+}
+
+func (s *Server) handleLookupAccount(c *fiber.Ctx) error {
+	email := c.Query("email")
+	if email == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "missing email parameter"})
+	}
+
+	acc, ok := s.accountStore.GetNodlrByEmail(email)
+	if !ok {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "account not found"})
+	}
+
+	return c.JSON(acc)
+}
+
+func (s *Server) handleCreateAccount(c *fiber.Ctx) error {
+	var req struct {
+		Email       string   `json:"email"`
+		Password    string   `json:"password"`
+		FirstName   string   `json:"first_name"`
+		LastName    string   `json:"last_name"`
+		Role        string   `json:"role"`
+		Permissions []string `json:"permissions"`
+		Status      string   `json:"status"`
+	}
+
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request body"})
+	}
+
+	// Validate email uniqueness
+	if _, ok := s.accountStore.GetNodlrByEmail(req.Email); ok {
+		return c.Status(fiber.StatusConflict).JSON(fiber.Map{"error": "email already exists"})
+	}
+
+	// Validate role
+	allowedRoles := map[string]bool{
+		"observer": true,
+		"standard": true,
+		"visitor":  true,
+		"operator": true,
+	}
+	if !allowedRoles[req.Role] {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid role"})
+	}
+
+	// Enforce ObserverPermissions for role == "observer"
+	if req.Role == "observer" {
+		req.Permissions = account.ObserverPermissions
+	}
+
+	// Create account
+	accs := s.accountStore.ListNodlrs()
+	index := len(accs) + 1
+	id := fmt.Sprintf("1000%02d-0426-%02d-AA", index, index)
+	
+	newAcc := &account.Nodlr{
+		ID:                 id,
+		Email:              req.Email,
+		Password:           req.Password,
+		FirstName:          req.FirstName,
+		LastName:           req.LastName,
+		Role:               account.UserRole(req.Role),
+		Permissions:        req.Permissions,
+		Status:             req.Status,
+		OnboardingComplete: true,
+		Verified:           true,
+		CreatedAt:          time.Now(),
+	}
+
+	s.accountStore.AddNodlr(newAcc)
+
+	return c.Status(fiber.StatusCreated).JSON(newAcc)
 }

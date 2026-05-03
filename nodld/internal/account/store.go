@@ -160,13 +160,17 @@ func (s *Store) SeedFoundationIdentities() {
 		}
 	}
 
-	// 4. Beta User (Institutional Standard)
+	// 4. Beta User (Universal Observer)
 	betaUserID := "100005-0426-05-AA"
 	if n, ok := s.nodlrs[betaUserID]; !ok {
 		s.nodlrs[betaUserID] = &Nodlr{
 			ID:                 betaUserID,
 			Email:              "user@test.com",
-			Role:               RoleStandard,
+			Password:           "user",
+			FirstName:          "Test",
+			LastName:           "User",
+			Role:               RoleObserver,
+			Permissions:        ObserverPermissions,
 			Status:             "active",
 			OnboardingComplete: true,
 			Verified:           true,
@@ -175,7 +179,11 @@ func (s *Store) SeedFoundationIdentities() {
 	} else {
 		// Ensure properties match institutional spec even if loaded from state
 		n.Email = "user@test.com"
-		n.Role = RoleStandard
+		n.Password = "user"
+		n.FirstName = "Test"
+		n.LastName = "User"
+		n.Role = RoleObserver
+		n.Permissions = ObserverPermissions
 		n.Status = "active"
 		n.OnboardingComplete = true
 		n.Verified = true
@@ -326,6 +334,17 @@ func (s *Store) ListNodlrs() []*Nodlr {
 		list = append(list, n)
 	}
 	return list
+}
+
+func (s *Store) GetNodlrByEmail(email string) (*Nodlr, bool) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	for _, n := range s.nodlrs {
+		if n.Email == email {
+			return n, true
+		}
+	}
+	return nil, false
 }
 
 // ResolveTree returns the Level 1 and Level 2 sponsors for a given node.
