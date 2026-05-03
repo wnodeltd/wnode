@@ -47,10 +47,10 @@ export default function AiIntelligencePanel() {
 
   const getModelName = () => {
     if (!status?.modelPath) return 'Unknown';
+    if (status.modelPath.toLowerCase().endsWith('.onnx')) return 'Onnx';
+    if (status.modelPath.toLowerCase().endsWith('.gguf')) return 'GGUF';
     const parts = status.modelPath.split('/');
-    let filename = parts[parts.length - 1];
-    filename = filename.replace(/\.gguf$/, '').replace(/\.onnx$/, '');
-    return filename;
+    return parts[parts.length - 1] || 'Unknown';
   };
 
   if (loading) {
