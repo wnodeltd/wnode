@@ -8,10 +8,10 @@ export async function GET(req: NextRequest) {
             cache: 'no-store',
             headers: {
                 'Accept': 'application/json',
-                // Forward all cookies (including cmd_session) and auth headers
+                // Forward all cookies (including nodlr_session) and auth headers
                 'Cookie': req.headers.get('cookie') || '',
                 'Authorization': req.headers.get('authorization') || '',
-                'X-User-ID': req.headers.get('x-user-id') || '', // DEVELOPMENT_MODE bypass
+                'X-User-ID': req.headers.get('x-user-id') || '',
             },
         });
 

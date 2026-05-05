@@ -2,13 +2,15 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
-  const session = request.cookies.get('cmd_session')?.value;
+  const session = request.cookies.get('nodlr_session')?.value;
   const isAuthPage = request.nextUrl.pathname.startsWith('/auth') || request.nextUrl.pathname === '/login';
   const isApiPage = request.nextUrl.pathname.startsWith('/api');
 
   const isPublicFile = request.nextUrl.pathname.endsWith('.wasm') || 
                        request.nextUrl.pathname.endsWith('.webp') ||
-                       request.nextUrl.pathname.endsWith('.ico');
+                       request.nextUrl.pathname.endsWith('.ico') ||
+                       request.nextUrl.pathname.endsWith('.png') ||
+                       request.nextUrl.pathname.endsWith('.svg');
 
   // If no session and trying to access protected page
   if (!session && !isAuthPage && !isPublicFile) {
@@ -21,7 +23,7 @@ export function middleware(request: NextRequest) {
     }
 
     const url = request.nextUrl.clone();
-    url.pathname = '/auth/login';
+    url.pathname = '/login';
     return NextResponse.redirect(url);
   }
 
