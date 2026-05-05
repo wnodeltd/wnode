@@ -25,12 +25,17 @@ export default function Sidebar() {
         }
     }, []);
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
+        try {
+            await fetch('/api/auth/logout', { method: 'POST' });
+        } catch (e) {
+            console.error("Logout API call failed:", e);
+        }
+
         if (typeof window !== "undefined") {
             localStorage.removeItem("nodl_jwt");
             localStorage.removeItem("nodl_user");
             localStorage.removeItem("nodl_user_email");
-            document.cookie = "nodl_jwt=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
         }
         router.push("/auth/login");
     };
@@ -114,8 +119,9 @@ export default function Sidebar() {
                 })}
  
  
+ 
 
-                {mounted && user && (
+                {mounted && (
                     <button 
                         onClick={handleLogout}
                         className="mt-2 flex items-center gap-3 px-5 py-2.5 text-[14px] font-normal text-red-400 hover:text-red-300 transition-colors rounded-[5px] hover:bg-red-400/5"

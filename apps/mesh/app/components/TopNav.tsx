@@ -3,9 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { LayoutGrid, Database, Cpu, CreditCard, Code } from "lucide-react";
+import { useAuth } from "./AuthProvider";
+import { normalizeAccount } from "../../../shared/lib/identity";
 
 export function TopNav() {
     const pathname = usePathname();
+    const { account } = useAuth();
+    const identity = normalizeAccount(account);
+
     if (pathname === '/login') return null;
 
     const navItems = [
@@ -43,13 +48,16 @@ export function TopNav() {
                         <span className="text-[10px] font-bold text-mesh-emerald uppercase tracking-widest">Mesh Online</span>
                     </div>
 
-                    {/* Identity Header (Snag 13) */}
+                    {/* Identity Header */}
                     <div className="flex items-center gap-3 pl-6 border-l border-white/10">
                         <div className="flex flex-col items-end">
-                            <span className="text-[11px] font-bold text-white uppercase tracking-tight">Stephen Soos</span>
-                            <span className="text-[9px] text-[#3B82F6] uppercase tracking-widest font-normal">ACC# M0-000001-0420</span>
+                            <span className="text-[11px] font-bold text-white uppercase tracking-tight">
+                                {identity.displayName}
+                            </span>
+                            <span className="text-[9px] text-[#3B82F6] uppercase tracking-widest font-normal">
+                                ACC# {identity.id}
+                            </span>
                         </div>
-
                     </div>
                 </div>
             </div>

@@ -23,36 +23,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();
 
     useEffect(() => {
-        const checkBypass = () => {
+        const fetchSession = async () => {
             try {
-                if (typeof window !== 'undefined' && localStorage.getItem('nodl_auth_bypass') === 'true') {
-                    const mockEmail = localStorage.getItem('nodl_user_email') || 'stephen@wnode.one';
-                    localStorage.setItem('nodl_jwt', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InN0ZXBoZW5Abm9kbC5vbmUiLCJleHAiOjE3NzkzMjk3ODAsInJvbGUiOiJnb2QiLCJzdWIiOiJtb2NrLWlkLTEyMyJ9.cggY1itCGfrs6C38jmEm3fpxS7ZxybwEj13NCxfwVpk');
-                    
-                    const mockUser = {
-                        id: 'mock-id-123',
-                        email: mockEmail,
-                        user_metadata: { full_name: 'Stephen' }
-                    } as any;
-
-                    setUser(mockUser);
-                    setSession({ user: mockUser } as any);
-                    setProfile({ id: 'mock-id-123', role: 'god', full_name: 'Stephen' });
-                    return true;
+                const res = await fetch('/api/account/me');
+                if (res.ok) {
+                    const data = await res.json();
+                    setUser(data);
+                    setSession({ user: data });
+                    setProfile(data);
                 }
-            } catch (e) {
-                console.error("Auth bypass error:", e);
+            } catch (err) {
+                console.error("Failed to fetch session", err);
+            } finally {
+                setIsLoading(false);
             }
-            return false;
         };
 
-        if (!checkBypass()) {
-            // Default to mock-god for now if no bypass found
-            setUser({ id: 'mock-id-123', email: 'stephen@wnode.one' });
-            setProfile({ role: 'god' });
-        }
-        
-        setIsLoading(false);
+        fetchSession();
     }, []);
 
     useEffect(() => {
@@ -64,6 +51,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // Stable Profile State: prevent re-render loops by memoizing the profile object
     const memoizedProfile = useMemo(() => profile, [JSON.stringify(profile)]);
 
+    // The god role is purely for UI logic where relevant, though Command enforces it at backend level
     const isGodMode = useMemo(() => {
         return memoizedProfile?.role === 'god';
     }, [memoizedProfile]);

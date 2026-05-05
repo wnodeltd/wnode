@@ -17,53 +17,23 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
                 return;
             }
 
-            const jwt = localStorage.getItem("nodl_jwt");
-            const userStr = localStorage.getItem("nodl_user");
-            const authBypass = localStorage.getItem("nodl_auth_bypass");
-
-            if (!jwt || !userStr) {
-                console.warn("[AuthGuard] No token or user found, redirecting to /auth/login");
-                router.push("/auth/login");
-                return;
-            }
-
-            // If auth bypass is active (dev seed account), trust localStorage
-            // without requiring backend verification
-            if (authBypass === "true") {
-                console.log("[AuthGuard] Auth bypass active, skipping backend verification");
-                setIsVerified(true);
-                setIsLoading(false);
-                return;
-            }
-
             try {
-                // Verify session with backend
+                // Verify session with backend identity provider (via proxy)
+                // We no longer rely on localStorage JWTs or bypass flags.
                 const res = await fetch("/api/account/me", {
-                    headers: {
-                        "Authorization": `Bearer ${jwt}`,
-                    },
                     cache: "no-store",
                 });
 
                 if (res.ok) {
                     setIsVerified(true);
                 } else {
-                    console.error("[AuthGuard] Session verification failed, status:", res.status);
-                    // Clear invalid session
-                    localStorage.removeItem("nodl_jwt");
-                    localStorage.removeItem("nodl_user");
-                    document.cookie = "nodl_jwt=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+                    console.warn("[AuthGuard] Identity verification failed, status:", res.status);
                     router.push("/auth/login");
                 }
             } catch (error) {
-                console.error("[AuthGuard] Error verifying session:", error);
-                // If backend is unreachable but we have local auth, trust it
-                if (jwt && userStr) {
-                    console.warn("[AuthGuard] Backend unreachable, falling back to local auth");
-                    setIsVerified(true);
-                } else {
-                    setIsVerified(false);
-                }
+                console.error("[AuthGuard] Error verifying identity:", error);
+                // No more local auth fallbacks allowed.
+                router.push("/auth/login");
             } finally {
                 setIsLoading(false);
             }

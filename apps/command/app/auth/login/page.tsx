@@ -24,20 +24,61 @@ export default function LoginPage() {
             hasPassword: !!normalizedPassword
         });
 
-        // Specific seed account check/bypass for Phase 4
-        // Use: stephen@wnode.one / command
+        // Backend-Authoritative Auth for Seed Account
         if ((normalizedEmail === 'stephen@wnode.one' || normalizedEmail === 'stephen@nodl.one') && normalizedPassword === 'command') {
-            console.log('[Auth Debug] Peak Developer credentials accepted.');
-            localStorage.setItem('nodl_auth_bypass', 'true');
-            localStorage.setItem('nodl_user_email', normalizedEmail);
-            localStorage.setItem('nodl_user', JSON.stringify({ email: normalizedEmail, role: 'owner' }));
-            // Inject valid dev JWT for the backend to accept
-            localStorage.setItem('nodl_jwt', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InN0ZXBoZW5Abm9kbC5vbmUiLCJleHAiOjE3NzkzMjk3ODAsInJvbGUiOiJnb2QiLCJzdWIiOiJtb2NrLWlkLTEyMyJ9.cggY1itCGfrs6C38jmEm3fpxS7ZxybwEj13NCxfwVpk');
-            document.cookie = `nodl_jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InN0ZXBoZW5Abm9kbC5vbmUiLCJleHAiOjE3NzkzMjk3ODAsInJvbGUiOiJnb2QiLCJzdWIiOiJtb2NrLWlkLTEyMyJ9.cggY1itCGfrs6C38jmEm3fpxS7ZxybwEj13NCxfwVpk; path=/; max-age=86400; SameSite=Lax`;
+            console.log('[Auth Debug] Peak Developer credentials accepted. Requesting backend session...');
             
-            setTimeout(() => {
-                router.push('/');
-            }, 1000);
+            try {
+                const res = await fetch('/api/auth/debug-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ wuid: '100001-0426-01-AA', domain: 'command' })
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    console.log('[Auth Debug] Session established:', data.session_id);
+                    
+                    // Cleanup legacy items
+                    localStorage.removeItem('nodl_auth_bypass');
+                    localStorage.removeItem('nodl_jwt');
+                    
+                    router.push('/');
+                    return;
+                } else {
+                    setError('Backend session issuance failed. Check logs.');
+                }
+            } catch (e) {
+                console.error('[Auth Debug] Login error:', e);
+                setError('Authentication service unreachable.');
+            } finally {
+                setIsLoading(false);
+            }
+            return;
+        }
+
+        // Test User Auth (Read-Only)
+        if (normalizedEmail === 'test@user.com' && normalizedPassword === 'test') {
+            console.log('[Auth Debug] Test User credentials accepted.');
+            setIsLoading(true);
+            try {
+                const res = await fetch('/api/auth/debug-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ wuid: '100002-0426-01-AA', domain: 'command' })
+                });
+
+                if (res.ok) {
+                    router.push('/');
+                    return;
+                } else {
+                    setError('Test User session failed.');
+                }
+            } catch (e) {
+                setError('Service unreachable.');
+            } finally {
+                setIsLoading(false);
+            }
             return;
         }
 

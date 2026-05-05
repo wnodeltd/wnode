@@ -1,20 +1,9 @@
 import useSWR from 'swr';
-import { useAuth } from '../components/AuthProvider';
 import { featureFlags } from '@/lib/featureFlags';
 
 export function useProviderNodes() {
-    const { user } = useAuth();
-    
     const fetcher = async (url: string) => {
-        const token = typeof window !== 'undefined' ? localStorage.getItem('nodl_jwt') : null;
-        const userId = typeof window !== 'undefined' ? localStorage.getItem('nodl_user_id') : (user?.id || 'mock-id-123');
-
-        const res = await fetch(url, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-                'X-User-ID': userId || ''
-            }
-        });
+        const res = await fetch(url);
 
         if (!res.ok) {
             const error = new Error('An error occurred while fetching nodes.');
@@ -28,10 +17,8 @@ export function useProviderNodes() {
         return res.json();
     };
 
-    // If simulations are enabled, we optionally mix in or prefer mocked data.
-    // However, Phase 1 objective is to drive everything from /api/nodes.
     const { data, error, isLoading, mutate } = useSWR(
-        user ? '/api/nodes' : null,
+        '/api/nodes',
         fetcher,
         {
             refreshInterval: 10000, // Refresh every 10s

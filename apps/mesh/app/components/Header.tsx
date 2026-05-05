@@ -7,6 +7,7 @@ import { Basket } from './Basket';
 import { TopUpDialogue } from './TopUpDialogue';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { normalizeAccount } from '../../../shared/lib/identity';
 
 const PAGE_TITLES: Record<string, string> = {
     '/dashboard': 'MEMBER OVERVIEW',
@@ -19,7 +20,8 @@ const PAGE_TITLES: Record<string, string> = {
 
 export function Header() {
     const { balance, setIsTopUpOpen } = useBilling();
-    const { user: profile } = useAuth();
+    const { account } = useAuth();
+    const identity = normalizeAccount(account);
     const pathname = usePathname();
 
     const currentTitle = PAGE_TITLES[pathname] || 'MESH SYSTEM';
@@ -59,16 +61,34 @@ export function Header() {
 
                 <div className="h-6 w-[1px] bg-white/10 mx-1" />
 
-                <div className="flex flex-col items-end">
-                    <span className="text-16px font-bold text-white tracking-tight">
-                        {profile?.full_name || 'Stephen Soos'}
-                    </span>
-                    <span className="text-[14.4px] text-[#3B82F6] font-bold tracking-tight font-mono">
-                        {profile?.meshClientId || 'M0-000001-0420'}
-                    </span>
+                <div className="flex items-center gap-4">
+                    <div className="flex flex-col items-end">
+                        <span className="text-[16px] font-bold text-white tracking-tight">
+                            {identity.displayName}
+                        </span>
+                        <span className="text-[14.4px] text-[#3B82F6] font-bold tracking-tight font-mono">
+                            {identity.id}
+                        </span>
+                    </div>
+
+                    <div className="relative group">
+                        <div className="w-10 h-10 rounded-full bg-neutral-900 overflow-hidden flex items-center justify-center">
+                            {identity.avatarUrl ? (
+                                <img 
+                                    src={identity.avatarUrl} 
+                                    alt={identity.displayName} 
+                                    className="w-full h-full object-cover"
+                                />
+                            ) : (
+                                <span className="text-white font-medium text-sm">
+                                    {identity.initials}
+                                </span>
+                            )}
+                        </div>
+                        {/* Online Indicator */}
+                        <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-[#0A0A0A] rounded-full shadow-lg"></div>
+                    </div>
                 </div>
-
-
             </div>
 
             <TopUpDialogue />

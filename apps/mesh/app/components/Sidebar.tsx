@@ -19,8 +19,13 @@ export default function Sidebar() {
     const pathname = usePathname();
     const router = useRouter();
 
-    const handleLogout = () => {
-        document.cookie = "nodl_session=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;";
+    const handleLogout = async () => {
+        try {
+            await fetch('/api/v1/auth/logout', { method: 'POST' });
+        } catch (e) {
+            console.error("Logout API call failed:", e);
+        }
+        
         localStorage.removeItem('nodl_auth_bypass');
         router.push('/login');
     };

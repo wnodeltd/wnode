@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Loader2 } from "lucide-react";
+import { normalizeAccount } from "../lib/identity";
 
 declare global {
     interface Window {
@@ -9,19 +10,22 @@ declare global {
     }
 }
 
-export default function IdentityHeader() {
-    const [user, setUser] = useState<any>(null);
+export default function IdentityHeader({ account }: { account?: any }) {
+    const [user, setUser] = useState<any>(account || null);
     const [fetchError, setFetchError] = useState(false);
 
     useEffect(() => {
+        if (account) {
+            setUser(account);
+            return;
+        }
+
         let cancelled = false;
 
         const loadUser = async () => {
             try {
-                const jwt = localStorage.getItem("nodl_jwt");
-                const res = await fetch("/api/account/me", {
-                    headers: jwt ? { Authorization: `Bearer ${jwt}` } : {},
-                });
+                // Identity resolve via domain-scoped session cookies (handled by proxy)
+                const res = await fetch("/api/account/me");
 
                 if (res.ok && !cancelled) {
                     const data = await res.json();
@@ -31,30 +35,19 @@ export default function IdentityHeader() {
                         window.user_context = {
                             email: data.email,
                             role: data.role,
-                            sovereign_id: `ID_${data.id?.slice(0, 8) || "4492-X"}`,
-                            permissions: data.role === "owner" ? ["all"] : ["limited"],
+                            id: data.id,
+                            permissions: data.permissions || [], // Pure Backend Truth
                             session_age: "fresh",
-                            mfa_enabled: true,
                         };
                     }
                     return;
                 }
             } catch (e) {
-                console.warn("[IdentityHeader] API fetch failed:", e);
+                console.warn("[IdentityHeader] Identity resolution failed:", e);
             }
 
             if (!cancelled) {
-                const userStr = localStorage.getItem("nodl_user");
-                if (userStr) {
-                    try {
-                        const data = JSON.parse(userStr);
-                        setUser(data);
-                    } catch {
-                        setFetchError(true);
-                    }
-                } else {
-                    setFetchError(true);
-                }
+                setFetchError(true);
             }
         };
 
@@ -85,29 +78,31 @@ export default function IdentityHeader() {
         );
     }
 
+    const identity = normalizeAccount(user);
+
     return (
         <div className="flex items-center gap-4 select-none">
             <div className="text-right flex flex-col items-end min-w-0">
                 <span className="text-[17px] text-white font-normal tracking-tight truncate max-w-[200px] font-sans">
-                    {user.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : (user.name || user.displayName || user.email?.split('@')[0] || "Operator")}
+                    {identity.displayName}
                 </span>
                 <span className="text-[14px] text-[#3B82F6] font-normal tracking-widest uppercase mt-0.5 font-sans">
-                    {user.account_id ? (String(user.account_id).length > 12 ? `ID_${String(user.account_id).slice(0, 8)}` : String(user.account_id)) : (user.id ? `ID_${String(user.id).slice(0, 8)}` : "Session Active")}
+                    {identity.id}
                 </span>
             </div>
 
             {/* User Avatar */}
             <div className="relative group">
-                <div className="relative w-10 h-10 rounded-full border-2 border-neutral-800/50 bg-neutral-900 overflow-hidden flex items-center justify-center">
-                    {user.avatar_url ? (
+                <div className="relative w-10 h-10 rounded-full bg-neutral-900 overflow-hidden flex items-center justify-center">
+                    {identity.avatarUrl ? (
                         <img 
-                            src={user.avatar_url} 
-                            alt={user.name || "User"} 
+                            src={identity.avatarUrl} 
+                            alt={identity.displayName} 
                             className="w-full h-full object-cover"
                         />
                     ) : (
                         <span className="text-white font-medium text-sm">
-                            {(user.name || user.firstName || "?").charAt(0).toUpperCase()}
+                            {identity.initials}
                         </span>
                     )}
                 </div>

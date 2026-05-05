@@ -1,8 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import { useAuth } from "./AuthProvider";
+import { normalizeAccount } from "@shared/lib/identity";
+import IdentityHeader from "@shared/components/IdentityHeader";
 
 export default function Navbar() {
+    const { profile } = useAuth();
+    
+    const identity = normalizeAccount(profile);
+
     return (
         <nav className="flex items-center justify-between py-6 px-8 border-b border-white/5 backdrop-blur-xl sticky top-0 z-50">
             <div className="flex items-center gap-3">
@@ -25,14 +32,8 @@ export default function Navbar() {
             </div>
 
 
-            <div className="flex items-center gap-6">
-                <div className="flex flex-col items-end">
-                    <span className="text-[10px] text-slate-500 uppercase font-normal tracking-widest">Active session</span>
-                    <span className="text-16px text-white font-normal tracking-tight font-mono">100001-0426-01-AA</span>
-                </div>
-                <div className="w-10 h-10 border border-white/10 flex items-center justify-center text-[11px] text-white font-normal uppercase tracking-widest">
-                    SS
-                </div>
+            <div className="flex items-center gap-4">
+                <IdentityHeader account={profile} />
             </div>
 
 

@@ -57,28 +57,40 @@ export default function LoginPage() {
             hasPassword: !!normalizedPassword
         });
 
-        // Specific seed account check/bypass for Phase 4
         const isDevAccount = normalizedEmail === 'stephen@wnode.one' || normalizedEmail === 'stephen@nodl.one';
-        const isBetaAccount = normalizedEmail === 'user@test.com' && normalizedPassword === 'betatester';
+        const isBetaAccount = normalizedEmail === 'test@user.com' && normalizedPassword === 'test';
 
         if ((isDevAccount && normalizedPassword === 'command') || isBetaAccount) {
-            console.log(`[Auth Debug] ${isBetaAccount ? 'Beta' : 'Peak Developer'} credentials accepted.`);
-            localStorage.setItem('nodl_auth_bypass', 'true');
-            localStorage.setItem('nodl_user_email', normalizedEmail);
+            console.log(`[Auth Debug] ${isBetaAccount ? 'Beta' : 'Peak Developer'} credentials accepted. Requesting backend session...`);
             
             let userId = '100001-0426-01-AA';
             if (normalizedEmail === 'stephen@nodl.one') userId = '100001-0426-01-AB';
-            if (isBetaAccount) userId = '100005-0426-05-AA';
+            if (isBetaAccount) userId = '100002-0426-01-AA';
             
-            localStorage.setItem('nodl_user_id', userId);
-            
-            // Inject valid JWT (Standard or Dev)
-            const role = isBetaAccount ? 'standard' : 'god';
-            localStorage.setItem('nodl_jwt', `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6IiR7bm9ybWFsaXplZEVtYWlsfSIsImV4cCI6MTc3OTMyOTc4MCwicm9sZSI6IiR7cm9sZX0iLCJzdWIiOiJtb2NrLWlkLTEyMyJ9.cggY1itCGfrs6C38jmEm3fpxS7ZxybwEj13NCxfwVpk`);
-            
-            setTimeout(() => {
-                router.push('/dashboard');
-            }, 1000);
+            try {
+                const res = await fetch('/api/auth/debug-session', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ wuid: userId, domain: 'nodlr' })
+                });
+
+                if (res.ok) {
+                    console.log('[Auth Debug] Session established');
+                    localStorage.removeItem('nodl_auth_bypass');
+                    localStorage.removeItem('nodl_jwt');
+                    localStorage.removeItem('nodl_user_email');
+                    localStorage.removeItem('nodl_user_id');
+                    router.push('/dashboard');
+                    return;
+                } else {
+                    setError('Backend session issuance failed.');
+                }
+            } catch (e) {
+                console.error('[Auth Debug] Login error:', e);
+                setError('Authentication service unreachable.');
+            } finally {
+                setIsLoading(false);
+            }
             return;
         }
 

@@ -5,12 +5,13 @@ import { usePathname } from 'next/navigation';
 import { LayoutDashboard, Cpu, Users, Settings, LogOut, Upload, DollarSign, Plus, UserPlus, HelpCircle, AlertCircle, TrendingUp } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useAvatar } from '../hooks/useAvatar';
 import { useAccount } from '../hooks/useAccount';
 import AddMachineModal from '../components/AddMachineModal';
 import ConnectivityAudit from '../components/ConnectivityAudit';
 import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
+import { normalizeAccount } from '@shared/lib/identity';
+import IdentityHeader from '@shared/components/IdentityHeader';
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
@@ -33,26 +34,8 @@ export default function DashboardLayout({
 }) {
     const router = useRouter();
     const pathname = usePathname();
-    const { avatar, uploadAvatar } = useAvatar();
-    const { account: fetchedAccount, loading } = useAccount();
-    
-    // Provide fallback account when bypass is active but backend is unreachable
-    const account = fetchedAccount || (() => {
-        if (typeof window !== 'undefined' && localStorage.getItem('nodl_auth_bypass') === 'true') {
-            const email = localStorage.getItem('nodl_user_email') || 'stephen@wnode.one';
-            return {
-                nodlrId: localStorage.getItem('nodl_user_id') || '100001-0426-01-AA',
-                email,
-                name: email.split('@')[0],
-                stripeAccountId: '',
-                status: 'active',
-                nodes: [],
-                affiliates: [],
-                createdAt: new Date().toISOString(),
-            };
-        }
-        return null;
-    })();
+    const { account, loading } = useAccount();
+    const identity = account ? normalizeAccount(account) : null;
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isBannerDismissed, setIsBannerDismissed] = useState(false);
     const [mounted, setMounted] = useState(false);
@@ -92,13 +75,9 @@ export default function DashboardLayout({
     };
 
     useEffect(() => {
-        if (!loading) {
-            const token = localStorage.getItem('nodl_jwt');
-            const authBypass = localStorage.getItem('nodl_auth_bypass');
-            if (!token || (!account && authBypass !== 'true')) {
-                console.warn('[Dashboard Guard] Access denied. Redirecting to login.');
-                router.push('/login');
-            }
+        if (!loading && !account) {
+            console.warn('[Dashboard Guard] Access denied. Redirecting to login.');
+            router.push('/login');
         }
     }, [account, loading, router]);
 
@@ -111,33 +90,19 @@ export default function DashboardLayout({
     }
 
     if (!account) {
-        // If auth bypass is active, provide a minimal fallback
-        const bypass = typeof window !== 'undefined' && localStorage.getItem('nodl_auth_bypass') === 'true';
-        if (!bypass) return null; // Will redirect via useEffect
+        return null; // Will redirect via useEffect
     }
 
     const handlePhotoClick = () => {
-        if (fileInputRef.current) {
-            fileInputRef.current.click();
-        }
+        // Avatar upload disabled for now to maintain consistency
     };
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (file) {
-            try {
-                await uploadAvatar(file);
-            } catch (e) {
-                console.error("Failed to upload avatar:", e);
-            }
-        }
+        // Avatar upload disabled for now to maintain consistency
     };
 
     const handleLogout = () => {
-        localStorage.removeItem('nodl_jwt');
-        localStorage.removeItem('nodl_user');
-        localStorage.removeItem('nodl_user_email');
-        document.cookie = "nodl_jwt=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+        document.cookie = "nodlr_session=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
         router.push('/login');
     };
 
@@ -257,30 +222,7 @@ export default function DashboardLayout({
                             accept="image/*" 
                             className="hidden" 
                         />
-                        <div className="text-right flex flex-col items-end min-w-0">
-                            <span className="text-[17px] text-white font-normal tracking-tight truncate max-w-[200px]">
-                                {account.name 
-                                    ? account.name.split(' ').map((n: string) => n.charAt(0).toUpperCase() + n.slice(1).toLowerCase()).join(' ')
-                                    : account.email.split('@')[0].charAt(0).toUpperCase() + account.email.split('@')[0].slice(1)}
-                            </span>
-                            <span className="text-[14px] text-[#3B82F6] font-normal tracking-widest uppercase mt-0.5">
-                                {account.nodlrId}
-                            </span>
-                        </div>
-
-
-                        <div className="relative group">
-                            <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full opacity-20 group-hover:opacity-40 transition duration-300 blur-sm"></div>
-                            <div className="relative w-10 h-10 rounded-full border-2 border-white/5 bg-neutral-900 overflow-hidden flex items-center justify-center">
-                                {avatar ? (
-                                    <img src={avatar} alt="avatar" className="w-full h-full object-cover" />
-                                ) : (
-                                    <span className="text-white font-medium text-sm">
-                                        {(account.name || account.email).charAt(0).toUpperCase()}
-                                    </span>
-                                )}
-                            </div>
-                        </div>
+                        <IdentityHeader account={account} />
                     </div>
                 </header>
                 

@@ -4,104 +4,49 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from '
 import { useRouter, usePathname } from 'next/navigation';
 
 interface AuthContextType {
-    user: any | null;
-    session: any | null;
-    profile: any | null;
-    updateProfile: (updates: any) => void;
+    account: any | null;
     isLoading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-    const [user, setUser] = useState<any | null>(null);
-    const [session, setSession] = useState<any | null>(null);
-    const [profile, setProfile] = useState<any | null>({
-        full_name: 'Stephen Soos',
-        avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Stephen',
-        id: 'M0-000001-0420'
-    });
-
-    useEffect(() => {
-        // Load avatar from shared file API
-        if (typeof window !== 'undefined') {
-            fetch('/api/avatar')
-                .then(res => res.json())
-                .then(data => {
-                    if (data?.avatar) {
-                        setProfile((prev: any) => ({ ...prev, avatar: data.avatar }));
-                    }
-                })
-                .catch(() => {});
-        }
-    }, []);
+    const [account, setAccount] = useState<any | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const router = useRouter();
     const pathname = usePathname();
 
-    const updateProfile = async (updates: any) => {
-        setProfile((prev: any) => ({ ...prev, ...updates }));
-        
-        // Broadcast avatar changes to the global persistence API
-        if (updates.avatar) {
-            try {
-                await fetch('/api/avatar', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ avatar: updates.avatar })
-                });
-            } catch (e) {}
-        }
-    };
-
     useEffect(() => {
-        const checkBypass = () => {
-            if (typeof window !== 'undefined' && localStorage.getItem('nodl_auth_bypass') === 'true') {
-                const mockEmail = localStorage.getItem('nodl_user_email') || 'stephen@wnode.one';
-                const mockUser = {
-                    id: 'mock-mesh-buyer-01',
-                    email: mockEmail,
-                    user_metadata: { full_name: 'Stephen (Buyer)' }
-                } as any;
-
-                setUser(mockUser);
-                setSession({ user: mockUser } as any);
-                
-                // Only initialize profile if not already set or it's just mock data
-                setProfile(prev => prev?.id === 'M0-000001-0420' && prev?.avatar !== 'https://api.dicebear.com/7.x/avataaars/svg?seed=Stephen' ? prev : { 
-                    id: 'M0-000001-0420', 
-                    role: 'buyer', 
-                    full_name: 'Stephen Soos',
-                    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Stephen' // The useEffect will asynchronously overwrite this if a custom avatar is found.
-                });
-                
+        async function fetchAccount() {
+            try {
+                const res = await fetch('/api/account/me');
+                if (res.ok) {
+                    const data = await res.json();
+                    setAccount(data);
+                } else {
+                    setAccount(null);
+                }
+            } catch (error) {
+                console.error('[Auth] Failed to fetch account:', error);
+                setAccount(null);
+            } finally {
                 setIsLoading(false);
-                return true;
             }
-            return false;
-        };
+        }
 
-        const setData = async () => {
-            if (checkBypass()) return;
-            setIsLoading(false);
-        };
-
-        setData();
+        fetchAccount();
     }, []);
 
     useEffect(() => {
-        if (!isLoading && !user && !pathname?.startsWith('/login')) {
+        if (!isLoading && !account && !pathname?.startsWith('/login')) {
             router.push('/login');
         }
-    }, [isLoading, user, pathname, router]);
+    }, [isLoading, account, pathname, router]);
 
     const value = useMemo(() => ({
-        user,
-        session,
-        profile,
-        updateProfile,
+        account,
         isLoading
-    }), [user, session, profile, isLoading]);
+    }), [account, isLoading]);
 
     if (isLoading) {
         return (

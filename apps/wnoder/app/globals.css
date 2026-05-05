@@ -45,21 +45,8 @@
 }
 
 
-* {
-  font-family: var(--font-roboto) !important;
-  font-weight: 400 !important;
-  font-style: normal !important;
-  font-variant: normal !important;
-  border-radius: 5px !important;
-  margin-top: calc(attr(margin-top) * 0.8);
-  margin-bottom: calc(attr(margin-bottom) * 0.8);
-  padding-top: calc(attr(padding-top) * 0.8);
-  padding-bottom: calc(attr(padding-bottom) * 0.8);
-}
 
-div, button, input, section, aside, header, nav, img {
-  border-radius: 5px !important;
-}
+
 
 body {
   color: var(--foreground);
