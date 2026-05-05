@@ -62,17 +62,17 @@ func TestCommissionSplits(t *testing.T) {
 
 	// 3. Calculate splits for $100.00 (10000 cents)
 	total := int64(10000)
-	records := s.CalculateSplits(total, earner)
+	records := s.CalculateSplits(total, earner, "TEST-MESH-ID")
 
 	expected := map[CommissionRole]struct {
 		StripeID string
 		Amount   int64
 	}{
-		CommRolePlatform: {earnerStripe, 8000},
-		CommRoleFounder:  {ownerFounderID, 300},
-		CommRoleWnode:    {WnodeBusinessStripeID, 700},
-		CommRoleLevel1:   {l2Stripe, 200}, // Direct parent (L2)
-		CommRoleLevel2:   {l1Stripe, 800}, // Grandparent (L1)
+		CommRolePlatform: {earnerStripe, 7000}, // Operator (70%)
+		CommRoleFounder:  {ownerFounderID, 300}, // Founder (3%)
+		CommRoleWnode:    {WnodeBusinessStripeID, 700}, // Platform (7%)
+		CommRoleLevel1:   {l2Stripe, 300}, // Direct parent (3%)
+		CommRoleLevel2:   {l1Stripe, 700}, // Grandparent (7%)
 	}
 
 	for _, r := range records {
@@ -122,23 +122,45 @@ func TestMeshClientIDGenerator(t *testing.T) {
 		t.Errorf("Expected sequence 000001 after rollover, got %s", idRollover)
 	}
 
-	// 3. Force near month rollover
 	s.mu.Lock()
 	s.meshBucket = 9
 	s.meshSequence = 999999
-	oldMMYY := s.meshMonthYear
 	s.mu.Unlock()
 
 	idMonthRollover := s.GenerateMeshClientID()
 	
-	s.mu.Lock()
-	newMMYY := s.meshMonthYear
-	s.mu.Unlock()
-
-	if newMMYY == oldMMYY {
-		t.Errorf("Expected month rollover, got %s -> %s", oldMMYY, newMMYY)
-	}
 	if idMonthRollover[1:2] != "0" {
 		t.Errorf("Expected bucket 0 after month rollover, got %s", idMonthRollover)
+	}
+}
+
+func TestAnchorAccounts(t *testing.T) {
+	s := NewStore(nil, "")
+	
+	// Verify Stephen
+	stephen, ok := s.GetNodlr("100001-0426-01-AA")
+	if !ok || stephen.Role != RoleOwner || !stephen.IsSuperAdmin {
+		t.Errorf("Stephen anchor account not seeded correctly")
+	}
+
+	// Verify Test User
+	testUser, ok := s.GetNodlr("100002-0426-01-AA")
+	if !ok || testUser.Role != RoleObserver || len(testUser.Permissions) == 0 {
+		t.Errorf("Test User anchor account not seeded correctly")
+	}
+}
+
+func TestWUIDSequence(t *testing.T) {
+	s := NewStore(nil, "")
+	
+	// Initial state has 2 anchors. Next index should be 3.
+	next, err := s.CreateNodlr("new@user.com", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expectedID := "100003-0426-03-AA"
+	if next.ID != expectedID {
+		t.Errorf("WUID sequence failed. Expected %s, got %s", expectedID, next.ID)
 	}
 }

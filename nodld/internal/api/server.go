@@ -101,8 +101,9 @@ func New(dispatcher *jobs.Dispatcher, store *jobs.Store, pricingStore *pricing.S
 
 	app.Use(recover.New())
 	app.Use(cors.New(cors.Config{
-		AllowOrigins: os.Getenv("ALLOWED_ORIGINS"),
-		AllowHeaders: "Origin, Content-Type, Accept, Authorization, X-User-ID",
+		AllowOrigins:     os.Getenv("ALLOWED_ORIGINS"),
+		AllowHeaders:     "Origin, Content-Type, Accept, Authorization, X-User-ID, X-Owner-ID, X-Owner-Email",
+		AllowCredentials: true,
 	}))
 	app.Use(logger.New())
 
@@ -163,14 +164,19 @@ func (s *Server) registerRoutes() {
 	// Account & Affiliates
 	apiV1.Get("/account/lookup", s.handleLookupAccount)
 	apiV1.Post("/account/create", s.handleCreateAccount)
-	apiV1.Get("/account/me", s.requireLevel(account.RoleStandard), s.handleGetMyAccount)
+	apiV1.Get("/account/me", s.requireLevel(account.RoleVisitor), s.handleGetMyAccount)
 	apiV1.Get("/account/:id", s.requireLevel(account.RoleVisitor), s.handleGetAccount)
 	apiV1.Put("/account/:id", s.requireLevel(account.RoleCustomerService), s.handleUpdateAccount)
 	apiV1.Post("/account/onboard", s.handleOnboardAccount)
 
 	// Auth Aliases for Frontend (Phase 4 MVP)
 	apiV1.Post("/auth/signup", s.handleOnboardAccount)
-	apiV1.Post("/auth/login", s.handleHealth) // Auth is handled via bypass in frontend for MVP
+	apiV1.Post("/auth/magic-link", s.handleMagicLink)
+	apiV1.Post("/auth/verify", s.handleVerifyMagicLink)
+	apiV1.Post("/auth/debug-session", s.handleDebugSession)
+	apiV1.Post("/auth/invite", s.handleInvite) // Internal/Test only
+	apiV1.Post("/auth/onboard", s.handleOnboardWithInvite)
+	apiV1.Post("/auth/login", s.handleHealth)
 	apiV1.Get("/affiliates/tree/:id", s.requireLevel(account.RoleVisitor), s.handleGetAffiliateTree)
 	apiV1.Post("/affiliates/transfer", s.requireLevel(account.RoleStandard), s.handleTransferAffiliate)
 	apiV1.Post("/affiliates/genesis/activate", s.requireLevel(account.RoleOwner), s.handleActivateFounder)
@@ -583,7 +589,18 @@ func (s *Server) handleGetMyAccount(c *fiber.Ctx) error {
 	if !ok {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "account not found"})
 	}
-	return c.JSON(acc)
+	
+	// Unified Backend-First Identity Response
+	return c.JSON(fiber.Map{
+		"id":          acc.ID,
+		"email":       acc.Email,
+		"role":        string(acc.Role),
+		"permissions": acc.Permissions, // Pure backend-defined permissions
+		"firstName":   acc.FirstName,
+		"lastName":    acc.LastName,
+		"displayName": acc.DisplayName, 
+		"isFounder":   acc.IsFounder,
+	})
 }
 
 func (s *Server) handleGetAccount(c *fiber.Ctx) error {
@@ -601,6 +618,119 @@ func (s *Server) handleGetOpportunityAudit(c *fiber.Ctx) error {
 	return c.JSON(audit)
 }
 
+func (s *Server) handleMagicLink(c *fiber.Ctx) error {
+	var req struct {
+		Email  string `json:"email"`
+		Domain string `json:"domain"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request"})
+	}
+
+	// Safety: Command is invite-only
+	if req.Domain == "command" {
+		if _, ok := s.accountStore.GetNodlrByEmail(req.Email); !ok {
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": "command_invite_required"})
+		}
+	}
+
+	token := s.accountStore.CreateMagicLinkToken(req.Email, req.Domain)
+	s.log.Info("[AUTH] Magic link generated", zap.String("email", req.Email), zap.String("token", token))
+	
+	// In a real system, we'd send an email here.
+	return c.JSON(fiber.Map{"message": "magic_link_sent", "debug_token": token})
+}
+
+func (s *Server) handleVerifyMagicLink(c *fiber.Ctx) error {
+	var req struct {
+		Token string `json:"token"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request"})
+	}
+
+	mt, err := s.accountStore.ConsumeMagicLinkToken(req.Token)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	acc, ok := s.accountStore.GetNodlrByEmail(mt.Email)
+	if !ok {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "account not found"})
+	}
+
+	sessionID := s.accountStore.CreateSession(acc.ID, mt.Domain, acc.Role)
+	
+	cookieName := ""
+	switch mt.Domain {
+	case "command":
+		cookieName = "cmd_session"
+	case "nodlr":
+		cookieName = "nodlr_session"
+	case "mesh":
+		cookieName = "mesh_session"
+	}
+
+	c.Cookie(&fiber.Cookie{
+		Name:     cookieName,
+		Value:    sessionID,
+		Expires:  time.Now().Add(24 * time.Hour),
+		HTTPOnly: true,
+		Secure:   true,
+		SameSite: "Lax",
+	})
+
+	return c.JSON(fiber.Map{"status": "success", "wuid": acc.ID, "role": acc.Role})
+}
+
+func (s *Server) handleInvite(c *fiber.Ctx) error {
+	var req struct {
+		Email  string           `json:"email"`
+		Domain string           `json:"domain"`
+		Role   account.UserRole `json:"role"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request"})
+	}
+
+	token := s.accountStore.CreateInviteToken(req.Email, req.Domain, req.Role)
+	return c.JSON(fiber.Map{"invite_token": token})
+}
+
+func (s *Server) handleOnboardWithInvite(c *fiber.Ctx) error {
+	var req struct {
+		InviteToken string `json:"inviteToken"`
+		Email       string `json:"email"`
+		FirstName   string `json:"firstName"`
+		LastName    string `json:"lastName"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request"})
+	}
+
+	it, err := s.accountStore.ConsumeInviteToken(req.InviteToken)
+	if err != nil {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	if it.Email != req.Email {
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": "email_mismatch"})
+	}
+
+	acc, err := s.accountStore.CreateNodlr(req.Email, "")
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "failed to create account"})
+	}
+
+	acc.FirstName = req.FirstName
+	acc.LastName = req.LastName
+	acc.Role = account.UserRole(it.Role)
+	acc.OnboardingComplete = true
+	acc.Verified = true
+	acc.Status = "active"
+
+	return c.JSON(fiber.Map{"status": "success", "wuid": acc.ID})
+}
 
 func (s *Server) handleUpdateAccount(c *fiber.Ctx) error {
 	id := c.Params("id")
@@ -670,12 +800,51 @@ func (s *Server) handleGetAffiliateTree(c *fiber.Ctx) error {
 	return c.JSON(tree)
 }
 
+// resolveIdentity extracts the user ID from session cookies or a development bypass.
+func (s *Server) resolveIdentity(c *fiber.Ctx) (string, string) {
+	// 1. Production Path: Domain-scoped Session Cookies
+	for _, cookieName := range []string{"cmd_session", "nodlr_session", "mesh_session"} {
+		if sessionID := c.Cookies(cookieName); sessionID != "" {
+			sess, ok := s.accountStore.GetSession(sessionID)
+			if ok {
+				// Verify domain isolation: cmd_session must match "command" domain
+				expectedDomain := ""
+				switch cookieName {
+				case "cmd_session":
+					expectedDomain = "command"
+				case "nodlr_session":
+					expectedDomain = "nodlr"
+				case "mesh_session":
+					expectedDomain = "mesh"
+				}
+
+				if sess.Domain != expectedDomain {
+					s.log.Warn("[AUTH] Cross-domain session misuse attempt", zap.String("id", sess.WUID), zap.String("session_domain", sess.Domain), zap.String("request_domain", expectedDomain))
+					return "", ""
+				}
+				return sess.WUID, string(sess.Role)
+			}
+		}
+	}
+
+	// 2. Development Path: X-User-ID Bypass
+	if os.Getenv("DEVELOPMENT_MODE") == "true" {
+		if devID := c.Get("X-User-ID"); devID != "" {
+			acc, ok := s.accountStore.GetNodlr(devID)
+			if ok {
+				s.log.Warn("[AUTH] Using DEVELOPMENT_MODE X-User-ID bypass", zap.String("id", devID))
+				return devID, string(acc.Role)
+			}
+		}
+	}
+
+	return "", ""
+}
+
 // isOwner checks if the request is from the authoritative owner (Stephen).
 func (s *Server) isOwner(c *fiber.Ctx) bool {
-	email := c.Get("X-Owner-Email")
-	id := c.Get("X-Owner-ID")
-	// Master Key Protocol: stephen@wnode.one is the universal authoritative owner
-	return (email == "stephen@wnode.one" || email == "stephen@nodl.one") && id == "100001-0426-01-AA"
+	id, _ := s.resolveIdentity(c)
+	return id == account.AuthoritativeOwnerID
 }
 // IsObserver checks if the account has the global read-only observer role.
 func (s *Server) IsObserver(a *account.Nodlr) bool {
@@ -692,8 +861,8 @@ func (s *Server) requireLevel(minLevel account.UserRole) fiber.Handler {
 			return c.Next()
 		}
 
-		// Check the requester's role
-		requesterID := c.Get("X-User-ID")
+		// Check the requester's identity via cookie-first resolution
+		requesterID, requesterRole := s.resolveIdentity(c)
 		if requesterID == "" {
 			return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "missing authentication"})
 		}
@@ -736,7 +905,7 @@ func (s *Server) requireLevel(minLevel account.UserRole) fiber.Handler {
 
 		// Set locals for handlers
 		c.Locals("user_id", requesterID)
-		c.Locals("user_role", string(requester.Role))
+		c.Locals("user_role", requesterRole)
 
 		return c.Next()
 	}
@@ -1252,4 +1421,43 @@ func (s *Server) handleCreateAccount(c *fiber.Ctx) error {
 	s.accountStore.AddNodlr(newAcc)
 
 	return c.Status(fiber.StatusCreated).JSON(newAcc)
+}
+
+func (s *Server) handleDebugSession(c *fiber.Ctx) error {
+	if os.Getenv("DEVELOPMENT_MODE") != "true" {
+		return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": "debug_disabled"})
+	}
+
+	var req struct {
+		WUID   string `json:"wuid"`
+		Domain string `json:"domain"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request"})
+	}
+
+	acc, ok := s.accountStore.GetNodlr(req.WUID)
+	if !ok {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "account not found"})
+	}
+
+	sessionID := s.accountStore.CreateSession(acc.ID, req.Domain, acc.Role)
+
+	cookieName := "cmd_session"
+	if req.Domain == "nodlr" {
+		cookieName = "nodlr_session"
+	} else if req.Domain == "mesh" {
+		cookieName = "mesh_session"
+	}
+
+	c.Cookie(&fiber.Cookie{
+		Name:     cookieName,
+		Value:    sessionID,
+		Expires:  time.Now().Add(24 * time.Hour),
+		HTTPOnly: true,
+		Secure:   true,
+		SameSite: "Lax",
+	})
+
+	return c.JSON(fiber.Map{"status": "success", "session_id": sessionID})
 }

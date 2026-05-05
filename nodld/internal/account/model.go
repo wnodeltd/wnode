@@ -68,6 +68,7 @@ type Nodlr struct {
 	Password              string          `json:"password,omitempty"`
 	FirstName             string          `json:"firstName,omitempty"`
 	LastName              string          `json:"lastName,omitempty"`
+	DisplayName           string          `json:"displayName,omitempty"`
 	MeshClientID          string          `json:"meshClientId"`
 	StripeConnectID       string          `json:"stripeConnectId"`
 	StripeAccountID       string          `json:"stripeAccountId"` // Phase 3 Mapping
@@ -227,6 +228,36 @@ type OpportunityEvent struct {
 type ExpansionInsight struct {
 	Analysis      string  `json:"analysis"`
 	MissedMonthly float64 `json:"missedMonthly"`
+}
+
+// InviteToken represents a one-time invitation to the platform (primarily for Command).
+type InviteToken struct {
+	Token     string    `json:"token"`
+	Email     string    `json:"email"`
+	Domain    string    `json:"domain"`
+	Role      UserRole  `json:"role"`
+	ExpiresAt time.Time `json:"expiresAt"`
+	Used      bool      `json:"used"`
+	CreatedAt time.Time `json:"createdAt"`
+}
+
+// MagicLinkToken represents a short-lived login token sent via email.
+type MagicLinkToken struct {
+	Token     string    `json:"token"`
+	Email     string    `json:"email"`
+	Domain    string    `json:"domain"`
+	ExpiresAt time.Time `json:"expiresAt"`
+	Used      bool      `json:"used"`
+	CreatedAt time.Time `json:"createdAt"`
+}
+
+// DomainSession represents a verified session for a specific identity domain.
+type DomainSession struct {
+	WUID      string    `json:"wuid"`
+	Domain    string    `json:"domain"`
+	Role      UserRole  `json:"role"`
+	ExpiresAt time.Time `json:"expiresAt"`
+	CreatedAt time.Time `json:"createdAt"`
 }
 
 

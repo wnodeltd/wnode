@@ -24,6 +24,11 @@ type Store struct {
 	forensics          *forensics.Store
 	statePath          string
 
+	// Auth Tokens
+	inviteTokens     map[string]*InviteToken
+	magicLinkTokens  map[string]*MagicLinkToken
+	domainSessions   map[string]*DomainSession // SessionID -> Session
+
 	// Mesh Client ID Generation State
 	meshBucket         int
 	meshSequence       int
@@ -44,6 +49,9 @@ func NewStore(forensics *forensics.Store, statePath string) *Store {
 		nodes:              make(map[string]*WnodeNode),
 		meshClients:        make(map[string]*MeshClient),
 		pairingCodes:       make(map[string]*PairingCode),
+		inviteTokens:       make(map[string]*InviteToken),
+		magicLinkTokens:    make(map[string]*MagicLinkToken),
+		domainSessions:     make(map[string]*DomainSession),
 		forensics:          forensics,
 		statePath:          statePath,
 	}
@@ -95,6 +103,7 @@ func (s *Store) SeedFoundationIdentities() {
 		s.nodlrs[ownerID] = &Nodlr{
 			ID:                 ownerID,
 			Email:              "stephen@wnode.one",
+			DisplayName:        "Stephen Soos",
 			Role:               RoleOwner,
 			IsSuperAdmin:       true,
 			IsProtected:        true,
@@ -105,88 +114,33 @@ func (s *Store) SeedFoundationIdentities() {
 		}
 	} else {
 		// Enforce foundation status on existing record
+		n.DisplayName = "Stephen Soos"
 		n.IsSuperAdmin = true
 		n.IsProtected = true
 		n.OnboardingComplete = true
 		n.Verified = true
 	}
 
-	// 1b. Stephen Alt (Universal Owner)
-	altOwnerID := "100001-0426-01-AB"
-	if _, ok := s.nodlrs[altOwnerID]; !ok {
-		s.nodlrs[altOwnerID] = &Nodlr{
-			ID:                 altOwnerID,
-			Email:              "stephen@nodl.one",
-			Role:               RoleOwner,
-			IsSuperAdmin:       true,
+	// 2. Test User (Read-Only Observer)
+	testUserID := "100002-0426-01-AA"
+	if n, ok := s.nodlrs[testUserID]; !ok {
+		s.nodlrs[testUserID] = &Nodlr{
+			ID:                 testUserID,
+			Email:              "test@user.com",
+			DisplayName:        "Test User",
+			Role:               RoleObserver,
+			Permissions:        ObserverPermissions,
 			IsProtected:        true,
 			OnboardingComplete: true,
 			Verified:           true,
 			Status:             "active",
 			CreatedAt:          time.Now(),
 		}
-	}
-
-	// 2. Stephen (Founder Nodlr)
-	founderID := "100002-0426-02-AA"
-	if n, ok := s.nodlrs[founderID]; !ok {
-		s.nodlrs[founderID] = &Nodlr{
-			ID:                     founderID,
-			Email:                  "stephensoos@yahoo.com",
-			Role:                   RoleFounderNodlr,
-			FounderStripeAccountID: stringPtr("PENDING_FOUNDER_STRIPE_ID"),
-			OnboardingComplete:     true,
-			Verified:               true,
-			IsProtected:            true,
-			Status:                 "active",
-			CreatedAt:              time.Now(),
-		}
 	} else {
-		// Enforce foundation status on existing record
-		n.IsProtected = true
-		n.OnboardingComplete = true
-		n.Verified = true
-	}
-
-	// 3. Eldesskar (Reservation)
-	eldesskarID := "100003-0426-03-AA"
-	if _, ok := s.nodlrs[eldesskarID]; !ok {
-		s.nodlrs[eldesskarID] = &Nodlr{
-			ID:        eldesskarID,
-			Email:     "eldesskar@wnode.one",
-			Role:      RoleVisitor,
-			Status:    "active",
-			CreatedAt: time.Now(),
-		}
-	}
-
-	// 4. Beta User (Universal Observer)
-	betaUserID := "100005-0426-05-AA"
-	if n, ok := s.nodlrs[betaUserID]; !ok {
-		s.nodlrs[betaUserID] = &Nodlr{
-			ID:                 betaUserID,
-			Email:              "user@test.com",
-			Password:           "user",
-			FirstName:          "Test",
-			LastName:           "User",
-			Role:               RoleObserver,
-			Permissions:        ObserverPermissions,
-			Status:             "active",
-			OnboardingComplete: true,
-			Verified:           true,
-			CreatedAt:          time.Now(),
-		}
-	} else {
-		// Ensure properties match institutional spec even if loaded from state
-		n.Email = "user@test.com"
-		n.Password = "user"
-		n.FirstName = "Test"
-		n.LastName = "User"
+		n.DisplayName = "Test User"
 		n.Role = RoleObserver
 		n.Permissions = ObserverPermissions
-		n.Status = "active"
-		n.OnboardingComplete = true
-		n.Verified = true
+		n.IsProtected = true
 	}
 }
 
@@ -988,5 +942,97 @@ func (s *Store) GetOpportunityAudit(nodlrID string) *OpportunityAudit {
 	return audit
 }
 
+// --- Auth & Session Management ---
 
+func (s *Store) CreateInviteToken(email, domain string, role UserRole) string {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	token := uuid.New().String()
+	s.inviteTokens[token] = &InviteToken{
+		Token:     token,
+		Email:     email,
+		Domain:    domain,
+		Role:      role,
+		ExpiresAt: time.Now().Add(72 * time.Hour),
+		CreatedAt: time.Now(),
+	}
+	return token
+}
 
+func (s *Store) ConsumeInviteToken(token string) (*InviteToken, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	t, ok := s.inviteTokens[token]
+	if !ok {
+		return nil, fmt.Errorf("invalid invite token")
+	}
+	if t.Used {
+		return nil, fmt.Errorf("invite token already used")
+	}
+	if time.Now().After(t.ExpiresAt) {
+		return nil, fmt.Errorf("invite token expired")
+	}
+	t.Used = true
+	return t, nil
+}
+
+func (s *Store) CreateMagicLinkToken(email, domain string) string {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	token := uuid.New().String()
+	s.magicLinkTokens[token] = &MagicLinkToken{
+		Token:     token,
+		Email:     email,
+		Domain:    domain,
+		ExpiresAt: time.Now().Add(15 * time.Minute),
+		CreatedAt: time.Now(),
+	}
+	return token
+}
+
+func (s *Store) ConsumeMagicLinkToken(token string) (*MagicLinkToken, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	t, ok := s.magicLinkTokens[token]
+	if !ok {
+		return nil, fmt.Errorf("invalid magic link")
+	}
+	if t.Used {
+		return nil, fmt.Errorf("magic link already used")
+	}
+	if time.Now().After(t.ExpiresAt) {
+		return nil, fmt.Errorf("magic link expired")
+	}
+	t.Used = true
+	return t, nil
+}
+
+func (s *Store) CreateSession(wuid, domain string, role UserRole) string {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	sessionID := uuid.New().String()
+	s.domainSessions[sessionID] = &DomainSession{
+		WUID:      wuid,
+		Domain:    domain,
+		Role:      role,
+		ExpiresAt: time.Now().Add(24 * time.Hour),
+		CreatedAt: time.Now(),
+	}
+	return sessionID
+}
+
+func (s *Store) GetSession(sessionID string) (*DomainSession, bool) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	sess, ok := s.domainSessions[sessionID]
+	if !ok || time.Now().After(sess.ExpiresAt) {
+		return nil, false
+	}
+	return sess, true
+}
+
+func (s *Store) RevokeSession(sessionID string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	delete(s.domainSessions, sessionID)
+}
