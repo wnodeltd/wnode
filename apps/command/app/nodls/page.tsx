@@ -9,6 +9,8 @@ import {
 import DetailPanel from "../components/DetailPanel";
 import { usePageTitle } from "../components/PageTitleContext";
 import IdentityHeader from "@shared/components/IdentityHeader";
+import Tooltip from "../components/Tooltip";
+import MetricCard from "../components/MetricCard";
 
 export default function NodlsPage() {
     usePageTitle("Global Node Registry", "Monitor and manage all compute hardware across the Nodl mesh.");
@@ -53,7 +55,42 @@ export default function NodlsPage() {
 
     return (
         <>
-            <main className="flex-1 p-8 overflow-y-auto pb-24 relative space-y-6 focus:outline-none">
+            <main className="flex-1 p-8 pt-24 overflow-y-auto pb-24 relative space-y-8 focus:outline-none">
+                
+                {/* Summary Cards Row */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <MetricCard 
+                        label="Total Nodes" 
+                        value={nodls.length} 
+                        icon={Server} 
+                        statusColor="text-[#22D3EE]" 
+                        sub="Global Registry"
+                    />
+                    <MetricCard 
+                        label="Online Now" 
+                        value={nodls.filter(n => n.status === 'online' || n.status === 'active').length} 
+                        icon={Activity} 
+                        statusColor="text-green-400" 
+                        sub="Active Peers"
+                        pulse={true}
+                    />
+                    <MetricCard 
+                        label="Total Compute" 
+                        value={nodls.reduce((acc, n) => acc + (n.cpuCores || n.cpu_cores || 0), 0)} 
+                        unit="Cores"
+                        icon={Cpu} 
+                        statusColor="text-purple-400" 
+                        sub="Network Capacity"
+                    />
+                    <MetricCard 
+                        label="Memory Pool" 
+                        value={nodls.reduce((acc, n) => acc + (n.memoryGB || n.memory_gb || 0), 0)} 
+                        unit="GB"
+                        icon={HardDrive} 
+                        statusColor="text-blue-400" 
+                        sub="Aggregated RAM"
+                    />
+                </div>
 
                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
                         <div className="flex-1" />
@@ -88,10 +125,26 @@ export default function NodlsPage() {
                             <table className="w-full text-left border-collapse">
                                 <thead>
                                     <tr className="border-b border-white/10 bg-white/[0.02]">
-                                        <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">nodl Identity</th>
-                                        <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Status / Tier</th>
-                                        <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Hardware Profile</th>
-                                        <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">Activity Trace</th>
+                                        <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">
+                                            <Tooltip text="Authoritative network address and protocol identifier">
+                                                nodl Identity
+                                            </Tooltip>
+                                        </th>
+                                        <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">
+                                            <Tooltip text="Operational state and provisioned compute tier">
+                                                Status / Tier
+                                            </Tooltip>
+                                        </th>
+                                        <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">
+                                            <Tooltip text="Physical hardware capabilities (Cores, Memory, Acceleration)">
+                                                Hardware Profile
+                                            </Tooltip>
+                                        </th>
+                                        <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">
+                                            <Tooltip text="Real-time telemetry and heartbeat timestamps">
+                                                Activity Trace
+                                            </Tooltip>
+                                        </th>
                                         <th className="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] text-right pr-10">Actions</th>
                                     </tr>
                                 </thead>
@@ -116,7 +169,9 @@ export default function NodlsPage() {
                                             <td className="px-6 py-6">
                                                 <div className="flex flex-col gap-2">
                                                     <div className="flex items-center gap-2">
-                                                        <div className={`w-1.5 h-1.5 rounded-full ${nodl.status === 'online' || nodl.status === 'active' ? 'bg-[#22D3EE] shadow-[0_0_8px_#22D3EE]' : 'bg-red-500/50'}`} />
+                                                        <Tooltip text={nodl.status === 'online' || nodl.status === 'active' ? "Node is actively peering and reporting telemetry" : "Node is currently unreachable or offline"}>
+                                                            <div className={`w-1.5 h-1.5 rounded-full ${nodl.status === 'online' || nodl.status === 'active' ? 'bg-[#22D3EE] shadow-[0_0_8px_#22D3EE]' : 'bg-red-500/50'}`} />
+                                                        </Tooltip>
                                                         <span className={`text-[11px] font-bold tracking-[0.1em] uppercase ${nodl.status === 'online' || nodl.status === 'active' ? 'text-white' : 'text-slate-500'}`}>
                                                             {nodl.status}
                                                         </span>

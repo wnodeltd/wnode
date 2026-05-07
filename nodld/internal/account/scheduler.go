@@ -55,7 +55,7 @@ func (s *Scheduler) Settle() {
 			continue
 		}
 
-		pending := s.store.GetPendingTotal(n.ID)
+		pending := n.PendingBalanceCents
 		if pending <= 0 {
 			continue
 		}
@@ -80,16 +80,16 @@ func (s *Scheduler) Settle() {
 			continue
 		}
 
-		// ── Authoritative Economics Waterfall ────────────────────────────────
-		records := s.store.CalculateSplits(pending, n.ID, "")
-		if len(records) == 0 {
-			continue
-		}
+		// ── Authoritative Settlement Execution ──────────────────────────────
+		records := s.store.GetPendingRecords(n.ID)
 
 		payouts := make(map[string]int64)
 		var platformAmt int64
 
 		for _, r := range records {
+			if r.Status != "pending" {
+				continue
+			}
 			if r.Role == CommRoleWnode {
 				platformAmt += r.AmountCents
 			} else {
@@ -104,7 +104,7 @@ func (s *Scheduler) Settle() {
 		// ── Execution via Stripe Service ────────────────────────────────────
 		err := s.stripe.ProcessCommissionPayouts(jobID, platformAmt, payouts, transferGroup)
 		if err == nil {
-			s.store.ClearPending(n.ID)
+			s.store.FinalizePayout(n.ID)
 			s.log.Info("settlement successful", zap.String("id", n.ID), zap.Int64("total", pending))
 		} else {
 			s.log.Error("settlement failed", zap.String("id", n.ID), zap.Error(err))

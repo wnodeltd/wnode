@@ -1,4 +1,6 @@
-import React from 'react';
+'use client';
+
+import React, { useState } from 'react';
 import { LucideIcon } from 'lucide-react';
 
 interface MetricCardProps {
@@ -7,6 +9,7 @@ interface MetricCardProps {
   icon: LucideIcon;
   colorClass?: string;
   subValue?: string;
+  tooltip?: string;
 }
 
 export default function MetricCard({ 
@@ -14,10 +17,25 @@ export default function MetricCard({
   value, 
   icon: Icon, 
   colorClass = "text-white", 
-  subValue
+  subValue,
+  tooltip
 }: MetricCardProps) {
+  const [showTooltip, setShowTooltip] = useState(false);
+
   return (
-    <div className="bg-white/[0.04] shadow-[0_4px_25px_rgba(0,0,0,0.4)] border border-white/20 p-5 rounded-[5px] flex flex-col gap-1 group truncate transition-all hover:bg-white/[0.06] backdrop-blur-sm">
+    <div 
+      className="relative bg-white/[0.04] shadow-[0_4px_25px_rgba(0,0,0,0.4)] border border-white/20 p-5 rounded-[5px] flex flex-col gap-1 group truncate transition-all hover:bg-white/[0.06] backdrop-blur-sm"
+      onMouseEnter={() => setShowTooltip(true)}
+      onMouseLeave={() => setShowTooltip(false)}
+    >
+      {tooltip && showTooltip && (
+        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 z-[999] pointer-events-none">
+          <div className="bg-neutral-900 border border-white/10 text-[11px] text-slate-300 px-3 py-2 rounded-md shadow-[0_8px_32px_rgba(0,0,0,0.6)] whitespace-normal max-w-[240px] text-center leading-relaxed">
+            {tooltip}
+          </div>
+          <div className="w-2 h-2 bg-neutral-900 border-b border-r border-white/10 rotate-45 absolute left-1/2 -translate-x-1/2 -bottom-1" />
+        </div>
+      )}
       <span className="text-[17px] text-white font-normal uppercase tracking-tight font-sans">
         {label}
       </span>

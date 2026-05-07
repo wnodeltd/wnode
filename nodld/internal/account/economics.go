@@ -59,53 +59,32 @@ func (s *Store) CalculateSplitsForAmount(totalCents int64, earnerID string, mesh
 		})
 	}
 
-	// A. Founder Override (3%) -> Resolved via Genesis Founder Tree Root
+	// A. Founder Override (3%)
 	genesisFounderID := s.getGenesisFounderNoLock(earnerID)
 	if genesisFounderID != "" {
-		recipient := s.GetStripeRecipient(genesisFounderID)
-		if recipient != "" {
-			add(CommRoleFounder, recipient, PctFounderOverride)
-		}
+		add(CommRoleFounder, genesisFounderID, PctFounderOverride)
 	}
 
-	// B. Operator Share (70%) -> Provider's primary account
-	recipient := s.GetStripeRecipient(earnerID)
-	if recipient != "" {
-		add(CommRolePlatform, recipient, PctOperator) // Using CommRolePlatform as alias for Operator earner
-	}
-
+	// B. Operator Share (70%)
+	add(CommRolePlatform, earnerID, PctOperator)
 
 	// C. Wnode Infrastructure (7%)
 	add(CommRoleWnode, WnodeBusinessStripeID, PctPlatform)
 
 	// D. Level 1 Sponsor (3%)
 	if l1ID != "" {
-		recipient := s.GetStripeRecipient(l1ID)
-		if recipient != "" {
-			add(CommRoleLevel1, recipient, PctLevel1)
-		}
+		add(CommRoleLevel1, l1ID, PctLevel1)
 	}
 
 	// E. Level 2 Sponsor (7%)
 	if l2ID != "" {
-		recipient := s.GetStripeRecipient(l2ID)
-		if recipient != "" {
-			add(CommRoleLevel2, recipient, PctLevel2)
-		}
+		add(CommRoleLevel2, l2ID, PctLevel2)
 	}
-
 
 	// F. Sales Source (10%)
 	if meshClientID != "" {
 		if client, ok := s.meshClients[meshClientID]; ok && client.SalesSourceID != "" {
-			recipient := s.GetStripeRecipient(client.SalesSourceID)
-			if recipient != "" {
-				add(CommRoleSalesSource, recipient, PctSalesSource)
-			} else {
-				// CONSTITUTIONAL CHECK: Protocol Escrow
-				// Route to Platform account but mark as Escrow for the SalesSourceID
-				add(CommRoleEscrow, WnodeBusinessStripeID, PctSalesSource)
-			}
+			add(CommRoleSalesSource, client.SalesSourceID, PctSalesSource)
 		}
 	}
 

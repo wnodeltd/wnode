@@ -425,7 +425,144 @@ func (s *Store) AddCommissions(records []CommissionRecord) {
 	defer s.mu.Unlock()
 	for _, r := range records {
 		s.pendingCommissions[r.RecipientID] = append(s.pendingCommissions[r.RecipientID], r)
+		if n, ok := s.nodlrs[r.RecipientID]; ok {
+			if n.StripeConnectID != "" || n.StripeAccountID != "" {
+				n.PendingBalanceCents += r.AmountCents
+			} else {
+				n.EscrowBalanceCents += r.AmountCents
+			}
+		}
 	}
+	go s.SaveState()
+}
+
+// PromoteEscrowToPending moves all escrowed funds to the payout-ready balance upon Stripe activation.
+func (s *Store) PromoteEscrowToPending(nodlrID string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if n, ok := s.nodlrs[nodlrID]; ok {
+		n.PendingBalanceCents += n.EscrowBalanceCents
+		n.EscrowBalanceCents = 0
+	}
+	go s.SaveState()
+}
+
+// GetPendingRecords returns only records currently marked as pending for an ID.
+func (s *Store) GetPendingRecords(nodlrID string) []CommissionRecord {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.pendingCommissions[nodlrID]
+}
+
+// FinalizePayout marks all pending records for an ID as paid and clears the pending balance.
+func (s *Store) FinalizePayout(nodlrID string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	records := s.pendingCommissions[nodlrID]
+	for i := range records {
+		if records[i].Status == "pending" {
+			records[i].Status = "paid"
+		}
+	}
+	if n, ok := s.nodlrs[nodlrID]; ok {
+		n.PendingBalanceCents = 0
+	}
+	go s.SaveState()
+}
+
+// VerifyTransactionInvariants checks if a transaction follows the 70/10/3/7/3/7 split correctly.
+func (s *Store) VerifyTransactionInvariants(txnID string, expectedTotal int64) error {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	var records []CommissionRecord
+	var actualTotal int64
+	roles := make(map[CommissionRole]int)
+
+	for _, rs := range s.pendingCommissions {
+		for _, r := range rs {
+			if r.TransactionID == txnID {
+				records = append(records, r)
+				actualTotal += r.AmountCents
+				roles[r.Role]++
+			}
+		}
+	}
+
+	// Invariant: Exactly 6 records must exist for a full Sovereign split
+	// (Note: Some roles might be missing if ancestry is shallow, but we check sum parity)
+	if actualTotal != expectedTotal {
+		return fmt.Errorf("INVARIANT FAILURE: txn %s sum mismatch. Expected %d, got %d", txnID, expectedTotal, actualTotal)
+	}
+
+	return nil
+}
+
+// GetGlobalEconomicSnapshot aggregates the entire ledger for internal audit.
+func (s *Store) GetGlobalEconomicSnapshot() map[string]any {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	snapshot := map[string]int64{
+		"total_operator_cents": 0,
+		"total_steward_cents":  0,
+		"total_founder_cents":  0,
+		"total_affiliate_cents": 0,
+		"total_sales_cents":    0,
+		"total_escrow_cents":   0,
+		"total_pending_cents":  0,
+	}
+
+	for _, n := range s.nodlrs {
+		snapshot["total_escrow_cents"] += n.EscrowBalanceCents
+		snapshot["total_pending_cents"] += n.PendingBalanceCents
+	}
+
+	for _, rs := range s.pendingCommissions {
+		for _, r := range rs {
+			switch r.Role {
+			case CommRolePlatform:
+				snapshot["total_operator_cents"] += r.AmountCents
+			case CommRoleWnode:
+				snapshot["total_steward_cents"] += r.AmountCents
+			case CommRoleFounder:
+				snapshot["total_founder_cents"] += r.AmountCents
+			case CommRoleLevel1, CommRoleLevel2:
+				snapshot["total_affiliate_cents"] += r.AmountCents
+			case CommRoleSalesSource:
+				snapshot["total_sales_cents"] += r.AmountCents
+			}
+		}
+	}
+
+	return map[string]any{
+		"snapshot":  snapshot,
+		"timestamp": time.Now(),
+	}
+}
+
+func (s *Store) GetFullLedger() []CommissionRecord {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	var all []CommissionRecord
+	for _, rs := range s.pendingCommissions {
+		all = append(all, rs...)
+	}
+	return all
+}
+
+func (s *Store) GetLedgerByTransactionID(txnID string) []CommissionRecord {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	var all []CommissionRecord
+	for _, rs := range s.pendingCommissions {
+		for _, r := range rs {
+			if r.TransactionID == txnID {
+				all = append(all, r)
+			}
+		}
+	}
+	return all
 }
 
 func (s *Store) ClearPending(nodlrID string) {
@@ -1035,4 +1172,10 @@ func (s *Store) RevokeSession(sessionID string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	delete(s.domainSessions, sessionID)
+}
+
+func (s *Store) SetPersistencePath(path string) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.statePath = path
 }

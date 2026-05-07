@@ -3,14 +3,13 @@ import { ChevronRight, ChevronDown, Zap, Users, Network, Shield } from "lucide-r
 
 export interface AffiliateNode {
     nodlrId: string;
-    name?: string;
     nodeCount: number;
     l1Count: number;
     l2Count: number;
     active: boolean;
     isFounder?: boolean;
     founderIndex?: number;
-    children?: AffiliateNode[];
+    children: AffiliateNode[];
 }
 
 interface TreeNodeProps {
@@ -49,36 +48,28 @@ export const TreeNode = ({ node, loadChildren, onNodeClick }: TreeNodeProps) => 
                 onClick={() => onNodeClick?.(node)}
             >
                 <div className="flex items-center gap-3 min-w-[280px]">
-                    <div 
-                        className="w-4 h-4 flex items-center justify-center"
-                        onClick={toggleExpand}
-                    >
-                        {isLoading ? (
-                            <div className="w-3 h-3 border border-[#22D3EE]/20 border-t-[#22D3EE] rounded-full animate-spin" />
-                        ) : (
-                            <>
-                                {isExpanded ? (
-                                    <ChevronDown className="w-4 h-4 text-slate-500" />
-                                ) : (
-                                    <ChevronRight className="w-4 h-4 text-[#22D3EE]" />
-                                )}
-                            </>
-                        )}
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                        {node.isFounder && (
-                            <div className="flex items-center gap-1.5 px-2 py-0.5 bg-amber-500/10 border border-amber-500/20 rounded-[3px]">
-                                <Shield className="w-3 h-3 text-amber-500" />
-                                <span className="text-[9px] text-amber-500 font-bold uppercase tracking-widest whitespace-nowrap">
-                                    FOUNDER #{node.founderIndex}
-                                </span>
-                            </div>
-                        )}
-                        <span className="font-mono text-[13px] text-slate-300 group-hover:text-white transition-colors tracking-tighter">
-                            {node.nodlrId}
-                        </span>
-                    </div>
+                    {isLoading ? (
+                        <div className="w-4 h-4 border border-[#22D3EE]/20 border-t-[#22D3EE] rounded-full animate-spin" />
+                    ) : (
+                        <div className="w-4 h-4 flex items-center justify-center" onClick={toggleExpand}>
+                            {isExpanded ? (
+                                <ChevronDown className="w-4 h-4 text-slate-500" />
+                            ) : (
+                                <ChevronRight className="w-4 h-4 text-[#22D3EE]" />
+                            )}
+                        </div>
+                    )}
+                    {node.isFounder && (
+                        <div className="flex items-center gap-1.5 px-2 py-0.5 bg-amber-500/10 border border-amber-500/20 rounded-[3px]">
+                            <Shield className="w-3 h-3 text-amber-500" />
+                            <span className="text-[9px] text-amber-500 font-bold uppercase tracking-widest whitespace-nowrap">
+                                FOUNDER #{node.founderIndex}
+                            </span>
+                        </div>
+                    )}
+                    <span className="font-mono text-[13px] text-slate-300 group-hover:text-white transition-colors tracking-tighter">
+                        {node.nodlrId}
+                    </span>
                 </div>
 
                 <div className="flex items-center gap-6 min-w-[360px]">

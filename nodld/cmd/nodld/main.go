@@ -97,9 +97,17 @@ func main() {
 	// ── Account & Affiliate Store ─────────────────────────────────────────────
 	statePath := os.Getenv("STATE_PATH")
 	if statePath == "" {
-		statePath = "nodld/state/engine.json"
+		statePath = "state/engine.json"
 	}
 	accountStore := account.NewStore(forensicsStore, statePath)
+	accountStore.LoadState()
+
+	// ── Economics Integrity Audit ───────────────────────────────────────────
+	sanity := "ok"; if err := accountStore.VerifyLedgerSanity(); err != nil { sanity = err.Error() }
+	orphans := accountStore.DetectOrphanedRecords()
+	mismatches := accountStore.DetectUnpaidPending()
+	hash := accountStore.ComputeRollingHash()
+	log.Info("money engine integrity audit complete", zap.String("sanity", sanity), zap.Int("orphans", len(orphans)), zap.Int("mismatches", len(mismatches)), zap.String("rolling_hash", hash))
 
 	// ── Governance Store (Personnel RBAC) ───────────────────────────────────
 	govStore := governance.NewStore()
@@ -227,5 +235,7 @@ func main() {
 	if err := srv.Shutdown(); err != nil {
 		log.Warn("API shutdown error", zap.Error(err))
 	}
+	log.Info("saving money engine state...")
+	_ = accountStore.SaveState()
 	log.Info("▶ nodld halted cleanly")
 }

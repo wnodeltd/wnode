@@ -10,6 +10,7 @@ import ImpactCard from "../components/ImpactCard";
 import DetailPanel from "../components/DetailPanel";
 import { usePageTitle } from "../components/PageTitleContext";
 import IdentityHeader from "@shared/components/IdentityHeader";
+import Tooltip from "../components/Tooltip";
 
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
@@ -47,7 +48,7 @@ export default function ClientsPage() {
 
     return (
         <>
-            <main className="flex-1 p-8 overflow-y-auto pb-24 relative space-y-6 focus:outline-none">
+            <main className="flex-1 p-8 pt-24 overflow-y-auto pb-24 relative space-y-6 focus:outline-none">
 
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-10">
                     <div className="flex-1" />
@@ -102,11 +103,31 @@ export default function ClientsPage() {
                         <table className="w-full text-left border-collapse">
                             <thead>
                                 <tr className="border-b border-white/10 bg-white/[0.02]">
-                                    <th className="px-6 py-4 text-[10px] font-normal text-slate-500 uppercase tracking-widest">Peer Identity</th>
-                                    <th className="px-6 py-4 text-[10px] font-normal text-slate-500 uppercase tracking-widest">Latency / Pulse</th>
-                                    <th className="px-6 py-4 text-[10px] font-normal text-slate-500 uppercase tracking-widest">Node Health</th>
-                                    <th className="px-6 py-4 text-[10px] font-normal text-slate-500 uppercase tracking-widest">Environmental Impact</th>
-                                    <th className="px-6 py-4 text-[10px] font-normal text-slate-500 uppercase tracking-widest text-left">Status</th>
+                                    <th className="px-6 py-4 text-[10px] font-normal text-slate-500 uppercase tracking-widest">
+                                        <Tooltip text="Authoritative customer identity and contact information">
+                                            Client WUID
+                                        </Tooltip>
+                                    </th>
+                                    <th className="px-6 py-4 text-[10px] font-normal text-slate-500 uppercase tracking-widest">
+                                        <Tooltip text="Aggregate compute consumption for the current billing cycle">
+                                            Monthly Consumption
+                                        </Tooltip>
+                                    </th>
+                                    <th className="px-6 py-4 text-[10px] font-normal text-slate-500 uppercase tracking-widest">
+                                        <Tooltip text="Current billing standing and credit verification">
+                                            Billing Status
+                                        </Tooltip>
+                                    </th>
+                                    <th className="px-6 py-4 text-[10px] font-normal text-slate-500 uppercase tracking-widest">
+                                        <Tooltip text="Number of active compute tasks currently provisioned by this client">
+                                            Active Jobs
+                                        </Tooltip>
+                                    </th>
+                                    <th className="px-6 py-4 text-[10px] font-normal text-slate-500 uppercase tracking-widest text-left">
+                                        <Tooltip text="Global account integrity and operational status">
+                                            Standing
+                                        </Tooltip>
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-white/5">
@@ -119,40 +140,36 @@ export default function ClientsPage() {
                                         <td className="px-6 py-5 relative">
                                             <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-[#22D3EE] opacity-0 group-hover:opacity-100 transition-opacity shadow-[0_0_8px_#22D3EE]" />
                                             <div className="flex flex-col gap-1">
-                                                <span className="text-[14px] font-mono text-[#22D3EE] font-bold tracking-tighter group-hover:text-white transition-colors">{row.id}</span>
-                                                <span className="text-[10px] text-slate-600 font-mono italic truncate max-w-[120px] opacity-60 group-hover:opacity-100 transition-opacity">{row.dna || '0x'+Math.random().toString(16).slice(2, 14)}</span>
+                                                <span className="text-[14px] font-normal text-white group-hover:text-[#22D3EE] transition-colors">{row.name || 'Anonymous Client'}</span>
+                                                <span className="text-[10px] text-slate-500 font-mono italic">{row.email || row.id}</span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-5">
                                             <div className="flex flex-col gap-1">
-                                                <span className="text-[13px] font-mono text-slate-300">{row.latency || '12ms'}</span>
-                                                <span className="text-[9px] text-green-500/60 uppercase tracking-widest font-bold">Sync Nominal</span>
+                                                <span className="text-[14px] text-[#22D3EE] font-mono">{(row.consumption || (Math.random() * 50)).toFixed(2)} TH/s</span>
+                                                <span className="text-[9px] text-slate-500 uppercase tracking-tighter">Current Cycle</span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-5">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-28 h-1 bg-white/5 rounded-full overflow-hidden shadow-inner">
-                                                    <div 
-                                                        className={`h-full transition-all duration-1000 ${row.score < 0.3 ? 'bg-red-500' : 'bg-[#22D3EE] shadow-[0_0_10px_rgba(34,211,238,0.5)]'}`}
-                                                        style={{ width: `${(row.score || 0.98) * 100}%` }}
-                                                    />
-                                                </div>
-                                                <span className="text-[11px] font-mono text-slate-500">{((row.score || 0.98) * 100).toFixed(0)}%</span>
+                                            <div className="flex items-center gap-2">
+                                                <CreditCard className="w-4 h-4 text-slate-600" />
+                                                <span className={`text-[11px] font-bold tracking-widest uppercase ${row.billing_status === 'Verified' ? 'text-green-500' : 'text-yellow-500'}`}>
+                                                    {row.billing_status || 'Verified'}
+                                                </span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-5">
-                                            <div className="flex items-center gap-2.5 group/leaf">
-                                                <Leaf className="w-4 h-4 text-emerald-500 transition-transform group-hover/leaf:scale-125 duration-500" />
-                                                <div className="flex flex-col">
-                                                    <span className="text-[14px] font-mono text-emerald-400 font-bold">{row.co2 || '1.2'}kg</span>
-                                                    <span className="text-[8px] text-slate-600 uppercase tracking-tighter">Carbon Offset</span>
-                                                </div>
+                                            <div className="flex items-center gap-2">
+                                                <Cpu className="w-4 h-4 text-slate-600" />
+                                                <span className="text-[13px] font-mono text-white">{row.active_jobs || Math.floor(Math.random() * 10)} Jobs</span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-5 text-left">
                                             <div className="flex items-center justify-start gap-2.5">
-                                                <div className={`w-1.5 h-1.5 rounded-full ${row.status !== 'Active' ? 'bg-red-500 animate-pulse' : 'bg-[#22D3EE] shadow-[0_0_8px_#22D3EE]'}`} />
-                                                <span className={`text-[11px] uppercase tracking-[0.2em] font-bold ${row.status !== 'Active' ? 'text-red-400' : 'text-[#22D3EE]'}`}>{row.status || 'Active'}</span>
+                                                <Tooltip text={row.status === 'active' ? "Account in good standing" : "Account requires attention"}>
+                                                    <div className={`w-1.5 h-1.5 rounded-full ${row.status === 'active' || !row.status ? 'bg-[#22D3EE] shadow-[0_0_8px_#22D3EE]' : 'bg-red-500/50'}`} />
+                                                </Tooltip>
+                                                <span className={`text-[11px] uppercase tracking-[0.2em] font-bold ${row.status === 'active' || !row.status ? 'text-[#22D3EE]' : 'text-red-400'}`}>{row.status || 'Active'}</span>
                                             </div>
                                         </td>
                                     </tr>

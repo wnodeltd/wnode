@@ -7,8 +7,11 @@ export default function HelpPage() {
   usePageTitle('Help & Documentation');
 
   return (
-    <main className="flex-1 p-8 overflow-y-auto custom-scrollbar h-full text-slate-300">
-      <div className="max-w-3xl mx-auto space-y-6">
+    <main className="flex-1 p-8 pt-24 overflow-y-auto custom-scrollbar relative space-y-12 focus:outline-none text-slate-300">
+      <div className="absolute top-6 right-8 text-[9px] text-slate-800 uppercase tracking-widest select-none pointer-events-none opacity-40">
+          This page is screenshot-ready for documentation.
+      </div>
+      <div className="max-w-3xl mx-auto space-y-12 pb-24">
         
         <section className="bg-white/[0.02] border border-white/10 rounded-[5px] p-6 shadow-lg">
           <h2 className="text-sm font-bold uppercase tracking-widest text-slate-300 mb-4 border-b border-white/10 pb-2">Intelligence Dashboard</h2>

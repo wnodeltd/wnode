@@ -79,11 +79,13 @@ func (s *Service) GetPlatformAccountID() string {
 // RegisterRoutes attaches Stripe routes to the given Fiber router group.
 func (s *Service) RegisterRoutes(router fiber.Router) {
 	connect := router.Group("/stripe/connect")
-	connect.Post("/start", s.handleConnectStart)
-	connect.Get("/status", s.handleConnectStatus)
+	// These are now handled authoritatively by the Server with session verification
+	// connect.Post("/start", s.handleConnectStart)
+	// connect.Get("/status", s.handleConnectStatus)
+	// connect.Post("/v2/session", s.handleV2AccountSession)
+
 	connect.Post("/account", s.handleCreateConnectAccount)
 	connect.Post("/onboard", s.handleCreateAccountLink)
-	connect.Post("/v2/session", s.handleV2AccountSession) // Added for v2 onboarding
 
 	payment := router.Group("/stripe/payment")
 	payment.Post("/create", s.handleCreatePaymentIntent)
@@ -99,47 +101,32 @@ func (s *Service) RegisterRoutes(router fiber.Router) {
 
 // ConnectStartRequest is the unified request for starting onboarding from the web portal.
 type ConnectStartRequest struct {
-	Email      string `json:"email"`
 	InviteCode string `json:"inviteCode"` // mapped to ParentID for lineage
 }
 
-func (s *Service) handleConnectStart(c *fiber.Ctx) error {
+// HandleConnectStartForWUID processes onboarding with an authoritative WUID.
+func (s *Service) HandleConnectStartForWUID(c *fiber.Ctx, wuid string) error {
 	var req ConnectStartRequest
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request body"})
 	}
-	if req.Email == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "email is required"})
+
+	// 1. Resolve Auth identity
+	n, ok := s.accountStore.GetNodlr(wuid)
+	if !ok {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "account not found"})
 	}
 
-	// 1. Resolve or Create Nodlr Account
-	var n *internalAccount.Nodlr
-	nodlrs := s.accountStore.ListNodlrs()
-	for _, item := range nodlrs {
-		if item.Email == req.Email {
-			n = item
-			break
-		}
-	}
-
-	if n == nil {
-		var err error
-		n, err = s.accountStore.CreateNodlr(req.Email, req.InviteCode)
-		if err != nil {
-			return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "failed to create account: " + err.Error()})
-		}
-		s.log.Info("new account created during connect start", zap.String("email", req.Email), zap.String("inviteCode", req.InviteCode))
-	} else if req.InviteCode != "" && n.ParentID == "" {
-		// Update affiliate if not set
+	// Update affiliate if provided and not yet set
+	if req.InviteCode != "" && n.ParentID == "" {
 		n.ParentID = req.InviteCode
-		s.log.Info("account affiliate updated during connect start", zap.String("email", req.Email), zap.String("inviteCode", req.InviteCode))
 	}
 
 	// 2. Ensure Stripe Connect Account exists and is correctly configured
 	if n.StripeConnectID == "" {
 		params := &stripe.AccountParams{
 			Type:  stripe.String(string(stripe.AccountTypeExpress)),
-			Email: stripe.String(req.Email),
+			Email: stripe.String(n.Email),
 			Capabilities: &stripe.AccountCapabilitiesParams{
 				Transfers: &stripe.AccountCapabilitiesTransfersParams{
 					Requested: stripe.Bool(true),
@@ -157,14 +144,14 @@ func (s *Service) handleConnectStart(c *fiber.Ctx) error {
 	} else {
 		// Rule 1: Always include/update account.email when retrieving/using
 		params := &stripe.AccountParams{
-			Email: stripe.String(req.Email),
+			Email: stripe.String(n.Email),
 		}
 		_, err := stripeAccount.Update(n.StripeConnectID, params)
 		if err != nil {
 			s.log.Warn("failed to update stripe account email", zap.Error(err), zap.String("stripeID", n.StripeConnectID))
 			// We continue anyway, as the account exists, but we've attempted the update per Rule 1.
 		} else {
-			s.log.Info("verified/updated stripe account email", zap.String("email", req.Email), zap.String("stripeID", n.StripeConnectID))
+			s.log.Info("verified/updated stripe account email", zap.String("email", n.Email), zap.String("stripeID", n.StripeConnectID))
 		}
 	}
 
@@ -191,23 +178,10 @@ func (s *Service) handleConnectStart(c *fiber.Ctx) error {
 	})
 }
 
-func (s *Service) handleConnectStatus(c *fiber.Ctx) error {
-	email := c.Query("email")
-	if email == "" {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "email is required"})
-	}
-
-	// 1. Find the Nodlr
-	var n *internalAccount.Nodlr
-	nodlrs := s.accountStore.ListNodlrs()
-	for _, item := range nodlrs {
-		if item.Email == email {
-			n = item
-			break
-		}
-	}
-
-	if n == nil || n.StripeConnectID == "" {
+// HandleConnectStatusForWUID fetches status with authoritative WUID.
+func (s *Service) HandleConnectStatusForWUID(c *fiber.Ctx, wuid string) error {
+	n, ok := s.accountStore.GetNodlr(wuid)
+	if !ok || n.StripeConnectID == "" {
 		return c.JSON(fiber.Map{
 			"connected":         false,
 			"details_submitted": false,
@@ -321,25 +295,10 @@ func (s *Service) handleCreateAccountLink(c *fiber.Ctx) error {
 
 // --- Account Session (v2 onboarding) ---
 
-func (s *Service) handleV2AccountSession(c *fiber.Ctx) error {
-	var req struct {
-		Email string `json:"email"`
-	}
-	if err := c.BodyParser(&req); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request body"})
-	}
-
-	// 1. Resolve Nodlr
-	var n *internalAccount.Nodlr
-	nodlrs := s.accountStore.ListNodlrs()
-	for _, item := range nodlrs {
-		if item.Email == req.Email {
-			n = item
-			break
-		}
-	}
-
-	if n == nil {
+// HandleV2AccountSessionForWUID starts v2 onboarding with authoritative WUID.
+func (s *Service) HandleV2AccountSessionForWUID(c *fiber.Ctx, wuid string) error {
+	n, ok := s.accountStore.GetNodlr(wuid)
+	if !ok {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "account not found"})
 	}
 
@@ -439,47 +398,6 @@ func (s *Service) handleV1CheckoutSession(c *fiber.Ctx) error {
 }
 
 // ExecuteSovereignAtomicSplit triggers the 6-way deterministic payout.
-// It follows the Participation Protocol: If a participant is missing a Stripe ID, their transfer is skipped.
-func (s *Service) ExecuteSovereignAtomicSplit(totalCents int64, nodeID string, chargeID string) error {
-	// 1. Authoritative Resolution
-	arch, err := s.accountStore.GetPayoutArchitecture(nodeID)
-	if err != nil {
-		s.log.Error("CRITICAL ECONOMIC RESOLUTION FAILURE", zap.Error(err), zap.String("nodeID", nodeID))
-		return err 
-	}
-
-	// 2. Protocol Share Calculation (70/10/3/7/3/7)
-	nodlrShare       := (totalCents * 70) / 100
-	salesSourceShare := (totalCents * 10) / 100
-	l1Share          := (totalCents * 3) / 100
-	l2Share          := (totalCents * 7) / 100
-	founderShare     := (totalCents * 3) / 100
-	// Wnode (7%) remains on platform
-
-	// 3. Conditional transfers based on Participation
-	if arch.NodlrStripe != "" {
-		s.initiateTransfer(nodlrShare, arch.NodlrStripe, chargeID, "nodlr_70_compute")
-	}
-	
-	if arch.SalesSourceStripe != "" {
-		s.initiateTransfer(salesSourceShare, arch.SalesSourceStripe, chargeID, "sales_source_10_growth")
-	}
-
-	if arch.L1Stripe != "" {
-		s.initiateTransfer(l1Share, arch.L1Stripe, chargeID, "affiliate_l1_3")
-	}
-
-	if arch.L2Stripe != "" {
-		s.initiateTransfer(l2Share, arch.L2Stripe, chargeID, "affiliate_l2_7")
-	}
-
-	if arch.FounderStripe != "" {
-		s.initiateTransfer(founderShare, arch.FounderStripe, chargeID, "founder_override_3")
-	}
-
-	return nil
-}
-
 func (s *Service) initiateTransfer(amount int64, destination, sourceID, desc string) {
 	params := &stripe.TransferParams{
 		Amount:            stripe.Int64(amount),
@@ -643,17 +561,10 @@ func (s *Service) handleWebhook(c *fiber.Ctx) error {
 	var event stripe.Event
 	var err error
 
-	if sigHeader == "SIMULATED-SUCCESS" {
-		if err := json.Unmarshal(payload, &event); err != nil {
-			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid simulation payload"})
-		}
-		s.log.Info("simulated stripe webhook received", zap.String("type", string(event.Type)))
-	} else {
-		event, err = webhook.ConstructEvent(payload, sigHeader, s.webhookSecret)
-		if err != nil {
-			s.log.Warn("webhook signature verification failed", zap.Error(err))
-			return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid signature"})
-		}
+	event, err = webhook.ConstructEvent(payload, sigHeader, s.webhookSecret)
+	if err != nil {
+		s.log.Warn("webhook signature verification failed", zap.Error(err))
+		return c.Status(http.StatusBadRequest).JSON(fiber.Map{"error": "invalid signature"})
 	}
 
 	s.log.Info("stripe webhook received", zap.String("type", string(event.Type)))
@@ -684,15 +595,12 @@ func (s *Service) handleWebhook(c *fiber.Ctx) error {
 			if existing != nil {
 				existing.StripeConnectID = acct.ID
 				existing.PayoutStatus = internalAccount.PayoutStatusActive
+				s.accountStore.PromoteEscrowToPending(existing.ID)
 				s.log.Info("nodlr identity verified and activated via stripe", zap.String("email", existing.Email), zap.String("stripeID", acct.ID))
 			} else {
-				// Organic Signup Placement Flow (Round-Robin)
-				newAcc, err := s.accountStore.CreateNodlr(acct.Email, "")
-				if err == nil {
-					newAcc.StripeConnectID = acct.ID
-					newAcc.PayoutStatus = internalAccount.PayoutStatusActive
-					s.log.Info("new crm user auto-created via stripe onboarding", zap.String("email", acct.Email), zap.String("parentId", newAcc.ParentID))
-				}
+				s.log.Warn("Stripe account update received for unknown email/ID (skipping auto-creation)",
+					zap.String("email", acct.Email),
+					zap.String("stripeID", acct.ID))
 			}
 		}
 

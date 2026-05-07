@@ -16,13 +16,11 @@ export const Tree = ({ onNodeClick }: TreeProps) => {
             const res = await fetch('/api/affiliates/tree');
             if (res.ok) {
                 const data = await res.json();
-                // Ensure founders are explicitly marked as L0/Founders and sorted by index
                 const enrichedFounders = (data.founders || []).map((f: AffiliateNode, idx: number) => ({
                     ...f,
                     isFounder: true,
                     founderIndex: f.founderIndex || idx + 1
                 })).sort((a: any, b: any) => a.founderIndex - b.founderIndex);
-                
                 setFounders(enrichedFounders);
             }
         } catch (err) {
@@ -75,12 +73,7 @@ export const Tree = ({ onNodeClick }: TreeProps) => {
                     </div>
                 ) : filteredFounders.length > 0 ? (
                     filteredFounders.map(node => (
-                        <TreeNode 
-                            key={node.nodlrId} 
-                            node={node} 
-                            loadChildren={loadChildren} 
-                            onNodeClick={onNodeClick} 
-                        />
+                        <TreeNode key={node.nodlrId} node={node} loadChildren={loadChildren} onNodeClick={onNodeClick} />
                     ))
                 ) : (
                     <div className="py-20 text-center">

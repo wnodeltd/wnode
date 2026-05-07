@@ -80,28 +80,32 @@ export default function CommandCentrePage() {
             value: stats?.totalCores || 0, 
             sub: 'vCPUs Distributed', 
             icon: CpuIcon, 
-            color: 'text-white'
+            color: 'text-white',
+            tooltip: 'Total virtual CPU cores available across all active nodes in the mesh network'
         },
         { 
             label: 'Unified Memory', 
             value: stats?.totalMemory || 0, 
             sub: 'GB RAM Capacity', 
             icon: Server, 
-            color: 'text-white'
+            color: 'text-white',
+            tooltip: 'Aggregate RAM capacity pooled from all registered nodes'
         },
         { 
             label: 'NEW USERS', 
             value: stats?.newUsersThisMonth || 0, 
             sub: `Last Month: ${stats?.newUsersLastMonth || 0}`, 
             icon: ShieldCheck, 
-            color: 'text-white'
+            color: 'text-white',
+            tooltip: 'User accounts created during the current billing period'
         },
         { 
             label: 'NEW NODES', 
             value: stats?.newNodesThisMonth || 0, 
             sub: `Last Month: ${stats?.newNodesLastMonth || 0}`, 
             icon: Activity, 
-            color: 'text-white'
+            color: 'text-white',
+            tooltip: 'Nodes registered and onboarded during the current period'
         },
     ];
 
@@ -113,30 +117,35 @@ export default function CommandCentrePage() {
             value: stats?.totalNodes ?? '—',
             icon: Server,
             statusColor: 'text-white',
+            tooltip: 'Total number of nodes registered in the mesh network',
         },
         {
             label: 'Active Nodes',
             value: stats?.activeNodes ?? '—',
             icon: CheckCircle2,
             statusColor: 'text-green-400',
+            tooltip: 'Nodes currently online and responding to heartbeat checks',
         },
         {
             label: 'Offline Nodes',
             value: offlineNodes,
             icon: AlertTriangle,
             statusColor: offlineNodes > 0 ? 'text-red-400' : 'text-green-400',
+            tooltip: 'Nodes that have not responded within the last heartbeat interval',
         },
         {
             label: 'API Latency',
             value: apiLatencyMs !== null ? `${apiLatencyMs}ms` : '—',
             icon: BarChart3,
             statusColor: (apiLatencyMs || 0) > 500 ? 'text-yellow-400' : 'text-green-400',
+            tooltip: 'Round-trip time for the most recent API health check',
         },
         {
             label: 'Backend Status',
             value: backendOnline ? 'Online' : 'Offline',
             icon: backendOnline ? Wifi : WifiOff,
             statusColor: backendOnline ? 'text-green-400' : 'text-red-400',
+            tooltip: 'Connection status to the nodld backend service on port 8081',
         },
     ];
 
@@ -148,7 +157,7 @@ export default function CommandCentrePage() {
 
     return (
         <>
-            <main className="flex-1 px-8 pt-2 pb-20 overflow-y-auto space-y-6 custom-scrollbar h-full relative">
+            <main className="flex-1 px-8 pt-4 pb-20 overflow-y-auto space-y-6 custom-scrollbar relative">
                 <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-cyan-400/5 rounded-full blur-[120px] pointer-events-none -z-10" />
 
                 <div className="flex items-center gap-6 justify-end">
@@ -156,7 +165,7 @@ export default function CommandCentrePage() {
                 </div>
 
                 {/* Row 1: Vitals + AI */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mt-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                     {metrics.map((m) => (
                         <MetricCard
                             key={m.label}
@@ -165,6 +174,7 @@ export default function CommandCentrePage() {
                             icon={m.icon}
                             colorClass={m.color}
                             subValue={m.sub}
+                            tooltip={m.tooltip}
                         />
                     ))}
                     <AiIntelligencePanel />
@@ -179,6 +189,7 @@ export default function CommandCentrePage() {
                             value={loading ? '...' : op.value}
                             icon={op.icon}
                             colorClass={op.statusColor}
+                            tooltip={op.tooltip}
                         />
                     ))}
                 </div>

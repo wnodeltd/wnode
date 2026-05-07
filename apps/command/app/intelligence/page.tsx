@@ -67,7 +67,7 @@ export default function IntelligencePage() {
   ];
 
   return (
-    <main className="flex-1 px-8 pt-8 pb-10 overflow-y-auto custom-scrollbar h-full relative">
+    <main className="flex-1 px-8 pt-24 pb-10 overflow-y-auto custom-scrollbar relative">
       {/* Ambient glow */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-purple-500/5 rounded-full blur-[120px] pointer-events-none -z-10" />
 

@@ -24,69 +24,44 @@ export default function LoginPage() {
             hasPassword: !!normalizedPassword
         });
 
-        // Backend-Authoritative Auth for Seed Account
-        if ((normalizedEmail === 'stephen@wnode.one' || normalizedEmail === 'stephen@nodl.one') && normalizedPassword === 'command') {
-            console.log('[Auth Debug] Peak Developer credentials accepted. Requesting backend session...');
-            
-            try {
-                const res = await fetch('/api/auth/debug-session', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ wuid: '100001-0426-01-AA', domain: 'command' })
-                });
+        try {
+            const body = { 
+                email: normalizedEmail, 
+                password: normalizedPassword, 
+                domain: 'command' 
+            };
+            console.log('[DEBUG-SESSION-REQ]', {
+                url: '/api/auth/debug-session',
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: body
+            });
 
-                if (res.ok) {
-                    const data = await res.json();
-                    console.log('[Auth Debug] Session established:', data.session_id);
-                    
-                    // Cleanup legacy items
-                    localStorage.removeItem('nodl_auth_bypass');
-                    localStorage.removeItem('nodl_jwt');
-                    
-                    router.push('/');
-                    return;
-                } else {
-                    setError('Backend session issuance failed. Check logs.');
-                }
-            } catch (e) {
-                console.error('[Auth Debug] Login error:', e);
-                setError('Authentication service unreachable.');
-            } finally {
-                setIsLoading(false);
+            const res = await fetch('/api/auth/debug-session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+
+            const data = await res.json();
+            console.log('[DEBUG-SESSION-RES]', {
+                status: res.status,
+                ok: res.ok,
+                data: data
+            });
+
+            if (res.ok) {
+                router.push('/');
+                return;
+            } else {
+                setError('Invalid credentials.');
             }
-            return;
-        }
-
-        // Test User Auth (Read-Only)
-        if (normalizedEmail === 'test@user.com' && normalizedPassword === 'test') {
-            console.log('[Auth Debug] Test User credentials accepted.');
-            setIsLoading(true);
-            try {
-                const res = await fetch('/api/auth/debug-session', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ wuid: '100002-0426-01-AA', domain: 'command' })
-                });
-
-                if (res.ok) {
-                    router.push('/');
-                    return;
-                } else {
-                    setError('Test User session failed.');
-                }
-            } catch (e) {
-                setError('Service unreachable.');
-            } finally {
-                setIsLoading(false);
-            }
-            return;
-        }
-
-        setTimeout(() => {
-            console.warn('[Auth Debug] Peak Developer credentials rejected.');
-            setError('Invalid credentials. Please use the developer seed account.');
+        } catch (e) {
+            console.error('[Auth Debug] Login error:', e);
+            setError('Authentication service unreachable.');
+        } finally {
             setIsLoading(false);
-        }, 800);
+        }
     };
 
     return (
@@ -116,7 +91,7 @@ export default function LoginPage() {
                              Email
                              <input
                                 type="email"
-                                placeholder="stephen@wnode.one"
+                                placeholder="Email Address"
                                 className="w-full bg-black/40 border border-white/10 rounded-[5px] px-4 py-4 text-white text-sm focus:outline-none focus:border-cyan-500/50 transition-all border-b-2"
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
@@ -139,7 +114,6 @@ export default function LoginPage() {
                         {error && (
                             <p className="text-red-400 text-[10px] uppercase font-bold bg-red-400/10 border border-red-400/20 p-3 rounded">
                                 {error}
-                                {error === "Invalid credentials" && <span className="block mt-1 opacity-60">Hint: use stephen@wnode.one / command</span>}
                             </p>
                         )}
 

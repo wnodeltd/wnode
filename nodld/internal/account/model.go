@@ -82,6 +82,8 @@ type Nodlr struct {
 	FrozenAt              *time.Time      `json:"frozenAt,omitempty"`
 	AccruedFounderBalance int64           `json:"accruedFounderBalance"`
 	WalletBalance         int64           `json:"walletBalance"`
+	PendingBalanceCents   int64           `json:"pendingBalanceCents"` // Ready for payout
+	EscrowBalanceCents    int64           `json:"escrowBalanceCents"`  // Held until Stripe active
 	IsFounder             bool            `json:"isFounder"`
 	FounderIndex          int             `json:"founderIndex,omitempty"`
 	PayoutFrequency       PayoutFrequency `json:"payoutFrequency"`

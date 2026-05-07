@@ -20,6 +20,7 @@ const OPERATIONAL_COST_PARITY = {
 
 import { usePageTitle } from "../components/PageTitleContext";
 import IdentityHeader from "@shared/components/IdentityHeader";
+import Tooltip from "../components/Tooltip";
 
 export default function PricingPage() {
     usePageTitle("Pricing Protocol & Tier Matrix", "Autonomous economy management with real-time market-relative rate tuning.");
@@ -113,7 +114,7 @@ export default function PricingPage() {
     return (
         <div className="flex-1 flex overflow-hidden h-full">
             {/* Left side: Tier Matrix */}
-            <main className="flex-1 p-8 overflow-y-auto pb-24 relative custom-scrollbar space-y-6 focus:outline-none">
+            <main className="flex-1 p-8 pt-24 overflow-y-auto pb-24 relative custom-scrollbar space-y-6 focus:outline-none">
 
                 <div className="mb-6">
                     <AnimatePresence>
@@ -159,13 +160,17 @@ export default function PricingPage() {
                 <div className="p-8 border-b border-white/10 shrink-0">
                     <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
-                            <Globe className="w-4 h-4 text-[#22D3EE]" />
+                            <Tooltip text="Global market aggregation of cloud and DePIN compute rates">
+                                <Globe className="w-4 h-4 text-[#22D3EE]" />
+                            </Tooltip>
                             <h2 className="text-[11px] font-bold text-white uppercase tracking-[0.25em]">Market Intelligence</h2>
                         </div>
-                        <div className="flex items-center gap-1.5 px-2 py-0.5 bg-green-500/10 border border-green-500/20 rounded-full">
-                            <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                            <span className="text-[9px] text-green-500 font-bold uppercase tracking-widest">Live Flow</span>
-                        </div>
+                        <Tooltip text="Real-time ingestion of external pricing signals" direction="down">
+                            <div className="flex items-center gap-1.5 px-2 py-0.5 bg-green-500/10 border border-green-500/20 rounded-full">
+                                <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                                <span className="text-[9px] text-green-500 font-bold uppercase tracking-widest">Live Flow</span>
+                            </div>
+                        </Tooltip>
                     </div>
                     <p className="text-[10px] text-slate-500 uppercase tracking-widest">Global Compute Ingestion Feed</p>
                 </div>
@@ -198,7 +203,9 @@ export default function PricingPage() {
                                 </div>
                                 <div className="flex flex-col gap-1.5">
                                     <div className="flex justify-between items-center text-[9px] text-slate-600 uppercase font-bold tracking-widest">
-                                        <span>Confidence Index</span>
+                                        <Tooltip text="Statistical certainty of the ingested pricing signal based on source frequency and peer verification">
+                                            <span>Confidence Index</span>
+                                        </Tooltip>
                                         <span className="text-[#22D3EE] font-mono">{(comp.confidence * 100).toFixed(0)}%</span>
                                     </div>
                                     <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">

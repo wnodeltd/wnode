@@ -14,9 +14,9 @@ export default function Shell({ children }: { children: React.ReactNode }) {
         <PageTitleProvider>
             <div className="flex h-screen bg-black text-slate-200 overflow-hidden font-sans selection:bg-cyan-500/30">
                 <Sidebar />
-                <div className="flex-1 lg:pl-64 flex flex-col min-w-0 bg-neutral-950 overflow-hidden relative">
+                <div className="flex-1 lg:pl-64 flex flex-col min-w-0 bg-neutral-950 relative">
                     <TopHeader />
-                    <div className="flex-1 overflow-auto relative flex flex-col items-stretch w-full min-h-full pt-0">
+                    <div className="flex-1 relative flex flex-col items-stretch w-full">
                         {children}
                     </div>
                 </div>

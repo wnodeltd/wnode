@@ -352,6 +352,11 @@ func (d *Dispatcher) RecordProof(receipt ProofReceipt) error {
 			d.accountStore.AddCommissions(records)
 			d.log.Info("disbursement committed to ledger", zap.String("jobID", j.ID), zap.Int("splits", len(records)))
 
+			// 5. Verify Invariants
+			if err := d.accountStore.VerifyTransactionInvariants(j.ID, budgetCents); err != nil {
+				d.log.Error("ECONOMIC INVARIANT FAILURE", zap.String("jobID", j.ID), zap.Error(err))
+			}
+
 			if d.forensics != nil {
 				d.forensics.LogEvent(receipt.NodeID, "operator", forensics.ActionJobCompleted, map[string]interface{}{
 					"jobID":       j.ID,

@@ -1,11 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { 
-    Users, Activity, Zap, TrendingUp, Shield,
-    UserPlus, Search, Filter, Info, Mail, CreditCard,
-    ArrowUpRight, BarChart3
-} from "lucide-react";
+import { Users, Activity, Zap, TrendingUp, Shield } from "lucide-react";
 import DetailPanel from "../components/DetailPanel";
 import MetricCard from "@shared/components/MetricCard";
 import IdentityHeader from "@shared/components/IdentityHeader";
@@ -23,7 +19,7 @@ export default function AffiliatesPage() {
         growth30d: 0,
     });
     
-    const [selectedAffiliate, setSelectedAffiliate] = useState<any>(null);
+    const [selectedAffiliate, setSelectedAffiliate] = useState<AffiliateNode | null>(null);
     const [loading, setLoading] = useState(true);
 
     const fetchStats = async () => {
@@ -44,22 +40,14 @@ export default function AffiliatesPage() {
         fetchStats();
     }, []);
 
-    const handleNodeClick = async (node: AffiliateNode) => {
+    const handleNodeClick = (node: AffiliateNode) => {
         setSelectedAffiliate(node);
-        try {
-            const res = await fetch(`/api/affiliates/${node.nodlrId}`);
-            if (res.ok) {
-                const detailed = await res.json();
-                setSelectedAffiliate(detailed);
-            }
-        } catch (err) {
-            console.error("Failed to fetch node details:", err);
-        }
     };
 
     return (
         <>
             <main className="flex-1 p-8 pt-24 overflow-y-auto pb-24 relative space-y-12 focus:outline-none">
+                {/* Header */}
                 <div className="flex items-center justify-between">
                     <div className="space-y-1">
                         <h1 className="text-xl font-bold text-white uppercase tracking-[0.2em] drop-shadow-sm">
@@ -72,6 +60,7 @@ export default function AffiliatesPage() {
                     <IdentityHeader />
                 </div>
 
+                {/* Summary Metrics */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     {[
                         { label: 'Total Affiliates', value: summary.totalAffiliates || '0', icon: Users, color: 'text-white' },
@@ -89,6 +78,7 @@ export default function AffiliatesPage() {
                     ))}
                 </div>
 
+                {/* Genesis Layer (10 Founder Slots) */}
                 <div className="space-y-4">
                     <div className="flex items-center gap-3 border-b border-white/5 pb-4">
                         <Shield className="w-4 h-4 text-amber-500" />
@@ -105,57 +95,44 @@ export default function AffiliatesPage() {
                     </div>
                 </div>
 
+                {/* Network Topology */}
                 <Tree onNodeClick={handleNodeClick} />
             </main>
 
+            {/* Slide-Out Detail Panel */}
             <DetailPanel
                 isOpen={!!selectedAffiliate}
                 onClose={() => setSelectedAffiliate(null)}
-                title="Affiliate Node Intelligence"
-                subtitle={`WUID: ${selectedAffiliate?.nodlrId || 'UNKNOWN'}`}
-                footer={
-                    <div className="flex items-center gap-3">
-                        <button className="flex-1 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-[5px] text-[12px] font-bold text-slate-400 transition-all uppercase tracking-widest">
-                            Audit Trail
-                        </button>
-                        <button className="flex-[2] py-3 bg-[#22D3EE] text-black rounded-[5px] text-[12px] font-bold transition-all shadow-[0_0_30px_rgba(34,211,238,0.2)] uppercase tracking-widest">
-                            Authorize Override
-                        </button>
-                    </div>
-                }
+                title={selectedAffiliate?.nodlrId || 'Node Details'}
+                subtitle={selectedAffiliate?.isFounder ? `Founder #${selectedAffiliate.founderIndex}` : undefined}
             >
                 {selectedAffiliate && (
-                    <div className="space-y-8">
-                        <section className="bg-white/[0.02] border border-white/10 rounded-[5px] p-6">
-                            <div className="flex items-center gap-6">
-                                <div className="w-16 h-16 rounded-full bg-white/[0.03] border border-white/10 flex items-center justify-center text-2xl font-bold text-[#22D3EE]">
-                                    {selectedAffiliate.nodlrId?.[0] || '?'}
-                                </div>
-                                <div className="flex flex-col gap-1">
-                                    <span className="text-lg font-bold text-white">{selectedAffiliate.name || 'Anonymous Partner'}</span>
-                                    <span className="text-[11px] text-[#22D3EE] font-mono font-bold uppercase tracking-widest">
-                                        {selectedAffiliate.nodlrId}
-                                    </span>
-                                </div>
-                            </div>
-                        </section>
+                    <div className="space-y-6">
+                        {/* WUID */}
+                        <div className="bg-white/[0.02] border border-white/5 p-4 rounded-[5px] space-y-1">
+                            <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">WUID</span>
+                            <span className="font-mono text-[14px] text-[#22D3EE] block">{selectedAffiliate.nodlrId}</span>
+                        </div>
 
+                        {/* SOT-backed fields */}
                         <div className="grid grid-cols-2 gap-4">
                             <div className="bg-white/[0.02] border border-white/5 p-4 rounded-[5px] space-y-1">
-                                <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Node Level</span>
-                                <span className="text-white font-bold text-[14px]">{selectedAffiliate.isFounder ? 'L0 FOUNDER' : `L${selectedAffiliate.level || '?'}`}</span>
+                                <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Node Count</span>
+                                <span className="text-white font-bold text-[14px] block">{selectedAffiliate.nodeCount}</span>
                             </div>
                             <div className="bg-white/[0.02] border border-white/5 p-4 rounded-[5px] space-y-1">
-                                <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Active Nodes</span>
-                                <span className="text-[#22D3EE] font-bold text-[14px]">{selectedAffiliate.nodeCount || 0}</span>
+                                <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Active</span>
+                                <span className={`font-bold text-[14px] block ${selectedAffiliate.active ? 'text-emerald-400' : 'text-slate-600'}`}>
+                                    {selectedAffiliate.active ? 'Yes' : 'No'}
+                                </span>
                             </div>
                             <div className="bg-white/[0.02] border border-white/5 p-4 rounded-[5px] space-y-1">
-                                <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">L1 Affiliates</span>
-                                <span className="text-blue-400 font-bold text-[14px]">{selectedAffiliate.l1Count || 0}</span>
+                                <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">L1 Count</span>
+                                <span className="text-blue-400 font-bold text-[14px] block">{selectedAffiliate.l1Count}</span>
                             </div>
                             <div className="bg-white/[0.02] border border-white/5 p-4 rounded-[5px] space-y-1">
-                                <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">L2 Depth</span>
-                                <span className="text-purple-400 font-bold text-[14px]">{selectedAffiliate.l2Count || 0}</span>
+                                <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">L2 Count</span>
+                                <span className="text-purple-400 font-bold text-[14px] block">{selectedAffiliate.l2Count}</span>
                             </div>
                         </div>
                     </div>
