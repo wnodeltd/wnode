@@ -45,7 +45,8 @@ export const Tree = ({ onNodeClick }: TreeProps) => {
     }, []);
 
     const filteredFounders = founders.filter(f => 
-        f.nodlrId.toLowerCase().includes(search.toLowerCase())
+        f.nodlrId.toLowerCase().includes(search.toLowerCase()) ||
+        (f.name && f.name.toLowerCase().includes(search.toLowerCase()))
     );
 
     return (

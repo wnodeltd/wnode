@@ -47,6 +47,7 @@ export default function AffiliatesPage() {
     const handleNodeClick = async (node: AffiliateNode) => {
         setSelectedAffiliate(node);
         try {
+            // Fetch high-fidelity details for the slide-out
             const res = await fetch(`/api/affiliates/${node.nodlrId}`);
             if (res.ok) {
                 const detailed = await res.json();
@@ -60,6 +61,7 @@ export default function AffiliatesPage() {
     return (
         <>
             <main className="flex-1 p-8 pt-24 overflow-y-auto pb-24 relative space-y-12 focus:outline-none">
+                {/* Global Identity Header */}
                 <div className="flex items-center justify-between">
                     <div className="space-y-1">
                         <h1 className="text-xl font-bold text-white uppercase tracking-[0.2em] drop-shadow-sm">
@@ -72,6 +74,7 @@ export default function AffiliatesPage() {
                     <IdentityHeader />
                 </div>
 
+                {/* Summary Indicators */}
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     {[
                         { label: 'Total Affiliates', value: summary.totalAffiliates || '0', icon: Users, color: 'text-white' },
@@ -89,6 +92,7 @@ export default function AffiliatesPage() {
                     ))}
                 </div>
 
+                {/* Genesis Layer Configuration (L0 roots) */}
                 <div className="space-y-4">
                     <div className="flex items-center gap-3 border-b border-white/5 pb-4">
                         <Shield className="w-4 h-4 text-amber-500" />
@@ -105,9 +109,11 @@ export default function AffiliatesPage() {
                     </div>
                 </div>
 
+                {/* Network Topology Visualizer */}
                 <Tree onNodeClick={handleNodeClick} />
             </main>
 
+            {/* Intelligence Slide-Out */}
             <DetailPanel
                 isOpen={!!selectedAffiliate}
                 onClose={() => setSelectedAffiliate(null)}
@@ -126,38 +132,64 @@ export default function AffiliatesPage() {
             >
                 {selectedAffiliate && (
                     <div className="space-y-8">
-                        <section className="bg-white/[0.02] border border-white/10 rounded-[5px] p-6">
+                        {/* Identity & Status */}
+                        <section className="bg-white/[0.02] border border-white/10 rounded-[5px] p-6 relative group overflow-hidden">
+                            <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-[#22D3EE]/30 to-transparent" />
+                            {selectedAffiliate.isFounder && (
+                                <div className="absolute top-0 right-0 px-3 py-1 bg-amber-500 text-black text-[9px] font-extrabold uppercase tracking-[0.2em] rounded-bl-[5px]">
+                                    Founder Tier
+                                </div>
+                            )}
                             <div className="flex items-center gap-6">
                                 <div className="w-16 h-16 rounded-full bg-white/[0.03] border border-white/10 flex items-center justify-center text-2xl font-bold text-[#22D3EE]">
                                     {selectedAffiliate.nodlrId?.[0] || '?'}
                                 </div>
                                 <div className="flex flex-col gap-1">
                                     <span className="text-lg font-bold text-white">{selectedAffiliate.name || 'Anonymous Partner'}</span>
-                                    <span className="text-[11px] text-[#22D3EE] font-mono font-bold uppercase tracking-widest">
+                                    <span className="text-[11px] text-[#22D3EE] font-mono font-bold uppercase tracking-widest bg-[#22D3EE]/5 px-2 py-0.5 border border-[#22D3EE]/20 rounded-[3px]">
                                         {selectedAffiliate.nodlrId}
                                     </span>
                                 </div>
                             </div>
                         </section>
 
+                        {/* Performance Matrix */}
                         <div className="grid grid-cols-2 gap-4">
-                            <div className="bg-white/[0.02] border border-white/5 p-4 rounded-[5px] space-y-1">
-                                <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Node Level</span>
+                            <div className="card-sovereign p-4 space-y-1">
+                                <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Protocol Tier</span>
                                 <span className="text-white font-bold text-[14px]">{selectedAffiliate.isFounder ? 'L0 FOUNDER' : `L${selectedAffiliate.level || '?'}`}</span>
                             </div>
-                            <div className="bg-white/[0.02] border border-white/5 p-4 rounded-[5px] space-y-1">
+                            <div className="card-sovereign p-4 space-y-1">
+                                <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Node Yield</span>
+                                <span className="text-emerald-400 font-bold text-[14px]">{selectedAffiliate.yield || '0.00'}%</span>
+                            </div>
+                            <div className="card-sovereign p-4 space-y-1">
                                 <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Active Nodes</span>
                                 <span className="text-[#22D3EE] font-bold text-[14px]">{selectedAffiliate.nodeCount || 0}</span>
                             </div>
-                            <div className="bg-white/[0.02] border border-white/5 p-4 rounded-[5px] space-y-1">
-                                <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">L1 Affiliates</span>
-                                <span className="text-blue-400 font-bold text-[14px]">{selectedAffiliate.l1Count || 0}</span>
-                            </div>
-                            <div className="bg-white/[0.02] border border-white/5 p-4 rounded-[5px] space-y-1">
-                                <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">L2 Depth</span>
-                                <span className="text-purple-400 font-bold text-[14px]">{selectedAffiliate.l2Count || 0}</span>
+                            <div className="card-sovereign p-4 space-y-1">
+                                <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Total Earnings</span>
+                                <span className="text-purple-400 font-bold text-[14px]">${(selectedAffiliate.earnings || 0).toLocaleString()}</span>
                             </div>
                         </div>
+
+                        {/* Audit Log / Trace */}
+                        <section className="bg-black/60 border border-white/5 rounded-[5px] overflow-hidden">
+                            <div className="px-4 py-2 border-b border-white/5 bg-white/[0.02] flex items-center justify-between">
+                                <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">Protocol Audit Trace</span>
+                                <Activity className="w-3 h-3 text-[#22D3EE]" />
+                            </div>
+                            <div className="p-4 font-mono text-[11px] text-slate-400 space-y-2">
+                                <div className="flex gap-2">
+                                    <span className="text-slate-700">[SYSTEM]</span>
+                                    <span>Syncing acquisition graph node... [OK]</span>
+                                </div>
+                                <div className="flex gap-2">
+                                    <span className="text-slate-700">[TRACE]</span>
+                                    <span>Verifying WUID signature: {selectedAffiliate.nodlrId.substring(0, 12)}...</span>
+                                </div>
+                            </div>
+                        </section>
                     </div>
                 )}
             </DetailPanel>

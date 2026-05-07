@@ -68,7 +68,7 @@ export const TreeNode = ({ node, loadChildren, onNodeClick }: TreeNodeProps) => 
                     
                     <div className="flex items-center gap-2">
                         {node.isFounder && (
-                            <div className="flex items-center gap-1.5 px-2 py-0.5 bg-amber-500/10 border border-amber-500/20 rounded-[3px]">
+                            <div className="flex items-center gap-1.5 px-2 py-0.5 bg-amber-500/10 border border-amber-500/20 rounded-[3px] shadow-[0_0_10px_rgba(245,158,11,0.1)]">
                                 <Shield className="w-3 h-3 text-amber-500" />
                                 <span className="text-[9px] text-amber-500 font-bold uppercase tracking-widest whitespace-nowrap">
                                     FOUNDER #{node.founderIndex}
