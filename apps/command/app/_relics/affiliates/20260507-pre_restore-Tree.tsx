@@ -2,11 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Layers, Search } from "lucide-react";
 import { TreeNode, AffiliateNode } from "./TreeNode";
 
-interface TreeProps {
-    onNodeClick?: (node: AffiliateNode) => void;
-}
-
-export const Tree = ({ onNodeClick }: TreeProps) => {
+export const Tree = () => {
     const [founders, setFounders] = useState<AffiliateNode[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
@@ -16,14 +12,7 @@ export const Tree = ({ onNodeClick }: TreeProps) => {
             const res = await fetch('/api/affiliates/tree');
             if (res.ok) {
                 const data = await res.json();
-                // Ensure founders are explicitly marked as L0/Founders and sorted by index
-                const enrichedFounders = (data.founders || []).map((f: AffiliateNode, idx: number) => ({
-                    ...f,
-                    isFounder: true,
-                    founderIndex: f.founderIndex || idx + 1
-                })).sort((a: any, b: any) => a.founderIndex - b.founderIndex);
-                
-                setFounders(enrichedFounders);
+                setFounders(data.founders || []);
             }
         } catch (err) {
             console.error("Failed to fetch founders:", err);
@@ -45,8 +34,7 @@ export const Tree = ({ onNodeClick }: TreeProps) => {
     }, []);
 
     const filteredFounders = founders.filter(f => 
-        f.nodlrId.toLowerCase().includes(search.toLowerCase()) ||
-        (f.name && f.name.toLowerCase().includes(search.toLowerCase()))
+        f.nodlrId.toLowerCase().includes(search.toLowerCase())
     );
 
     return (
@@ -76,12 +64,7 @@ export const Tree = ({ onNodeClick }: TreeProps) => {
                     </div>
                 ) : filteredFounders.length > 0 ? (
                     filteredFounders.map(node => (
-                        <TreeNode 
-                            key={node.nodlrId} 
-                            node={node} 
-                            loadChildren={loadChildren} 
-                            onNodeClick={onNodeClick} 
-                        />
+                        <TreeNode key={node.nodlrId} node={node} loadChildren={loadChildren} />
                     ))
                 ) : (
                     <div className="py-20 text-center">

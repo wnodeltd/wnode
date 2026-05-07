@@ -1,32 +1,27 @@
 import React, { useState } from "react";
-import { ChevronRight, ChevronDown, Zap, Users, Network, Shield } from "lucide-react";
+import { ChevronRight, ChevronDown, Zap, Users, Network } from "lucide-react";
 
 export interface AffiliateNode {
     nodlrId: string;
-    name?: string;
     nodeCount: number;
     l1Count: number;
     l2Count: number;
     active: boolean;
-    isFounder?: boolean;
-    founderIndex?: number;
-    children?: AffiliateNode[];
+    children: AffiliateNode[];
 }
 
 interface TreeNodeProps {
     node: AffiliateNode;
     loadChildren: (id: string) => Promise<AffiliateNode[]>;
-    onNodeClick?: (node: AffiliateNode) => void;
 }
 
-export const TreeNode = ({ node, loadChildren, onNodeClick }: TreeNodeProps) => {
+export const TreeNode = ({ node, loadChildren }: TreeNodeProps) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const [children, setChildren] = useState<AffiliateNode[]>(node.children || []);
     const [isLoading, setIsLoading] = useState(false);
     const [hasLoaded, setHasLoaded] = useState(node.children && node.children.length > 0);
 
-    const toggleExpand = async (e: React.MouseEvent) => {
-        e.stopPropagation();
+    const toggleExpand = async () => {
         if (!isExpanded && !hasLoaded) {
             setIsLoading(true);
             try {
@@ -46,44 +41,28 @@ export const TreeNode = ({ node, loadChildren, onNodeClick }: TreeNodeProps) => 
         <div className="flex flex-col">
             <div 
                 className="flex items-center gap-4 px-4 py-3 rounded-[5px] transition-all group cursor-pointer hover:bg-white/[0.04]"
-                onClick={() => onNodeClick?.(node)}
+                onClick={toggleExpand}
             >
                 <div className="flex items-center gap-3 min-w-[280px]">
-                    <div 
-                        className="w-4 h-4 flex items-center justify-center"
-                        onClick={toggleExpand}
-                    >
-                        {isLoading ? (
-                            <div className="w-3 h-3 border border-[#22D3EE]/20 border-t-[#22D3EE] rounded-full animate-spin" />
-                        ) : (
-                            <>
-                                {isExpanded ? (
-                                    <ChevronDown className="w-4 h-4 text-slate-500" />
-                                ) : (
-                                    <ChevronRight className="w-4 h-4 text-[#22D3EE]" />
-                                )}
-                            </>
-                        )}
-                    </div>
-                    
-                    <div className="flex items-center gap-2">
-                        {node.isFounder && (
-                            <div className="flex items-center gap-1.5 px-2 py-0.5 bg-amber-500/10 border border-amber-500/20 rounded-[3px] shadow-[0_0_10px_rgba(245,158,11,0.1)]">
-                                <Shield className="w-3 h-3 text-amber-500" />
-                                <span className="text-[9px] text-amber-500 font-bold uppercase tracking-widest whitespace-nowrap">
-                                    FOUNDER #{node.founderIndex}
-                                </span>
-                            </div>
-                        )}
-                        <span className="font-mono text-[13px] text-slate-300 group-hover:text-white transition-colors tracking-tighter">
-                            {node.nodlrId}
-                        </span>
-                    </div>
+                    {isLoading ? (
+                        <div className="w-4 h-4 border border-[#22D3EE]/20 border-t-[#22D3EE] rounded-full animate-spin" />
+                    ) : (
+                        <div className="w-4 h-4 flex items-center justify-center">
+                            {isExpanded ? (
+                                <ChevronDown className="w-4 h-4 text-slate-500" />
+                            ) : (
+                                <ChevronRight className="w-4 h-4 text-[#22D3EE]" />
+                            )}
+                        </div>
+                    )}
+                    <span className="font-mono text-[13px] text-slate-300 group-hover:text-white transition-colors tracking-tighter">
+                        {node.nodlrId}
+                    </span>
                 </div>
 
                 <div className="flex items-center gap-6 min-w-[360px]">
                     <div className="flex items-center gap-2">
-                        <Zap className="w-3 text-[#22D3EE]/70" />
+                        <Zap className="w-3 link-cyan-glow" />
                         <span className="text-[11px] text-slate-400 font-mono">
                             {node.nodeCount} <span className="opacity-40 uppercase text-[9px] font-bold">Nodes</span>
                         </span>
@@ -118,7 +97,7 @@ export const TreeNode = ({ node, loadChildren, onNodeClick }: TreeNodeProps) => 
                 <div className="ml-8 mt-1 pl-4 border-l border-white/5 space-y-1">
                     {children && children.length > 0 ? (
                         children.map((child) => (
-                            <TreeNode key={child.nodlrId} node={child} loadChildren={loadChildren} onNodeClick={onNodeClick} />
+                            <TreeNode key={child.nodlrId} node={child} loadChildren={loadChildren} />
                         ))
                     ) : hasLoaded && !isLoading ? (
                         <div className="py-2 px-4 text-[11px] text-slate-600 italic">No descendants found.</div>
