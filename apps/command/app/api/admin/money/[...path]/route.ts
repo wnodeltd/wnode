@@ -3,8 +3,9 @@ import { cookies } from 'next/headers';
 
 export async function GET(
     request: Request,
-    { params }: { params: { path: string[] } }
+    props: { params: Promise<{ path: string[] }> }
 ) {
+    const params = await props.params;
     const path = params.path.join('/');
     const apiUrl = process.env.NODLD_API_URL || 'https://api.wnode.one';
     

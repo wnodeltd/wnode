@@ -2,7 +2,6 @@ package acquisition
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/obregan/nodl/nodld/internal/account"
 	"go.uber.org/zap"
@@ -184,6 +183,7 @@ func (s *Service) GetAffiliateTree(ctx context.Context) (*AffiliateTreeResponse,
 	allNodes := s.accountStore.ListAllNodes()
 
 	resp := &AffiliateTreeResponse{}
+	resp.Founders = []*AffiliateNode{}
 	resp.Summary.TotalAffiliates = len(nodlrs)
 	resp.Summary.TotalNodes = len(allNodes)
 	
@@ -193,16 +193,14 @@ func (s *Service) GetAffiliateTree(ctx context.Context) (*AffiliateTreeResponse,
 		}
 	}
 
-	// Mocking steady growth for now
-	resp.Summary.Growth30d = 12.5
+	// Real growth metric if available, otherwise 0
+	resp.Summary.Growth30d = 0
 
-	// Identify Founders
-	for i := 1; i <= 10; i++ {
-		// Founders are 100001-...-01 to 10 respectively in seeds
-		id := fmt.Sprintf("1000%02d-0426-%02d-AA", i, i)
-		if n, ok := s.accountStore.GetNodlr(id); ok {
-			nodes := s.accountStore.ListNodes(id)
-			l1, l2 := s.resolveReferrals(id)
+	// Identify Founders dynamically from store
+	for _, n := range nodlrs {
+		if n.IsFounder {
+			nodes := s.accountStore.ListNodes(n.ID)
+			l1, l2 := s.resolveReferrals(n.ID)
 			resp.Founders = append(resp.Founders, &AffiliateNode{
 				NodlrID:   n.ID,
 				NodeCount: len(nodes),
@@ -220,7 +218,7 @@ func (s *Service) GetAffiliateTree(ctx context.Context) (*AffiliateTreeResponse,
 // GetAffiliateChildren returns the direct descendants of a nodlr.
 func (s *Service) GetAffiliateChildren(ctx context.Context, parentID string) ([]*AffiliateNode, error) {
 	all := s.accountStore.ListNodlrs()
-	var children []*AffiliateNode
+	children := []*AffiliateNode{}
 
 	for _, n := range all {
 		if n.ParentID == parentID {

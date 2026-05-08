@@ -245,6 +245,10 @@ func (s *Server) registerRoutes() {
 	apiV1.Get("/acquisition/stats", s.acqHandler.HandleStats)
 	apiV1.Get("/acquisition/integrity", s.acqHandler.HandleIntegrity)
 
+	// Affiliates Aliases (New Stable Contract)
+	apiV1.Get("/affiliates/tree", s.acqHandler.HandleTree)
+	apiV1.Get("/affiliates/children", s.acqHandler.HandleChildren)
+
 	// Institutional Routes (Canonical 8080)
 	s.instHandler.RegisterRoutes(apiV1, s.requireLevel(account.RoleOwner), s.requireLevel(account.RoleManagement))
 

@@ -23,31 +23,21 @@ export const Tree = ({ onNodeClick, selectedNodeId }: TreeProps) => {
     useEffect(() => {
         const fetchRoots = async () => {
             try {
-                // Mocking root fetch — in Phase 2 this will hit /api/v1/affiliates/roots
-                const mockRoots: AffiliateNode[] = [
-                    {
-                        nodlrId: "12D3KooWLAbvSjDYvHfeNC1ge8ipJvRHkgGGaWRDvMxF1qxMo3hS",
-                        wuid: "100001-0426-01-AA", // Normalized WUID
-                        nodeCount: 142,
-                        l1Count: 12,
-                        l2Count: 130,
-                        active: true,
-                        isFounder: true,
-                        founderIndex: 1,
-                        children: []
-                    },
-                    {
-                        nodlrId: "12D3KooWNnQ2KA9pSB5M1vzAgfD9D87KGwViPJM6V9x47WPKDpqM",
-                        wuid: "100001-0426-02-BB", // Normalized WUID
-                        nodeCount: 84,
-                        l1Count: 8,
-                        l2Count: 76,
-                        active: true,
-                        isFounder: false,
-                        children: []
-                    }
-                ];
-                setRootNodes(mockRoots);
+                const response = await fetch("/api/v1/affiliates/tree");
+                if (!response.ok) throw new Error("Failed to fetch tree roots");
+                const data = await response.json();
+                
+                // Map backend founders to rootNodes
+                // We ensure each node has a 'wuid' for interaction consistency
+                const mappedRoots = (data.founders || []).map((n: any) => ({
+                    ...n,
+                    wuid: n.nodlrId // nodlrId is the canonical WUID in this context
+                }));
+                
+                setRootNodes(mappedRoots);
+            } catch (error) {
+                console.error("Tree initialization error:", error);
+                setRootNodes([]);
             } finally {
                 setIsLoading(false);
             }
@@ -56,19 +46,19 @@ export const Tree = ({ onNodeClick, selectedNodeId }: TreeProps) => {
     }, []);
 
     const loadChildren = async (id: string): Promise<AffiliateNode[]> => {
-        // Mocking child fetch — in Phase 2 this will hit /api/v1/affiliates/children?id={id}
-        const childId = `child-of-${id.slice(-8)}`;
-        return [
-            {
-                nodlrId: childId,
-                wuid: childId, // Normalize fallback to ID if no WUID present
-                nodeCount: 5,
-                l1Count: 1,
-                l2Count: 4,
-                active: Math.random() > 0.3,
-                children: []
-            }
-        ];
+        try {
+            const response = await fetch(`/api/v1/affiliates/children?parent=${id}`);
+            if (!response.ok) throw new Error("Failed to fetch children");
+            const data = await response.json();
+            
+            return (data || []).map((n: any) => ({
+                ...n,
+                wuid: n.nodlrId
+            }));
+        } catch (error) {
+            console.error("Lazy load error:", error);
+            return [];
+        }
     };
 
     if (isLoading) {
