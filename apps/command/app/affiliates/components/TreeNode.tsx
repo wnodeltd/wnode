@@ -59,14 +59,18 @@ export const TreeNode = ({ node, loadChildren, onNodeClick }: TreeNodeProps) => 
                             )}
                         </div>
                     )}
-                    {node.isFounder && (
-                        <div className="flex items-center gap-1.5 px-2 py-0.5 bg-amber-400/20 border border-amber-400/40 rounded-[3px] group-hover:bg-amber-400/30 transition-colors">
-                            <Shield className="w-3 h-3 text-amber-400" />
-                            <span className="text-[9px] text-amber-400 font-bold uppercase tracking-widest whitespace-nowrap">
-                                FOUNDER #{node.founderIndex}
-                            </span>
-                        </div>
-                    )}
+                    
+                    <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-[3px] border transition-colors ${node.isFounder ? 'bg-amber-400/20 border-amber-400/40 text-amber-400 group-hover:bg-amber-400/30' : 'bg-[#22D3EE]/10 border-[#22D3EE]/20 text-[#22D3EE] group-hover:bg-[#22D3EE]/20'}`}>
+                        {node.isFounder ? (
+                            <Shield className="w-2.5 h-2.5" />
+                        ) : (
+                            <Users className="w-2.5 h-2.5" />
+                        )}
+                        <span className="text-[9px] font-bold uppercase tracking-widest whitespace-nowrap">
+                            {node.isFounder ? `Founder #${node.founderIndex}` : 'Partner'}
+                        </span>
+                    </div>
+
                     <span className="font-mono text-[13px] text-slate-300 group-hover:text-white transition-colors tracking-tighter">
                         {node.nodlrId}
                     </span>

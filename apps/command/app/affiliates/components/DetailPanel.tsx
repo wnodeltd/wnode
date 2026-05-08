@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { X, Shield, Activity, Network, Zap, Clock, Terminal } from "lucide-react";
+import { X, Shield, Users, Activity, Network, Zap, Clock, Terminal } from "lucide-react";
 
 interface DetailPanelProps {
     isOpen: boolean;
