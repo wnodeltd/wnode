@@ -12,10 +12,10 @@ export default function AffiliatesPage() {
     const [selectedAffiliate, setSelectedAffiliate] = useState<any>(null);
 
     // Task 6: Structural Hooks for Phase 2
-    const handleRowClick = useCallback((row: any) => {
-        // Will open Detail Panel for the affiliate
-        setSelectedAffiliate(row);
-        console.log("Detail Panel Hook:", row.wuid || row.nodlrId);
+    const handleRowClick = useCallback((node: any) => {
+        // Sets the selected affiliate object for the Detail Panel and highlighting
+        setSelectedAffiliate(node);
+        console.log("Selection Update:", node.wuid || node.nodlrId);
     }, []);
 
     const handleL1Click = useCallback((e: React.MouseEvent, row: any) => {
@@ -23,6 +23,8 @@ export default function AffiliatesPage() {
         // Will show Level 1 list recursively in Phase 2
         console.log("L1 List Hook:", row.wuid || row.nodlrId);
     }, []);
+
+    const selectedId = selectedAffiliate?.wuid || selectedAffiliate?.nodlrId;
 
     return (
         <main className="flex-1 px-8 pt-3 pb-20 overflow-y-auto space-y-10 custom-scrollbar relative">
@@ -37,13 +39,13 @@ export default function AffiliatesPage() {
             <GenesisList 
                 onRowClick={handleRowClick}
                 onL1Click={handleL1Click}
-                selectedWuid={selectedAffiliate?.wuid}
+                selectedWuid={selectedId}
             />
 
             {/* Section 6: Acquisition Topology */}
             <AcquisitionTree 
                 onNodeClick={handleRowClick} 
-                selectedNodeId={selectedAffiliate?.nodlrId}
+                selectedNodeId={selectedId}
             />
 
             {/* Section 7: Detail Panel Shell */}
