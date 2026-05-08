@@ -47,9 +47,10 @@ export const TreeNode = ({ node, loadChildren, onNodeClick }: TreeNodeProps) => 
                 className={`
                     group flex items-center gap-4 px-4 py-3 
                     hover:bg-white/5 
-                    border-l-2 border-transparent hover:border-current 
+                    border border-transparent hover:border-current
+                    border-l-2 hover:border-l-current
                     rounded-[4px] transition-all cursor-pointer
-                    ${node.isFounder ? 'text-amber-300' : 'text-[#22D3EE]'}
+                    ${node.isFounder ? 'text-amber-300 border-amber-300/40' : 'text-[#22D3EE] border-[#22D3EE]/40'}
                 `}
                 onClick={() => onNodeClick?.(node)}
             >
