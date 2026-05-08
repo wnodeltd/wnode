@@ -37,10 +37,14 @@ export default function AffiliatesPage() {
             <GenesisList 
                 onRowClick={handleRowClick}
                 onL1Click={handleL1Click}
+                selectedWuid={selectedAffiliate?.wuid}
             />
 
             {/* Section 6: Acquisition Topology */}
-            <AcquisitionTree onNodeClick={handleRowClick} />
+            <AcquisitionTree 
+                onNodeClick={handleRowClick} 
+                selectedNodeId={selectedAffiliate?.nodlrId}
+            />
 
             {/* Section 7: Detail Panel Shell */}
             <DetailPanel 

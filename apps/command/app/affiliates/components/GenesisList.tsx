@@ -15,6 +15,7 @@ interface GenesisRow {
 interface GenesisListProps {
     onRowClick?: (row: GenesisRow) => void;
     onL1Click?: (e: React.MouseEvent, row: GenesisRow) => void;
+    selectedWuid?: string;
 }
 
 const genesisData: GenesisRow[] = [
@@ -30,44 +31,44 @@ const genesisData: GenesisRow[] = [
     { index: "10", name: "IoT (Reserved)", type: "Partner", wuid: "—", l1Count: "—", l2Count: "—" },
 ];
 
-export default function GenesisList({ onRowClick, onL1Click }: GenesisListProps) {
+export default function GenesisList({ onRowClick, onL1Click, selectedWuid }: GenesisListProps) {
     return (
         <section className="space-y-6">
-
             <div className="bg-white/[0.01] border border-white/10 rounded-[5px] overflow-hidden">
-                <table className="w-full text-left border-collapse">
-                    <thead>
-                        <tr className="border-b border-white/10 bg-white/[0.02]">
-                            <th className="px-6 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Index</th>
-                            <th className="px-6 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Name</th>
-                            <th className="px-6 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Type</th>
-                            <th className="px-6 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest">WUID</th>
-                            <th className="px-6 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center">L1 Affiliates</th>
-                            <th className="px-6 py-3 text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center">L2 Affiliates</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/5">
-                        {genesisData.map((row) => (
-                            <tr 
+                {/* Header Row */}
+                <div className="grid grid-cols-[80px_1fr_120px_180px_120px_120px] border-b border-white/10 bg-white/[0.02] px-6 py-3">
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Index</span>
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Name</span>
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Type</span>
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">WUID</span>
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center">L1</span>
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center">L2</span>
+                </div>
+
+                {/* Data Rows */}
+                <div className="divide-y divide-white/5 p-1 space-y-1">
+                    {genesisData.map((row) => {
+                        const isSelected = selectedWuid === row.wuid && row.wuid !== "—";
+                        
+                        return (
+                            <div 
                                 key={row.index} 
+                                role="row"
                                 onClick={() => onRowClick?.(row)}
                                 className={`
-                                    group hover:bg-white/5 transition-all cursor-pointer 
-                                    border border-transparent hover:border-current
-                                    border-l-2 hover:border-l-current
-                                    rounded-[4px]
+                                    grid grid-cols-[80px_1fr_120px_180px_120px_120px] items-center px-6 py-4
+                                    rounded-[4px] transition-all cursor-pointer border-l-2
                                     ${row.type === 'Founder' 
-                                        ? 'text-amber-300 border-amber-300/40 hover:border-l-amber-300' 
-                                        : 'text-[#22D3EE] border-[#22D3EE]/40 hover:border-l-[#22D3EE]'}
+                                        ? 'text-amber-300 border-amber-300/40 hover:border-amber-300 hover:border-l-amber-300' 
+                                        : 'text-[#22D3EE] border-[#22D3EE]/40 hover:border-[#22D3EE] hover:border-l-[#22D3EE]'}
+                                    ${isSelected 
+                                        ? 'border border-current bg-white/10 border-l-current' 
+                                        : 'bg-transparent border border-transparent hover:bg-white/5 hover:border-current hover:border-l-current'}
                                 `}
                             >
-                                <td className="px-6 py-4">
-                                    <span className="text-[12px] font-mono text-slate-500 group-hover:text-white transition-colors">{row.index}</span>
-                                </td>
-                                <td className="px-6 py-4">
-                                    <span className="text-[13px] text-white font-medium">{row.name}</span>
-                                </td>
-                                <td className="px-6 py-4">
+                                <span className="text-[12px] font-mono text-slate-500 group-hover:text-white transition-colors">{row.index}</span>
+                                <span className="text-[13px] text-white font-medium">{row.name}</span>
+                                <div>
                                     <div 
                                         title={row.type === 'Founder' ? "Founder node: root-level identity" : "Partner node: network affiliate"}
                                         className={`flex items-center gap-2 px-2 py-0.5 rounded-[3px] w-fit border ${row.type === 'Founder' ? 'bg-amber-300/10 border-amber-300/40 text-amber-300' : 'bg-[#22D3EE]/10 border-[#22D3EE]/40 text-[#22D3EE]'}`}
@@ -75,28 +76,26 @@ export default function GenesisList({ onRowClick, onL1Click }: GenesisListProps)
                                         {row.type === 'Founder' ? <Shield className="w-2.5 h-2.5" /> : <Users className="w-2.5 h-2.5" />}
                                         <span className="text-[9px] font-bold uppercase tracking-widest">{row.type}</span>
                                     </div>
-                                </td>
-                                <td className="px-6 py-4">
-                                    <span 
-                                        title="Unique Wnode Identifier"
-                                        className="text-[12px] font-mono text-slate-400 group-hover:text-white transition-colors"
-                                    >
-                                        {row.wuid}
-                                    </span>
-                                </td>
-                                <td 
-                                    className="px-6 py-4 text-center"
+                                </div>
+                                <span 
+                                    title="Unique Wnode Identifier"
+                                    className="text-[12px] font-mono text-slate-400 group-hover:text-white transition-colors"
+                                >
+                                    {row.wuid}
+                                </span>
+                                <div 
+                                    className="text-center"
                                     onClick={(e) => onL1Click?.(e, row)}
                                 >
-                                    <span className="text-[12px] font-mono text-slate-500 hover:text-white transition-colors">{row.l1Count}</span>
-                                </td>
-                                <td className="px-6 py-4 text-center">
+                                    <span className="text-[12px] font-mono text-slate-500 hover:text-white transition-colors cursor-pointer">{row.l1Count}</span>
+                                </div>
+                                <div className="text-center">
                                     <span className="text-[12px] font-mono text-slate-500">{row.l2Count}</span>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+                                </div>
+                            </div>
+                        );
+                    })}
+                </div>
             </div>
         </section>
     );

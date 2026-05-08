@@ -16,13 +16,16 @@ interface TreeNodeProps {
     node: AffiliateNode;
     loadChildren: (id: string) => Promise<AffiliateNode[]>;
     onNodeClick?: (node: AffiliateNode) => void;
+    selectedNodeId?: string;
 }
 
-export const TreeNode = ({ node, loadChildren, onNodeClick }: TreeNodeProps) => {
+export const TreeNode = ({ node, loadChildren, onNodeClick, selectedNodeId }: TreeNodeProps) => {
     const [isExpanded, setIsExpanded] = useState(false);
     const [children, setChildren] = useState<AffiliateNode[]>(node.children || []);
     const [isLoading, setIsLoading] = useState(false);
     const [hasLoaded, setHasLoaded] = useState(node.children && node.children.length > 0);
+
+    const isSelected = selectedNodeId === node.nodlrId;
 
     const toggleExpand = async (e: React.MouseEvent) => {
         e.stopPropagation();
@@ -45,14 +48,15 @@ export const TreeNode = ({ node, loadChildren, onNodeClick }: TreeNodeProps) => 
         <div className="flex flex-col">
             <div 
                 className={`
-                    group flex items-center gap-4 px-4 py-3 
-                    hover:bg-white/5 
-                    border border-transparent hover:border-current
-                    border-l-2 hover:border-l-current
+                    group flex items-center gap-4 px-4 py-3
                     rounded-[4px] transition-all cursor-pointer
+                    border-l-2
                     ${node.isFounder 
-                        ? 'text-amber-300 border-amber-300/40 hover:border-l-amber-300' 
-                        : 'text-[#22D3EE] border-[#22D3EE]/40 hover:border-l-[#22D3EE]'}
+                        ? 'text-amber-300 border-amber-300/40 hover:border-amber-300 hover:border-l-amber-300' 
+                        : 'text-[#22D3EE] border-[#22D3EE]/40 hover:border-[#22D3EE] hover:border-l-[#22D3EE]'}
+                    ${isSelected 
+                        ? 'border border-current bg-white/10 border-l-current' 
+                        : 'bg-transparent border border-transparent hover:bg-white/5 hover:border-current hover:border-l-current'}
                 `}
                 onClick={() => onNodeClick?.(node)}
             >
@@ -125,7 +129,13 @@ export const TreeNode = ({ node, loadChildren, onNodeClick }: TreeNodeProps) => 
                 <div className="ml-8 mt-1 pl-4 border-l border-white/5 space-y-1">
                     {children && children.length > 0 ? (
                         children.map((child) => (
-                            <TreeNode key={child.nodlrId} node={child} loadChildren={loadChildren} onNodeClick={onNodeClick} />
+                            <TreeNode 
+                                key={child.nodlrId} 
+                                node={child} 
+                                loadChildren={loadChildren} 
+                                onNodeClick={onNodeClick} 
+                                selectedNodeId={selectedNodeId}
+                            />
                         ))
                     ) : hasLoaded && !isLoading ? (
                         <div className="py-2 px-4 text-[11px] text-slate-600 italic">No descendants found.</div>
