@@ -44,7 +44,7 @@ export const TreeNode = ({ node, loadChildren, onNodeClick }: TreeNodeProps) => 
     return (
         <div className="flex flex-col">
             <div 
-                className="flex items-center gap-4 px-4 py-3 rounded-[5px] transition-all group cursor-pointer hover:bg-white/[0.04]"
+                className="flex items-center gap-4 px-4 py-3 rounded-[5px] transition-all group cursor-pointer hover:bg-white/[0.04] border-l-2 border-transparent hover:border-[#22D3EE]"
                 onClick={() => onNodeClick?.(node)}
             >
                 <div className="flex items-center gap-3 min-w-[280px]">
@@ -60,9 +60,9 @@ export const TreeNode = ({ node, loadChildren, onNodeClick }: TreeNodeProps) => 
                         </div>
                     )}
                     {node.isFounder && (
-                        <div className="flex items-center gap-1.5 px-2 py-0.5 bg-amber-500/10 border border-amber-500/20 rounded-[3px]">
-                            <Shield className="w-3 h-3 text-amber-500" />
-                            <span className="text-[9px] text-amber-500 font-bold uppercase tracking-widest whitespace-nowrap">
+                        <div className="flex items-center gap-1.5 px-2 py-0.5 bg-amber-400/20 border border-amber-400/40 rounded-[3px] group-hover:bg-amber-400/30 transition-colors">
+                            <Shield className="w-3 h-3 text-amber-400" />
+                            <span className="text-[9px] text-amber-400 font-bold uppercase tracking-widest whitespace-nowrap">
                                 FOUNDER #{node.founderIndex}
                             </span>
                         </div>

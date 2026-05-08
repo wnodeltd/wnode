@@ -4,7 +4,7 @@ import React from "react";
 import { Layers, Search } from "lucide-react";
 import { Tree } from "./Tree";
 
-export default function AcquisitionTree() {
+export default function AcquisitionTree({ onNodeClick }: { onNodeClick?: any }) {
     return (
         <section className="bg-white/[0.01] border border-white/10 rounded-[5px] overflow-hidden shadow-2xl">
             <div className="bg-white/[0.02] border-b border-white/5 p-6 flex items-center justify-between">
@@ -23,7 +23,7 @@ export default function AcquisitionTree() {
                 </div>
             </div>
             <div className="p-6">
-                <Tree />
+                <Tree onNodeClick={onNodeClick} />
             </div>
         </section>
     );

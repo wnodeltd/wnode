@@ -51,7 +51,7 @@ export default function GenesisList({ onRowClick, onL1Click }: GenesisListProps)
                             <tr 
                                 key={row.index} 
                                 onClick={() => onRowClick?.(row)}
-                                className={`group hover:bg-white/[0.03] transition-all cursor-pointer border-l-2 ${row.type === 'Founder' ? 'border-yellow-400/50 hover:border-yellow-400' : 'border-transparent hover:border-[#22D3EE]'}`}
+                                className="group hover:bg-white/[0.03] transition-all cursor-pointer border-l-2 border-transparent hover:border-[#22D3EE]"
                             >
                                 <td className="px-6 py-4">
                                     <span className="text-[12px] font-mono text-slate-500 group-hover:text-white transition-colors">{row.index}</span>

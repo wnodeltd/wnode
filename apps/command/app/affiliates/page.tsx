@@ -16,13 +16,13 @@ export default function AffiliatesPage() {
     const handleRowClick = useCallback((row: any) => {
         // Will open Detail Panel for the affiliate
         setSelectedAffiliate(row);
-        console.log("Detail Panel Hook:", row.wuid);
+        console.log("Detail Panel Hook:", row.wuid || row.nodlrId);
     }, []);
 
     const handleL1Click = useCallback((e: React.MouseEvent, row: any) => {
         e.stopPropagation(); // Prevent row click
         // Will show Level 1 list recursively in Phase 2
-        console.log("L1 List Hook:", row.wuid);
+        console.log("L1 List Hook:", row.wuid || row.nodlrId);
     }, []);
 
     return (
@@ -42,11 +42,14 @@ export default function AffiliatesPage() {
             />
 
             {/* Section 6: Acquisition Topology */}
-            <AcquisitionTree />
+            <AcquisitionTree onNodeClick={handleRowClick} />
 
             {/* Section 7: Detail Panel Shell */}
-            {/* Logic wiring for isOpen/onClose will be implemented in Phase 2 based on structure below */}
-            <DetailPanel />
+            <DetailPanel 
+                isOpen={!!selectedAffiliate} 
+                onClose={() => setSelectedAffiliate(null)} 
+                node={selectedAffiliate} 
+            />
         </main>
     );
 }
