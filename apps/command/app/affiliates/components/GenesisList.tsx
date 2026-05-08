@@ -63,7 +63,7 @@ export default function GenesisList({ onRowClick, onL1Click, selectedWuid }: Gen
                                         : 'text-[#22D3EE] border-[#22D3EE]/40 hover:border-[#22D3EE] hover:border-l-[#22D3EE]'}
                                     ${isSelected 
                                         ? 'border border-current bg-white/10 border-l-current' 
-                                        : 'bg-transparent border border-transparent hover:bg-white/5 hover:border-current hover:border-l-current'}
+                                        : 'bg-transparent border hover:bg-white/5 hover:border-current hover:border-l-current'}
                                 `}
                             >
                                 <span className="text-[12px] font-mono text-slate-500 group-hover:text-white transition-colors">{row.index}</span>

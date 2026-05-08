@@ -56,7 +56,7 @@ export const TreeNode = ({ node, loadChildren, onNodeClick, selectedNodeId }: Tr
                         : 'text-[#22D3EE] border-[#22D3EE]/40 hover:border-[#22D3EE] hover:border-l-[#22D3EE]'}
                     ${isSelected 
                         ? 'border border-current bg-white/10 border-l-current' 
-                        : 'bg-transparent border border-transparent hover:bg-white/5 hover:border-current hover:border-l-current'}
+                        : 'bg-transparent border hover:bg-white/5 hover:border-current hover:border-l-current'}
                 `}
                 onClick={() => onNodeClick?.(node)}
             >
