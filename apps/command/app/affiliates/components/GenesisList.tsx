@@ -37,7 +37,7 @@ export default function GenesisList({ onRowClick, onL1Click, onInvite, selectedW
         <section className="space-y-6">
             <div className="bg-white/[0.01] border border-white/10 rounded-[5px] overflow-hidden">
                 {/* Header Row */}
-                <div className="grid grid-cols-[80px_1fr_120px_180px_120px_120px] border-b border-white/10 bg-white/[0.02] px-6 py-3">
+                <div className="grid grid-cols-[80px_1fr_110px_190px_120px_120px] border-b border-white/10 bg-white/[0.02] px-6 py-3">
                     <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Index</span>
                     <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Name</span>
                     <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Type</span>
@@ -58,7 +58,7 @@ export default function GenesisList({ onRowClick, onL1Click, onInvite, selectedW
                                 role="row"
                                 onClick={() => onRowClick?.(row)}
                                 className={`
-                                    grid grid-cols-[80px_1fr_120px_180px_120px_120px] items-center px-6 py-4
+                                    grid grid-cols-[80px_1fr_110px_190px_120px_120px] items-center px-6 py-4
                                     rounded-[4px] transition-all cursor-pointer relative z-10
                                     ${row.type === 'Founder'
                                       ? isSelected
@@ -72,7 +72,7 @@ export default function GenesisList({ onRowClick, onL1Click, onInvite, selectedW
                             >
                                 <span className="text-[12px] font-mono text-slate-500 group-hover:text-white transition-colors">{row.index}</span>
                                 <span className="text-[13px] text-white font-medium">{row.name}</span>
-                                <div>
+                                <div className="flex justify-start mr-2">
                                     <div 
                                         title={row.type === 'Founder' ? "Founder node: root-level identity" : "Partner node: network affiliate"}
                                         className={`flex items-center gap-2 px-2 py-0.5 rounded-[3px] border transition-colors ${row.type === 'Founder' ? 'bg-amber-300/10 border-amber-300/40 text-amber-300' : 'bg-[#22D3EE]/10 border-[#22D3EE]/40 text-[#22D3EE]'}`}
