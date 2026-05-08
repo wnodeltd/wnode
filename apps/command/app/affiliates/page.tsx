@@ -1,143 +1,52 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { Users, Activity, Zap, TrendingUp, Shield } from "lucide-react";
-import DetailPanel from "../components/DetailPanel";
-import MetricCard from "@shared/components/MetricCard";
-import IdentityHeader from "@shared/components/IdentityHeader";
+import React, { useState, useCallback } from "react";
 import { usePageTitle } from "../components/PageTitleContext";
-import { Tree } from "./components/Tree";
-import { AffiliateNode } from "./components/TreeNode";
+import GenesisList from "./components/GenesisList";
+import AcquisitionTree from "./components/AcquisitionTree";
+import DetailPanel from "./components/DetailPanel";
+import SearchBar from "./components/SearchBar";
+import Enunciators from "./components/Enunciators";
 
 export default function AffiliatesPage() {
-    usePageTitle("AFFILIATE NETWORK", "Hierarchical network topology and node distribution audit");
-    
-    const [summary, setSummary] = useState({
-        totalAffiliates: 0,
-        activeAffiliates: 0,
-        totalNodes: 0,
-        growth30d: 0,
-    });
-    
-    const [selectedAffiliate, setSelectedAffiliate] = useState<AffiliateNode | null>(null);
-    const [loading, setLoading] = useState(true);
+    usePageTitle("Affiliate Network", "Hierarchical network topology and node distribution audit");
+    const [selectedAffiliate, setSelectedAffiliate] = useState<any>(null);
 
-    const fetchStats = async () => {
-        try {
-            const res = await fetch('/api/affiliates/stats');
-            if (res.ok) {
-                const data = await res.json();
-                setSummary(data);
-            }
-        } catch (err) {
-            console.error("Failed to fetch affiliate metrics:", err);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchStats();
+    // Task 6: Structural Hooks for Phase 2
+    const handleRowClick = useCallback((row: any) => {
+        // Will open Detail Panel for the affiliate
+        setSelectedAffiliate(row);
+        console.log("Detail Panel Hook:", row.wuid);
     }, []);
 
-    const handleNodeClick = (node: AffiliateNode) => {
-        setSelectedAffiliate(node);
-    };
+    const handleL1Click = useCallback((e: React.MouseEvent, row: any) => {
+        e.stopPropagation(); // Prevent row click
+        // Will show Level 1 list recursively in Phase 2
+        console.log("L1 List Hook:", row.wuid);
+    }, []);
 
     return (
-        <>
-            <main className="flex-1 p-8 pt-24 overflow-y-auto pb-24 relative space-y-12 focus:outline-none">
-                {/* Header */}
-                <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                        <h1 className="text-xl font-bold text-white uppercase tracking-[0.2em] drop-shadow-sm">
-                            AFFILIATE NETWORK
-                        </h1>
-                        <p className="text-[11px] text-slate-500 font-bold uppercase tracking-widest">
-                            Hierarchical network topology and node distribution audit
-                        </p>
-                    </div>
-                    <IdentityHeader />
-                </div>
+        <main className="flex-1 px-8 pt-3 pb-20 overflow-y-auto space-y-10 custom-scrollbar relative">
+            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#22D3EE]/5 rounded-full blur-[120px] pointer-events-none -z-10" />
 
-                {/* Summary Metrics */}
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                    {[
-                        { label: 'Total Affiliates', value: summary.totalAffiliates || '0', icon: Users, color: 'text-white' },
-                        { label: 'Active Affiliates', value: summary.activeAffiliates || '0', icon: Activity, color: 'text-emerald-400' },
-                        { label: 'Total Nodes', value: summary.totalNodes || '0', icon: Zap, color: 'text-[#22D3EE]' },
-                        { label: '30-Day Growth', value: `+${(summary.growth30d || 0).toFixed(1)}%`, icon: TrendingUp, color: 'text-purple-400' },
-                    ].map((s) => (
-                        <MetricCard 
-                            key={s.label}
-                            label={s.label}
-                            value={s.value}
-                            icon={s.icon}
-                            statusColor={s.color}
-                        />
-                    ))}
-                </div>
+            {/* Search and Enunciators Bar */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+                <SearchBar />
+                <Enunciators />
+            </div>
 
-                {/* Genesis Layer (10 Founder Slots) */}
-                <div className="space-y-4">
-                    <div className="flex items-center gap-3 border-b border-white/5 pb-4">
-                        <Shield className="w-4 h-4 text-amber-500" />
-                        <h2 className="text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em]">Genesis Layer Configuration</h2>
-                    </div>
-                    <div className="grid grid-cols-2 md:grid-cols-5 lg:grid-cols-10 gap-2">
-                        {Array.from({ length: 10 }).map((_, i) => (
-                            <div key={i} className="bg-white/[0.02] border border-white/5 p-3 rounded-[3px] text-center space-y-2 group hover:border-amber-500/30 transition-all">
-                                <span className="text-[9px] text-slate-600 font-mono uppercase block">Slot 0{i + 1}</span>
-                                <div className="w-1.5 h-1.5 rounded-full bg-amber-500 mx-auto shadow-[0_0_8px_rgba(245,158,11,0.5)]" />
-                                <span className="text-[8px] text-amber-500/40 font-bold uppercase tracking-widest group-hover:text-amber-500 transition-colors">Founder</span>
-                            </div>
-                        ))}
-                    </div>
-                </div>
+            {/* Section 4: Genesis Layer (Replacing Section 3 Grid) */}
+            <GenesisList 
+                onRowClick={handleRowClick}
+                onL1Click={handleL1Click}
+            />
 
-                {/* Network Topology */}
-                <Tree onNodeClick={handleNodeClick} />
-            </main>
+            {/* Section 6: Acquisition Topology */}
+            <AcquisitionTree />
 
-            {/* Slide-Out Detail Panel */}
-            <DetailPanel
-                isOpen={!!selectedAffiliate}
-                onClose={() => setSelectedAffiliate(null)}
-                title={selectedAffiliate?.nodlrId || 'Node Details'}
-                subtitle={selectedAffiliate?.isFounder ? `Founder #${selectedAffiliate.founderIndex}` : undefined}
-            >
-                {selectedAffiliate && (
-                    <div className="space-y-6">
-                        {/* WUID */}
-                        <div className="bg-white/[0.02] border border-white/5 p-4 rounded-[5px] space-y-1">
-                            <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">WUID</span>
-                            <span className="font-mono text-[14px] text-[#22D3EE] block">{selectedAffiliate.nodlrId}</span>
-                        </div>
-
-                        {/* SOT-backed fields */}
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="bg-white/[0.02] border border-white/5 p-4 rounded-[5px] space-y-1">
-                                <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Node Count</span>
-                                <span className="text-white font-bold text-[14px] block">{selectedAffiliate.nodeCount}</span>
-                            </div>
-                            <div className="bg-white/[0.02] border border-white/5 p-4 rounded-[5px] space-y-1">
-                                <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Active</span>
-                                <span className={`font-bold text-[14px] block ${selectedAffiliate.active ? 'text-emerald-400' : 'text-slate-600'}`}>
-                                    {selectedAffiliate.active ? 'Yes' : 'No'}
-                                </span>
-                            </div>
-                            <div className="bg-white/[0.02] border border-white/5 p-4 rounded-[5px] space-y-1">
-                                <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">L1 Count</span>
-                                <span className="text-blue-400 font-bold text-[14px] block">{selectedAffiliate.l1Count}</span>
-                            </div>
-                            <div className="bg-white/[0.02] border border-white/5 p-4 rounded-[5px] space-y-1">
-                                <span className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">L2 Count</span>
-                                <span className="text-purple-400 font-bold text-[14px] block">{selectedAffiliate.l2Count}</span>
-                            </div>
-                        </div>
-                    </div>
-                )}
-            </DetailPanel>
-        </>
+            {/* Section 7: Detail Panel Shell */}
+            {/* Logic wiring for isOpen/onClose will be implemented in Phase 2 based on structure below */}
+            <DetailPanel />
+        </main>
     );
 }
