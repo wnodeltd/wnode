@@ -7,18 +7,19 @@ import AcquisitionTree from "./components/AcquisitionTree";
 import DetailPanel from "./components/DetailPanel";
 import SearchBar from "./components/SearchBar";
 import InviteModal from "../components/modals/InviteModal";
+import { AffiliateData, emptyAffiliateData } from "./types";
 
 export default function AffiliatesPage() {
     usePageTitle("Affiliate Network", "");
     const [selectedAffiliate, setSelectedAffiliate] = useState<any>(null);
-    const [affiliateData, setAffiliateData] = useState<any>(null);
+    const [affiliateData, setAffiliateData] = useState<AffiliateData>(emptyAffiliateData);
     const [inviteModalOpen, setInviteModalOpen] = useState(false);
     const [inviteSlot, setInviteSlot] = useState<any>(null);
 
     // Placeholder for future CRM/SOT integration
     React.useEffect(() => {
         if (!selectedAffiliate) {
-            setAffiliateData(null);
+            setAffiliateData(emptyAffiliateData);
             return;
         }
 
@@ -27,6 +28,7 @@ export default function AffiliatesPage() {
         //   .then(res => res.json())
         //   .then(setAffiliateData);
         
+        setAffiliateData(emptyAffiliateData);
         console.log("CRM SOT Hook: Waiting for integration for node", selectedAffiliate.wuid);
     }, [selectedAffiliate]);
 

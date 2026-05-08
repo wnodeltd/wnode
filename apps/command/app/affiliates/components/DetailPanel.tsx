@@ -2,12 +2,13 @@
 
 import React from "react";
 import { X, Shield, Users, Activity, Network, Zap, Clock, Terminal } from "lucide-react";
+import { AffiliateData } from "../types";
 
 interface DetailPanelProps {
     isOpen: boolean;
     onClose: () => void;
     node: any;
-    affiliateData?: any;
+    affiliateData: AffiliateData;
 }
 
 export default function DetailPanel({ isOpen, onClose, node, affiliateData }: DetailPanelProps) {
@@ -91,23 +92,23 @@ export default function DetailPanel({ isOpen, onClose, node, affiliateData }: De
                             <div className="space-y-3 p-4 bg-white/[0.01] border border-white/5 rounded-[5px] text-[11px]">
                                 <div className="flex justify-between items-center">
                                     <span className="text-slate-500 font-medium">Address:</span>
-                                    <span className="text-white font-mono">{affiliateData?.address || '—'}</span>
+                                    <span className="text-white font-mono">{affiliateData.address ?? '—'}</span>
                                 </div>
                                 <div className="flex justify-between items-center">
                                     <span className="text-slate-500 font-medium">Phone:</span>
-                                    <span className="text-white font-mono">{affiliateData?.phone || '—'}</span>
+                                    <span className="text-white font-mono">{affiliateData.phone ?? '—'}</span>
                                 </div>
                                 <div className="flex justify-between items-center">
                                     <span className="text-slate-500 font-medium">Email:</span>
-                                    <span className="text-white font-mono">{affiliateData?.email || '—'}</span>
+                                    <span className="text-white font-mono">{affiliateData.email ?? '—'}</span>
                                 </div>
                                 <div className="flex justify-between items-center">
                                     <span className="text-slate-500 font-medium">Referrer:</span>
-                                    <span className="text-white font-mono">{affiliateData?.referrer || '—'}</span>
+                                    <span className="text-white font-mono">{affiliateData.referrer ?? '—'}</span>
                                 </div>
                                 <div className="flex justify-between items-center">
                                     <span className="text-slate-500 font-medium">Founder Tree:</span>
-                                    <span className="text-[#22D3EE] font-mono font-bold">{affiliateData?.founderTree || '—'}</span>
+                                    <span className="text-[#22D3EE] font-mono font-bold">{affiliateData.founderTree ?? '—'}</span>
                                 </div>
                             </div>
                         </section>
