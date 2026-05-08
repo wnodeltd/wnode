@@ -74,3 +74,11 @@ wnoded/stripe.env
 # AI model files (server-only, too large for Git)
 ai/models/*
 ai/model/
+
+# Backend Purge
+nodld/bin/
+wnoded/
+*.exe
+**/main
+**/nodld-old
+**/build-cache
