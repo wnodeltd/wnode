@@ -44,7 +44,13 @@ export const TreeNode = ({ node, loadChildren, onNodeClick }: TreeNodeProps) => 
     return (
         <div className="flex flex-col">
             <div 
-                className="flex items-center gap-4 px-4 py-3 rounded-[5px] transition-all group cursor-pointer hover:bg-white/[0.04] border-l-2 border-transparent hover:border-[#22D3EE]"
+                className={`
+                    group flex items-center gap-4 px-4 py-3 
+                    hover:bg-white/5 
+                    border-l-2 border-transparent hover:border-current 
+                    rounded-[4px] transition-all cursor-pointer
+                    ${node.isFounder ? 'text-amber-300' : 'text-[#22D3EE]'}
+                `}
                 onClick={() => onNodeClick?.(node)}
             >
                 <div className="flex items-center gap-3 min-w-[280px]">
@@ -60,7 +66,7 @@ export const TreeNode = ({ node, loadChildren, onNodeClick }: TreeNodeProps) => 
                         </div>
                     )}
                     
-                    <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-[3px] border transition-colors ${node.isFounder ? 'bg-amber-400/20 border-amber-400/40 text-amber-400 group-hover:bg-amber-400/30' : 'bg-[#22D3EE]/10 border-[#22D3EE]/20 text-[#22D3EE] group-hover:bg-[#22D3EE]/20'}`}>
+                    <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-[3px] border transition-colors ${node.isFounder ? 'bg-amber-300/10 border-amber-300/40 text-amber-300 group-hover:bg-amber-300/20' : 'bg-[#22D3EE]/10 border-[#22D3EE]/40 text-[#22D3EE] group-hover:bg-[#22D3EE]/20'}`}>
                         {node.isFounder ? (
                             <Shield className="w-2.5 h-2.5" />
                         ) : (

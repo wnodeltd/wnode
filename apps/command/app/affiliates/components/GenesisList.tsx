@@ -51,7 +51,7 @@ export default function GenesisList({ onRowClick, onL1Click }: GenesisListProps)
                             <tr 
                                 key={row.index} 
                                 onClick={() => onRowClick?.(row)}
-                                className="group hover:bg-white/[0.03] transition-all cursor-pointer border-l-2 border-transparent hover:border-[#22D3EE]"
+                                className={`group hover:bg-white/5 transition-all cursor-pointer border-l-2 border-transparent hover:border-current rounded-[4px] ${row.type === 'Founder' ? 'text-amber-300' : 'text-[#22D3EE]'}`}
                             >
                                 <td className="px-6 py-4">
                                     <span className="text-[12px] font-mono text-slate-500 group-hover:text-white transition-colors">{row.index}</span>
@@ -60,19 +60,19 @@ export default function GenesisList({ onRowClick, onL1Click }: GenesisListProps)
                                     <span className="text-[13px] text-white font-medium">{row.name}</span>
                                 </td>
                                 <td className="px-6 py-4">
-                                    <div className={`flex items-center gap-2 px-2 py-0.5 rounded-[3px] w-fit border ${row.type === 'Founder' ? 'bg-yellow-400/10 border-yellow-400/20 text-yellow-400' : 'bg-[#22D3EE]/10 border-[#22D3EE]/20 text-[#22D3EE]'}`}>
+                                    <div className={`flex items-center gap-2 px-2 py-0.5 rounded-[3px] w-fit border ${row.type === 'Founder' ? 'bg-amber-300/10 border-amber-300/40 text-amber-300' : 'bg-[#22D3EE]/10 border-[#22D3EE]/40 text-[#22D3EE]'}`}>
                                         {row.type === 'Founder' ? <Shield className="w-2.5 h-2.5" /> : <Users className="w-2.5 h-2.5" />}
                                         <span className="text-[9px] font-bold uppercase tracking-widest">{row.type}</span>
                                     </div>
                                 </td>
                                 <td className="px-6 py-4">
-                                    <span className="text-[12px] font-mono text-slate-400 group-hover:text-[#22D3EE] transition-colors">{row.wuid}</span>
+                                    <span className="text-[12px] font-mono text-slate-400 group-hover:text-white transition-colors">{row.wuid}</span>
                                 </td>
                                 <td 
                                     className="px-6 py-4 text-center"
                                     onClick={(e) => onL1Click?.(e, row)}
                                 >
-                                    <span className="text-[12px] font-mono text-slate-500 hover:text-[#22D3EE] transition-colors">{row.l1Count}</span>
+                                    <span className="text-[12px] font-mono text-slate-500 hover:text-white transition-colors">{row.l1Count}</span>
                                 </td>
                                 <td className="px-6 py-4 text-center">
                                     <span className="text-[12px] font-mono text-slate-500">{row.l2Count}</span>

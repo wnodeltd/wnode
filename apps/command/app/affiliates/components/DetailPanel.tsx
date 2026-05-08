@@ -44,7 +44,7 @@ export default function DetailPanel({ isOpen, onClose, node }: DetailPanelProps)
                         {/* Identity Header Card */}
                         <section className="p-6 bg-white/[0.02] border border-white/5 rounded-[5px] space-y-4">
                             <div className="flex items-center justify-between">
-                                <div className={`flex items-center gap-2 px-2 py-0.5 rounded-[3px] border ${type === 'Founder' ? 'bg-amber-400/10 border-amber-400/20 text-amber-400' : 'bg-[#22D3EE]/10 border-[#22D3EE]/20 text-[#22D3EE]'}`}>
+                                <div className={`flex items-center gap-2 px-2 py-0.5 rounded-[3px] border ${type === 'Founder' ? 'bg-amber-300/10 border-amber-300/40 text-amber-300' : 'bg-[#22D3EE]/10 border-[#22D3EE]/40 text-[#22D3EE]'}`}>
                                     {type === 'Founder' ? <Shield className="w-2.5 h-2.5" /> : <Users className="w-2.5 h-2.5" />}
                                     <span className="text-[9px] font-bold uppercase tracking-widest">{type}</span>
                                 </div>
