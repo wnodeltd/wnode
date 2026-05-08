@@ -56,7 +56,9 @@ export default function GenesisList({ onRowClick, onL1Click }: GenesisListProps)
                                     border border-transparent hover:border-current
                                     border-l-2 hover:border-l-current
                                     rounded-[4px]
-                                    ${row.type === 'Founder' ? 'text-amber-300 border-amber-300/40' : 'text-[#22D3EE] border-[#22D3EE]/40'}
+                                    ${row.type === 'Founder' 
+                                        ? 'text-amber-300 border-amber-300/40 hover:border-l-amber-300' 
+                                        : 'text-[#22D3EE] border-[#22D3EE]/40 hover:border-l-[#22D3EE]'}
                                 `}
                             >
                                 <td className="px-6 py-4">
@@ -66,13 +68,21 @@ export default function GenesisList({ onRowClick, onL1Click }: GenesisListProps)
                                     <span className="text-[13px] text-white font-medium">{row.name}</span>
                                 </td>
                                 <td className="px-6 py-4">
-                                    <div className={`flex items-center gap-2 px-2 py-0.5 rounded-[3px] w-fit border ${row.type === 'Founder' ? 'bg-amber-300/10 border-amber-300/40 text-amber-300' : 'bg-[#22D3EE]/10 border-[#22D3EE]/40 text-[#22D3EE]'}`}>
+                                    <div 
+                                        title={row.type === 'Founder' ? "Founder node: root-level identity" : "Partner node: network affiliate"}
+                                        className={`flex items-center gap-2 px-2 py-0.5 rounded-[3px] w-fit border ${row.type === 'Founder' ? 'bg-amber-300/10 border-amber-300/40 text-amber-300' : 'bg-[#22D3EE]/10 border-[#22D3EE]/40 text-[#22D3EE]'}`}
+                                    >
                                         {row.type === 'Founder' ? <Shield className="w-2.5 h-2.5" /> : <Users className="w-2.5 h-2.5" />}
                                         <span className="text-[9px] font-bold uppercase tracking-widest">{row.type}</span>
                                     </div>
                                 </td>
                                 <td className="px-6 py-4">
-                                    <span className="text-[12px] font-mono text-slate-400 group-hover:text-white transition-colors">{row.wuid}</span>
+                                    <span 
+                                        title="Unique Wnode Identifier"
+                                        className="text-[12px] font-mono text-slate-400 group-hover:text-white transition-colors"
+                                    >
+                                        {row.wuid}
+                                    </span>
                                 </td>
                                 <td 
                                     className="px-6 py-4 text-center"

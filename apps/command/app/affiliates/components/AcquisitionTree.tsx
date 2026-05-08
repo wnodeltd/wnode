@@ -16,6 +16,7 @@ export default function AcquisitionTree({ onNodeClick }: { onNodeClick?: any }) 
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-600 group-focus-within:text-[#22D3EE] transition-colors" />
                     <input 
                         type="text" 
+                        title="Search by name or WUID"
                         placeholder="Search network identities..." 
                         className="bg-black/40 border border-white/10 rounded-[5px] pl-10 pr-4 py-2 text-[12px] text-white w-64 focus:outline-none focus:border-[#22D3EE]/50 transition-all font-normal"
                         readOnly

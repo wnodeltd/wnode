@@ -12,7 +12,7 @@ export default function TopHeader() {
         <header className="sticky top-0 z-40 w-full bg-black/60 backdrop-blur-md border-b border-white/5 px-8 py-4 flex items-center justify-between">
             <div className="flex flex-col gap-0.5">
                 <div className="flex items-center gap-2">
-                    <h1 className="text-[14px] font-bold text-white uppercase tracking-widest leading-none">
+                    <h1 className="text-2xl font-semibold tracking-tight text-white">
                         {pageTitle || "Overview"}
                     </h1>
                 </div>

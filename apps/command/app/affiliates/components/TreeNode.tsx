@@ -50,7 +50,9 @@ export const TreeNode = ({ node, loadChildren, onNodeClick }: TreeNodeProps) => 
                     border border-transparent hover:border-current
                     border-l-2 hover:border-l-current
                     rounded-[4px] transition-all cursor-pointer
-                    ${node.isFounder ? 'text-amber-300 border-amber-300/40' : 'text-[#22D3EE] border-[#22D3EE]/40'}
+                    ${node.isFounder 
+                        ? 'text-amber-300 border-amber-300/40 hover:border-l-amber-300' 
+                        : 'text-[#22D3EE] border-[#22D3EE]/40 hover:border-l-[#22D3EE]'}
                 `}
                 onClick={() => onNodeClick?.(node)}
             >
@@ -67,7 +69,10 @@ export const TreeNode = ({ node, loadChildren, onNodeClick }: TreeNodeProps) => 
                         </div>
                     )}
                     
-                    <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-[3px] border transition-colors ${node.isFounder ? 'bg-amber-300/10 border-amber-300/40 text-amber-300 group-hover:bg-amber-300/20' : 'bg-[#22D3EE]/10 border-[#22D3EE]/40 text-[#22D3EE] group-hover:bg-[#22D3EE]/20'}`}>
+                    <div 
+                        title={node.isFounder ? "Founder node: root-level identity" : "Partner node: network affiliate"}
+                        className={`flex items-center gap-1.5 px-2 py-0.5 rounded-[3px] border transition-colors ${node.isFounder ? 'bg-amber-300/10 border-amber-300/40 text-amber-300 group-hover:bg-amber-300/20' : 'bg-[#22D3EE]/10 border-[#22D3EE]/40 text-[#22D3EE] group-hover:bg-[#22D3EE]/20'}`}
+                    >
                         {node.isFounder ? (
                             <Shield className="w-2.5 h-2.5" />
                         ) : (

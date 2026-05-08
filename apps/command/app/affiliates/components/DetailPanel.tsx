@@ -44,7 +44,10 @@ export default function DetailPanel({ isOpen, onClose, node }: DetailPanelProps)
                         {/* Identity Header Card */}
                         <section className="p-6 bg-white/[0.02] border border-white/5 rounded-[5px] space-y-4">
                             <div className="flex items-center justify-between">
-                                <div className={`flex items-center gap-2 px-2 py-0.5 rounded-[3px] border ${type === 'Founder' ? 'bg-amber-300/10 border-amber-300/40 text-amber-300' : 'bg-[#22D3EE]/10 border-[#22D3EE]/40 text-[#22D3EE]'}`}>
+                                <div 
+                                    title={type === 'Founder' ? "Founder node: root-level identity" : "Partner node: network affiliate"}
+                                    className={`flex items-center gap-2 px-2 py-0.5 rounded-[3px] border ${type === 'Founder' ? 'bg-amber-300/10 border-amber-300/40 text-amber-300' : 'bg-[#22D3EE]/10 border-[#22D3EE]/40 text-[#22D3EE]'}`}
+                                >
                                     {type === 'Founder' ? <Shield className="w-2.5 h-2.5" /> : <Users className="w-2.5 h-2.5" />}
                                     <span className="text-[9px] font-bold uppercase tracking-widest">{type}</span>
                                 </div>
@@ -58,7 +61,12 @@ export default function DetailPanel({ isOpen, onClose, node }: DetailPanelProps)
                             
                             <div>
                                 <h3 className="text-[18px] text-white font-medium">{name}</h3>
-                                <p className="text-[12px] font-mono text-slate-400 mt-1">{wuid}</p>
+                                <p 
+                                    title="Unique Wnode Identifier"
+                                    className="text-[12px] font-mono text-slate-400 mt-1 cursor-help"
+                                >
+                                    {wuid}
+                                </p>
                             </div>
 
                             <div className="grid grid-cols-2 gap-4 pt-2">

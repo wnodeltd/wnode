@@ -6,10 +6,9 @@ import GenesisList from "./components/GenesisList";
 import AcquisitionTree from "./components/AcquisitionTree";
 import DetailPanel from "./components/DetailPanel";
 import SearchBar from "./components/SearchBar";
-import Enunciators from "./components/Enunciators";
 
 export default function AffiliatesPage() {
-    usePageTitle("Affiliate Network", "Hierarchical network topology and node distribution audit");
+    usePageTitle("Affiliate Network", "");
     const [selectedAffiliate, setSelectedAffiliate] = useState<any>(null);
 
     // Task 6: Structural Hooks for Phase 2
@@ -29,13 +28,12 @@ export default function AffiliatesPage() {
         <main className="flex-1 px-8 pt-3 pb-20 overflow-y-auto space-y-10 custom-scrollbar relative">
             <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#22D3EE]/5 rounded-full blur-[120px] pointer-events-none -z-10" />
 
-            {/* Search and Enunciators Bar */}
+            {/* Search Bar only (Enunciators removed) */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <SearchBar />
-                <Enunciators />
             </div>
 
-            {/* Section 4: Genesis Layer (Replacing Section 3 Grid) */}
+            {/* Section 4: Genesis Layer */}
             <GenesisList 
                 onRowClick={handleRowClick}
                 onL1Click={handleL1Click}
