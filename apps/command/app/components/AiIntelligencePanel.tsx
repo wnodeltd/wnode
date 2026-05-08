@@ -55,14 +55,14 @@ export default function AiIntelligencePanel() {
 
   if (loading) {
     return (
-      <div className="bg-white/[0.04] shadow-[0_4px_25px_rgba(0,0,0,0.4)] border border-white/20 p-5 rounded-[5px] flex items-center justify-center h-[114px]">
+      <div className="bg-white/[0.04] shadow-[0_4px_25px_rgba(0,0,0,0.4)] border border-white/20 p-5 rounded-[5px] flex items-center justify-center h-full min-h-[114px]">
         <Loader2 className="w-4 h-4 text-neutral-500 animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="bg-white/[0.04] shadow-[0_4px_25px_rgba(0,0,0,0.4)] border border-white/20 p-5 rounded-[5px] flex flex-col gap-1 group truncate transition-all hover:bg-white/[0.06] backdrop-blur-sm h-[114px]">
+    <div className="bg-white/[0.04] shadow-[0_4px_25px_rgba(0,0,0,0.4)] border border-white/20 p-4 rounded-[5px] flex flex-col gap-1 group truncate transition-all hover:bg-white/[0.06] backdrop-blur-sm h-full">
       <span className="text-[17px] text-white font-normal uppercase tracking-tight font-sans">
         AI - Mesh Maestro
       </span>
@@ -79,11 +79,6 @@ export default function AiIntelligencePanel() {
           </span>
         </div>
         <Brain className="w-4 h-4 text-[#3B82F6] opacity-40 group-hover:opacity-100 transition-opacity" />
-      </div>
-      <div className="mt-auto">
-        <span className="text-[9px] text-slate-500 uppercase font-bold tracking-widest">
-          Capabilities: Inf, Emb, Gen
-        </span>
       </div>
     </div>
   );

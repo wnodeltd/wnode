@@ -157,7 +157,7 @@ export default function CommandCentrePage() {
 
     return (
         <>
-            <main className="flex-1 px-8 pt-4 pb-20 overflow-y-auto space-y-6 custom-scrollbar relative">
+            <main className="flex-1 px-8 pt-3 pb-20 overflow-y-auto space-y-6 custom-scrollbar relative">
                 <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-cyan-400/5 rounded-full blur-[120px] pointer-events-none -z-10" />
 
                 <div className="flex items-center gap-6 justify-end">
@@ -165,7 +165,7 @@ export default function CommandCentrePage() {
                 </div>
 
                 {/* Row 1: Vitals + AI */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 -mt-1.5 [&>div]:!py-3.5">
                     {metrics.map((m) => (
                         <MetricCard
                             key={m.label}
