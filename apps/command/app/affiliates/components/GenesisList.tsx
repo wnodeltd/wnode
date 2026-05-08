@@ -58,12 +58,14 @@ export default function GenesisList({ onRowClick, onL1Click, selectedWuid }: Gen
                                 className={`
                                     grid grid-cols-[80px_1fr_120px_180px_120px_120px] items-center px-6 py-4
                                     rounded-[4px] transition-all cursor-pointer border-l-2
-                                    ${row.type === 'Founder' 
-                                        ? 'text-amber-300 border-amber-300/40 hover:border-amber-300 hover:border-l-amber-300' 
-                                        : 'text-[#22D3EE] border-[#22D3EE]/40 hover:border-[#22D3EE] hover:border-l-[#22D3EE]'}
-                                    ${isSelected 
-                                        ? 'border border-current bg-white/10 border-l-current' 
-                                        : 'bg-transparent border hover:bg-white/5 hover:border-current hover:border-l-current'}
+                                    ${row.type === 'Founder'
+                                      ? isSelected
+                                        ? 'text-amber-300 border border-amber-300 bg-white/10 border-l-amber-300 shadow-[0_0_15px_rgba(251,191,36,0.1)]'
+                                        : 'text-amber-300 border border-amber-300/40 hover:border-amber-300 hover:border-l-amber-300 hover:bg-white/5'
+                                      : isSelected
+                                        ? 'text-[#22D3EE] border border-[#22D3EE] bg-white/10 border-l-[#22D3EE] shadow-[0_0_15px_rgba(34,211,238,0.1)]'
+                                        : 'text-[#22D3EE] border border-[#22D3EE]/40 hover:border-[#22D3EE] hover:border-l-[#22D3EE] hover:bg-white/5'
+                                    }
                                 `}
                             >
                                 <span className="text-[12px] font-mono text-slate-500 group-hover:text-white transition-colors">{row.index}</span>
@@ -71,7 +73,7 @@ export default function GenesisList({ onRowClick, onL1Click, selectedWuid }: Gen
                                 <div>
                                     <div 
                                         title={row.type === 'Founder' ? "Founder node: root-level identity" : "Partner node: network affiliate"}
-                                        className={`flex items-center gap-2 px-2 py-0.5 rounded-[3px] w-fit border ${row.type === 'Founder' ? 'bg-amber-300/10 border-amber-300/40 text-amber-300' : 'bg-[#22D3EE]/10 border-[#22D3EE]/40 text-[#22D3EE]'}`}
+                                        className={`flex items-center gap-2 px-2 py-0.5 rounded-[3px] border transition-colors ${row.type === 'Founder' ? 'bg-amber-300/10 border-amber-300/40 text-amber-300' : 'bg-[#22D3EE]/10 border-[#22D3EE]/40 text-[#22D3EE]'}`}
                                     >
                                         {row.type === 'Founder' ? <Shield className="w-2.5 h-2.5" /> : <Users className="w-2.5 h-2.5" />}
                                         <span className="text-[9px] font-bold uppercase tracking-widest">{row.type}</span>
