@@ -1,0 +1,15 @@
+{
+  "forbid": [
+    "pkill",
+    "kill -9",
+    "killall",
+    "kill ",
+    "pkill ",
+    "systemctl restart",
+    "npm run dev & sleep",
+    "npm run dev && sleep",
+    "node server.js & sleep"
+  ],
+  "requireExplicitApproval": true,
+  "message": "Runtime teardown commands are forbidden unless Stephen explicitly authorizes them."
+}
