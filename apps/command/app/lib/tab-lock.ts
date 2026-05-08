@@ -15,7 +15,7 @@ export async function acquireTabLock(onAcquired: () => void, onLost: () => void)
 
   try {
     await navigator.locks.request('nodl_worker_active', async (lock) => {
-      console.log("Tab lock acquired:", lock.name);
+      console.log("Tab lock acquired:", lock?.name);
       onAcquired();
 
       // Keep the lock until the tab is closed or the promise is settled.
