@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Shield, Users, ChevronRight } from "lucide-react";
+import { Shield, Users } from "lucide-react";
 
 interface GenesisRow {
     index: string;
@@ -15,6 +15,7 @@ interface GenesisRow {
 interface GenesisListProps {
     onRowClick?: (row: GenesisRow) => void;
     onL1Click?: (e: React.MouseEvent, row: GenesisRow) => void;
+    onInvite?: (row: GenesisRow) => void;
     selectedWuid?: string;
 }
 
@@ -31,7 +32,7 @@ const genesisData: GenesisRow[] = [
     { index: "10", name: "IoT (Reserved)", type: "Partner", wuid: "—", l1Count: "—", l2Count: "—" },
 ];
 
-export default function GenesisList({ onRowClick, onL1Click, selectedWuid }: GenesisListProps) {
+export default function GenesisList({ onRowClick, onL1Click, onInvite, selectedWuid }: GenesisListProps) {
     return (
         <section className="space-y-6">
             <div className="bg-white/[0.01] border border-white/10 rounded-[5px] overflow-hidden">
@@ -49,6 +50,7 @@ export default function GenesisList({ onRowClick, onL1Click, selectedWuid }: Gen
                 <div className="divide-y divide-white/5 p-1 space-y-1">
                     {genesisData.map((row) => {
                         const isSelected = selectedWuid === row.wuid && row.wuid !== "—";
+                        const isEmpty = row.wuid === "—" || !row.wuid;
                         
                         return (
                             <div 
@@ -79,12 +81,23 @@ export default function GenesisList({ onRowClick, onL1Click, selectedWuid }: Gen
                                         <span className="text-[9px] font-bold uppercase tracking-widest">{row.type}</span>
                                     </div>
                                 </div>
-                                <span 
-                                    title="Unique Wnode Identifier"
-                                    className="text-[12px] font-mono text-slate-400 group-hover:text-white transition-colors"
-                                >
-                                    {row.wuid}
-                                </span>
+                                <div>
+                                    {isEmpty ? (
+                                        <button
+                                            className="px-3 py-1 text-[10px] font-bold uppercase tracking-widest rounded-[3px] bg-amber-300/20 text-amber-300 border border-amber-300/40 hover:bg-amber-300/30 hover:border-amber-300 transition-all"
+                                            onClick={(e) => { e.stopPropagation(); onInvite?.(row); }}
+                                        >
+                                            Invite
+                                        </button>
+                                    ) : (
+                                        <span 
+                                            title="Unique Wnode Identifier"
+                                            className="text-[12px] font-mono text-slate-400 group-hover:text-white transition-colors"
+                                        >
+                                            {row.wuid}
+                                        </span>
+                                    )}
+                                </div>
                                 <div 
                                     className="text-center"
                                     onClick={(e) => onL1Click?.(e, row)}

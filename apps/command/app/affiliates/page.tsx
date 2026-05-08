@@ -6,27 +6,48 @@ import GenesisList from "./components/GenesisList";
 import AcquisitionTree from "./components/AcquisitionTree";
 import DetailPanel from "./components/DetailPanel";
 import SearchBar from "./components/SearchBar";
+import InviteModal from "../components/modals/InviteModal";
 
 export default function AffiliatesPage() {
     usePageTitle("Affiliate Network", "");
     const [selectedAffiliate, setSelectedAffiliate] = useState<any>(null);
+    const [inviteModalOpen, setInviteModalOpen] = useState(false);
+    const [inviteSlot, setInviteSlot] = useState<any>(null);
 
-    // Task 6: Structural Hooks for Phase 2
+    // Selection Handlers
     const handleRowClick = useCallback((node: any) => {
-        // Sets the selected affiliate object, ensuring a canonical wuid exists
         const normalizedNode = {
             ...node,
             wuid: node.wuid || node.nodlrId
         };
         setSelectedAffiliate(normalizedNode);
-        console.log("Identity Normalized Selection:", normalizedNode.wuid);
     }, []);
 
     const handleL1Click = useCallback((e: React.MouseEvent, row: any) => {
-        e.stopPropagation(); // Prevent row click
-        // Will show Level 1 list recursively in Phase 2
+        e.stopPropagation();
         console.log("L1 List Hook:", row.wuid || row.nodlrId);
     }, []);
+
+    // Invite Handlers
+    const handleInvite = useCallback((slot: any) => {
+        setInviteSlot(slot);
+        setInviteModalOpen(true);
+    }, []);
+
+    const handleSendInvite = async (email: string) => {
+        const res = await fetch("/api/invite/create", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ slot: inviteSlot, email }),
+        });
+
+        if (!res.ok) {
+            const data = await res.json();
+            throw new Error(data.message || "Failed to issue invitation.");
+        }
+        
+        console.log("Invite issued successfully to:", email);
+    };
 
     const selectedId = selectedAffiliate?.wuid;
 
@@ -34,7 +55,6 @@ export default function AffiliatesPage() {
         <main className="flex-1 px-8 pt-3 pb-20 overflow-y-auto space-y-10 custom-scrollbar relative">
             <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#22D3EE]/5 rounded-full blur-[120px] pointer-events-none -z-10" />
 
-            {/* Search Bar only (Enunciators removed) */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                 <SearchBar />
             </div>
@@ -43,6 +63,7 @@ export default function AffiliatesPage() {
             <GenesisList 
                 onRowClick={handleRowClick}
                 onL1Click={handleL1Click}
+                onInvite={handleInvite}
                 selectedWuid={selectedId}
             />
 
@@ -57,6 +78,14 @@ export default function AffiliatesPage() {
                 isOpen={!!selectedAffiliate} 
                 onClose={() => setSelectedAffiliate(null)} 
                 node={selectedAffiliate} 
+            />
+
+            {/* Invitation Modal */}
+            <InviteModal 
+                open={inviteModalOpen}
+                onClose={() => setInviteModalOpen(false)}
+                slot={inviteSlot}
+                onSend={handleSendInvite}
             />
         </main>
     );
