@@ -13,9 +13,13 @@ export default function AffiliatesPage() {
 
     // Task 6: Structural Hooks for Phase 2
     const handleRowClick = useCallback((node: any) => {
-        // Sets the selected affiliate object for the Detail Panel and highlighting
-        setSelectedAffiliate(node);
-        console.log("Selection Update:", node.wuid || node.nodlrId);
+        // Sets the selected affiliate object, ensuring a canonical wuid exists
+        const normalizedNode = {
+            ...node,
+            wuid: node.wuid || node.nodlrId
+        };
+        setSelectedAffiliate(normalizedNode);
+        console.log("Identity Normalized Selection:", normalizedNode.wuid);
     }, []);
 
     const handleL1Click = useCallback((e: React.MouseEvent, row: any) => {
@@ -24,7 +28,7 @@ export default function AffiliatesPage() {
         console.log("L1 List Hook:", row.wuid || row.nodlrId);
     }, []);
 
-    const selectedId = selectedAffiliate?.wuid || selectedAffiliate?.nodlrId;
+    const selectedId = selectedAffiliate?.wuid;
 
     return (
         <main className="flex-1 px-8 pt-3 pb-20 overflow-y-auto space-y-10 custom-scrollbar relative">

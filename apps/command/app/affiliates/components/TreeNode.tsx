@@ -26,7 +26,7 @@ export const TreeNode = ({ node, loadChildren, onNodeClick, selectedNodeId }: Tr
     const [isLoading, setIsLoading] = useState(false);
     const [hasLoaded, setHasLoaded] = useState(node.children && node.children.length > 0);
 
-    const isSelected = selectedNodeId === node.wuid || selectedNodeId === node.nodlrId;
+    const isSelected = selectedNodeId === node.wuid;
 
     const toggleExpand = async (e: React.MouseEvent) => {
         e.stopPropagation();

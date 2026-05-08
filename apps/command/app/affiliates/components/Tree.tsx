@@ -19,6 +19,7 @@ export const Tree = ({ onNodeClick, selectedNodeId }: TreeProps) => {
                 const mockRoots: AffiliateNode[] = [
                     {
                         nodlrId: "12D3KooWLAbvSjDYvHfeNC1ge8ipJvRHkgGGaWRDvMxF1qxMo3hS",
+                        wuid: "100001-0426-01-AA", // Normalized WUID
                         nodeCount: 142,
                         l1Count: 12,
                         l2Count: 130,
@@ -29,6 +30,7 @@ export const Tree = ({ onNodeClick, selectedNodeId }: TreeProps) => {
                     },
                     {
                         nodlrId: "12D3KooWNnQ2KA9pSB5M1vzAgfD9D87KGwViPJM6V9x47WPKDpqM",
+                        wuid: "100001-0426-02-BB", // Normalized WUID
                         nodeCount: 84,
                         l1Count: 8,
                         l2Count: 76,
@@ -47,9 +49,11 @@ export const Tree = ({ onNodeClick, selectedNodeId }: TreeProps) => {
 
     const loadChildren = async (id: string): Promise<AffiliateNode[]> => {
         // Mocking child fetch — in Phase 2 this will hit /api/v1/affiliates/children?id={id}
+        const childId = `child-of-${id.slice(-8)}`;
         return [
             {
-                nodlrId: `child-of-${id.slice(-8)}`,
+                nodlrId: childId,
+                wuid: childId, // Normalize fallback to ID if no WUID present
                 nodeCount: 5,
                 l1Count: 1,
                 l2Count: 4,
