@@ -57,14 +57,14 @@ export default function GenesisList({ onRowClick, onL1Click, selectedWuid }: Gen
                                 onClick={() => onRowClick?.(row)}
                                 className={`
                                     grid grid-cols-[80px_1fr_120px_180px_120px_120px] items-center px-6 py-4
-                                    rounded-[4px] transition-all cursor-pointer
+                                    rounded-[4px] transition-all cursor-pointer relative z-10
                                     ${row.type === 'Founder'
                                       ? isSelected
-                                        ? 'text-amber-300 border-2 border-amber-300 border-l-2 border-l-amber-300 bg-white/10 shadow-[0_0_15px_rgba(251,191,36,0.1)]'
-                                        : 'text-amber-300 border border-amber-300 border-l-2 border-l-amber-300/40 hover:border-amber-300 hover:border-l-amber-300 hover:bg-white/5'
+                                        ? 'text-amber-300 border-2 border-amber-300 border-l-2 border-l-amber-300 bg-white/10 outline outline-2 outline-amber-300 shadow-[0_0_15px_rgba(251,191,36,0.1)]'
+                                        : 'text-amber-300 border border-amber-300 border-l-2 border-l-amber-300/40 hover:border-amber-300 hover:border-l-amber-300 hover:outline hover:outline-1 hover:outline-amber-300 hover:bg-white/5'
                                       : isSelected
-                                        ? 'text-[#22D3EE] border-2 border-[#22D3EE] border-l-2 border-l-[#22D3EE] bg-white/10 shadow-[0_0_15px_rgba(34,211,238,0.1)]'
-                                        : 'text-[#22D3EE] border border-[#22D3EE] border-l-2 border-l-[#22D3EE]/40 hover:border-[#22D3EE] hover:border-l-[#22D3EE] hover:bg-white/5'
+                                        ? 'text-[#22D3EE] border-2 border-[#22D3EE] border-l-2 border-l-[#22D3EE] bg-white/10 outline outline-2 outline-[#22D3EE] shadow-[0_0_15px_rgba(34,211,238,0.1)]'
+                                        : 'text-[#22D3EE] border border-[#22D3EE] border-l-2 border-l-[#22D3EE]/40 hover:border-[#22D3EE] hover:border-l-[#22D3EE] hover:outline hover:outline-1 hover:outline-[#22D3EE] hover:bg-white/5'
                                     }
                                 `}
                             >
