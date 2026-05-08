@@ -11,6 +11,14 @@ interface TreeProps {
 export const Tree = ({ onNodeClick, selectedNodeId }: TreeProps) => {
     const [rootNodes, setRootNodes] = useState<AffiliateNode[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [expandedNodes, setExpandedNodes] = useState<Record<string, boolean>>({});
+
+    const toggleNode = (wuid: string) => {
+        setExpandedNodes(prev => ({
+            ...prev,
+            [wuid]: !prev[wuid]
+        }));
+    };
 
     useEffect(() => {
         const fetchRoots = async () => {
@@ -78,9 +86,19 @@ export const Tree = ({ onNodeClick, selectedNodeId }: TreeProps) => {
                 <TreeNode 
                     key={node.nodlrId} 
                     node={node} 
-                    loadChildren={loadChildren} 
-                    onNodeClick={onNodeClick} 
+                    expanded={expandedNodes[node.wuid || node.nodlrId] ?? false}
+                    onToggle={toggleNode}
+                    onSelect={(n) => {
+                        // Visual selection only for now, or update parent if needed
+                        console.log("Single-click Select:", n.wuid || n.nodlrId);
+                    }}
+                    onOpen={(n) => {
+                        // Double-click: Open Slide-out
+                        onNodeClick?.(n);
+                    }}
                     selectedNodeId={selectedNodeId}
+                    loadChildren={loadChildren}
+                    expandedNodes={expandedNodes}
                 />
             ))}
         </div>

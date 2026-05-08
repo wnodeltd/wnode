@@ -15,22 +15,41 @@ export interface AffiliateNode {
 
 interface TreeNodeProps {
     node: AffiliateNode;
-    loadChildren: (id: string) => Promise<AffiliateNode[]>;
-    onNodeClick?: (node: AffiliateNode) => void;
+    expanded: boolean;
+    onToggle: (wuid: string) => void;
+    onSelect: (node: AffiliateNode) => void;
+    onOpen: (node: AffiliateNode) => void;
     selectedNodeId?: string;
+    loadChildren: (id: string) => Promise<AffiliateNode[]>;
+    expandedNodes: Record<string, boolean>;
 }
 
-export const TreeNode = ({ node, loadChildren, onNodeClick, selectedNodeId }: TreeNodeProps) => {
-    const [isExpanded, setIsExpanded] = useState(false);
+export const TreeNode = ({ 
+    node, 
+    expanded, 
+    onToggle, 
+    onSelect, 
+    onOpen, 
+    selectedNodeId,
+    loadChildren,
+    expandedNodes
+}: TreeNodeProps) => {
     const [children, setChildren] = useState<AffiliateNode[]>(node.children || []);
     const [isLoading, setIsLoading] = useState(false);
     const [hasLoaded, setHasLoaded] = useState(node.children && node.children.length > 0);
 
-    const isSelected = selectedNodeId === node.wuid;
+    const selected = selectedNodeId === (node.wuid || node.nodlrId);
 
-    const toggleExpand = async (e: React.MouseEvent) => {
+    const handleClick = async (e: React.MouseEvent) => {
         e.stopPropagation();
-        if (!isExpanded && !hasLoaded) {
+        
+        // Single-click: Select + Toggle
+        onSelect(node);
+        
+        const wuid = node.wuid || node.nodlrId;
+        
+        // If expanding and not loaded, fetch children
+        if (!expanded && !hasLoaded) {
             setIsLoading(true);
             try {
                 const fetchedChildren = await loadChildren(node.nodlrId);
@@ -42,7 +61,14 @@ export const TreeNode = ({ node, loadChildren, onNodeClick, selectedNodeId }: Tr
                 setIsLoading(false);
             }
         }
-        setIsExpanded(!isExpanded);
+        
+        onToggle(wuid);
+    };
+
+    const handleDoubleClick = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        // Double-click: Open Slide-out
+        onOpen(node);
     };
 
     return (
@@ -53,22 +79,23 @@ export const TreeNode = ({ node, loadChildren, onNodeClick, selectedNodeId }: Tr
                     rounded-[4px] transition-all cursor-pointer
                     relative z-10
                     ${node.isFounder
-                      ? isSelected
+                      ? selected
                         ? 'text-amber-300 border-2 border-amber-300 border-l-2 border-l-amber-300 bg-white/10 outline outline-2 outline-amber-300 shadow-[0_0_15px_rgba(251,191,36,0.1)]'
                         : 'text-amber-300 border border-amber-300 border-l-2 border-l-amber-300/40 hover:border-amber-300 hover:border-l-amber-300 hover:outline hover:outline-1 hover:outline-amber-300 hover:bg-white/5'
-                      : isSelected
+                      : selected
                         ? 'text-[#22D3EE] border-2 border-[#22D3EE] border-l-2 border-l-[#22D3EE] bg-white/10 outline outline-2 outline-[#22D3EE] shadow-[0_0_15px_rgba(34,211,238,0.1)]'
                         : 'text-[#22D3EE] border border-[#22D3EE] border-l-2 border-l-[#22D3EE]/40 hover:border-[#22D3EE] hover:border-l-[#22D3EE] hover:outline hover:outline-1 hover:outline-[#22D3EE] hover:bg-white/5'
                     }
                 `}
-                onClick={() => onNodeClick?.(node)}
+                onClick={handleClick}
+                onDoubleClick={handleDoubleClick}
             >
                 <div className="flex items-center gap-3 min-w-[280px]">
                     {isLoading ? (
                         <div className="w-4 h-4 border border-[#22D3EE]/20 border-t-[#22D3EE] rounded-full animate-spin" />
                     ) : (
-                        <div className="w-4 h-4 flex items-center justify-center" onClick={toggleExpand}>
-                            {isExpanded ? (
+                        <div className="w-4 h-4 flex items-center justify-center">
+                            {expanded ? (
                                 <ChevronDown className="w-4 h-4 text-slate-500" />
                             ) : (
                                 <ChevronRight className="w-4 h-4 text-[#22D3EE]" />
@@ -77,7 +104,6 @@ export const TreeNode = ({ node, loadChildren, onNodeClick, selectedNodeId }: Tr
                     )}
                     
                     <div 
-                        title={node.isFounder ? "Founder node: root-level identity" : "Partner node: network affiliate"}
                         className={`flex items-center gap-1.5 px-2 py-0.5 rounded-[3px] border transition-colors ${node.isFounder ? 'bg-amber-300/10 border-amber-300/40 text-amber-300 group-hover:bg-amber-300/20' : 'bg-[#22D3EE]/10 border-[#22D3EE]/40 text-[#22D3EE] group-hover:bg-[#22D3EE]/20'}`}
                     >
                         {node.isFounder ? (
@@ -128,16 +154,20 @@ export const TreeNode = ({ node, loadChildren, onNodeClick, selectedNodeId }: Tr
                 </div>
             </div>
 
-            {isExpanded && (
+            {expanded && (
                 <div className="ml-8 mt-1 pl-4 border-l border-white/5 space-y-1">
                     {children && children.length > 0 ? (
                         children.map((child) => (
                             <TreeNode 
                                 key={child.nodlrId} 
                                 node={child} 
-                                loadChildren={loadChildren} 
-                                onNodeClick={onNodeClick} 
+                                expanded={expandedNodes[child.wuid || child.nodlrId] ?? false}
+                                onToggle={onToggle}
+                                onSelect={onSelect}
+                                onOpen={onOpen}
                                 selectedNodeId={selectedNodeId}
+                                loadChildren={loadChildren}
+                                expandedNodes={expandedNodes}
                             />
                         ))
                     ) : hasLoaded && !isLoading ? (
