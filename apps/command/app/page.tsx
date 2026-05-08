@@ -12,7 +12,6 @@ import "leaflet/dist/leaflet.css";
 
 import NodlInspector from "./components/NodlInspector";
 import dynamic from 'next/dynamic';
-import AiMeshInsight from "./components/AiMeshInsight";
 import AiIntelligencePanel from "./components/AiIntelligencePanel";
 
 const FleetMap = dynamic(() => import("@shared/components/FleetMap"), {
@@ -149,11 +148,6 @@ export default function CommandCentrePage() {
         },
     ];
 
-    const integrity = [
-        { name: 'Gateway', status: 'Active', light: 'bg-green-500' },
-        { name: 'P2P Mesh nodl', status: 'Online', light: 'bg-green-500' },
-        { name: 'Registry Layer', status: stats ? 'Synced' : 'Loading', light: stats ? 'bg-green-500' : 'bg-yellow-500' },
-    ];
 
     return (
         <>
