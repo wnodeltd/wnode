@@ -7,9 +7,10 @@ interface DetailPanelProps {
     isOpen: boolean;
     onClose: () => void;
     node: any;
+    affiliateData?: any;
 }
 
-export default function DetailPanel({ isOpen, onClose, node }: DetailPanelProps) {
+export default function DetailPanel({ isOpen, onClose, node, affiliateData }: DetailPanelProps) {
     if (!node && !isOpen) return null;
 
     const name = node?.name || node?.nodlrId || "Unknown Identity";
@@ -81,24 +82,32 @@ export default function DetailPanel({ isOpen, onClose, node }: DetailPanelProps)
                             </div>
                         </section>
 
-                        {/* Hardware Blueprint Mock */}
+                        {/* Affiliate Details (CRM / SOT) */}
                         <section className="space-y-4">
                             <h3 className="text-[11px] text-slate-400 uppercase tracking-widest border-b border-white/5 pb-2 flex items-center gap-2">
-                                <Terminal className="w-3 h-3" />
-                                Hardware Blueprint
+                                <Users className="w-3 h-3" />
+                                Affiliate Details (CRM / SOT)
                             </h3>
-                            <div className="space-y-3 p-4 bg-white/[0.01] border border-white/5 rounded-[5px]">
+                            <div className="space-y-3 p-4 bg-white/[0.01] border border-white/5 rounded-[5px] text-[11px]">
                                 <div className="flex justify-between items-center">
-                                    <span className="text-[11px] text-slate-500">Core Architecture</span>
-                                    <span className="text-[11px] text-white font-mono">Wazero x86_64</span>
+                                    <span className="text-slate-500 font-medium">Address:</span>
+                                    <span className="text-white font-mono">{affiliateData?.address || '—'}</span>
                                 </div>
                                 <div className="flex justify-between items-center">
-                                    <span className="text-[11px] text-slate-500">Isolation Layer</span>
-                                    <span className="text-[11px] text-white font-mono">Secure Sandbox v2</span>
+                                    <span className="text-slate-500 font-medium">Phone:</span>
+                                    <span className="text-white font-mono">{affiliateData?.phone || '—'}</span>
                                 </div>
                                 <div className="flex justify-between items-center">
-                                    <span className="text-[11px] text-slate-500">Compute Tier</span>
-                                    <span className="text-[11px] text-[#22D3EE] font-mono font-bold italic">Titanium</span>
+                                    <span className="text-slate-500 font-medium">Email:</span>
+                                    <span className="text-white font-mono">{affiliateData?.email || '—'}</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-slate-500 font-medium">Referrer:</span>
+                                    <span className="text-white font-mono">{affiliateData?.referrer || '—'}</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-slate-500 font-medium">Founder Tree:</span>
+                                    <span className="text-[#22D3EE] font-mono font-bold">{affiliateData?.founderTree || '—'}</span>
                                 </div>
                             </div>
                         </section>

@@ -11,8 +11,24 @@ import InviteModal from "../components/modals/InviteModal";
 export default function AffiliatesPage() {
     usePageTitle("Affiliate Network", "");
     const [selectedAffiliate, setSelectedAffiliate] = useState<any>(null);
+    const [affiliateData, setAffiliateData] = useState<any>(null);
     const [inviteModalOpen, setInviteModalOpen] = useState(false);
     const [inviteSlot, setInviteSlot] = useState<any>(null);
+
+    // Placeholder for future CRM/SOT integration
+    React.useEffect(() => {
+        if (!selectedAffiliate) {
+            setAffiliateData(null);
+            return;
+        }
+
+        // When CRM is ready, replace with real API call:
+        // fetch(`/api/crm/affiliate/${selectedAffiliate.wuid}`)
+        //   .then(res => res.json())
+        //   .then(setAffiliateData);
+        
+        console.log("CRM SOT Hook: Waiting for integration for node", selectedAffiliate.wuid);
+    }, [selectedAffiliate]);
 
     // Selection Handlers
     const handleRowClick = useCallback((node: any) => {
@@ -78,6 +94,7 @@ export default function AffiliatesPage() {
                 isOpen={!!selectedAffiliate} 
                 onClose={() => setSelectedAffiliate(null)} 
                 node={selectedAffiliate} 
+                affiliateData={affiliateData}
             />
 
             {/* Invitation Modal */}
