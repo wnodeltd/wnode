@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { usePageTitle } from "../components/PageTitleContext";
+import { Terminal } from 'lucide-react';
 import LeftNav from "./components/LeftNav";
 import OverviewPanel from "./components/OverviewPanel";
 import ProposalsPanel from "./components/ProposalsPanel";
@@ -29,35 +30,54 @@ export default function GovernancePage() {
             <LeftNav />
 
             {/* Main Content Column */}
-            <main className="flex-1 xl:ml-64 p-8 pt-24 pb-24 max-w-5xl mx-auto w-full space-y-12">
+            <main className="flex-1 xl:ml-64 p-8 pt-24 pb-12 max-w-7xl mx-auto w-full">
                 
-                <div onClick={() => openSlideOut("Overview Details")} className="cursor-pointer">
-                    <OverviewPanel />
+                <div className="grid grid-cols-1 gap-8">
+                    {/* Row 1: Overview */}
+                    <div id="overview" onClick={() => openSlideOut("Overview Details")} className="cursor-pointer">
+                        <OverviewPanel />
+                    </div>
+
+                    {/* Row 2: Proposals & Voting */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div id="proposals" onClick={() => openSlideOut("Proposal Audit")} className="cursor-pointer">
+                            <ProposalsPanel />
+                        </div>
+                        <div id="voting" onClick={() => openSlideOut("Voting terminal")} className="cursor-pointer">
+                            <VotingPanel />
+                        </div>
+                    </div>
+
+                    {/* Row 3: Discord & Operational */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div id="discord" onClick={() => openSlideOut("Discord Context")} className="cursor-pointer">
+                            <DiscordPanel />
+                        </div>
+                        <div id="operational" onClick={() => openSlideOut("Operational Intelligence")} className="cursor-pointer">
+                            <OperationalPanel />
+                        </div>
+                    </div>
+
+                    {/* Row 4: Transparency */}
+                    <div id="transparency" onClick={() => openSlideOut("Transparency Ledger")} className="cursor-pointer">
+                        <TransparencyPanel />
+                    </div>
+
+                    {/* Row 5: Documents */}
+                    <div id="documents" onClick={() => openSlideOut("Protocol Documents")} className="cursor-pointer">
+                        <DocumentsPanel />
+                    </div>
                 </div>
 
-                <div onClick={() => openSlideOut("Proposal Audit")} className="cursor-pointer">
-                    <ProposalsPanel />
-                </div>
-
-                <div onClick={() => openSlideOut("Voting terminal")} className="cursor-pointer">
-                    <VotingPanel />
-                </div>
-
-                <div onClick={() => openSlideOut("Discord Context")} className="cursor-pointer">
-                    <DiscordPanel />
-                </div>
-
-                <div onClick={() => openSlideOut("Operational Intelligence")} className="cursor-pointer">
-                    <OperationalPanel />
-                </div>
-
-                <div onClick={() => openSlideOut("Transparency Ledger")} className="cursor-pointer">
-                    <TransparencyPanel />
-                </div>
-
-                <div onClick={() => openSlideOut("Protocol Documents")} className="cursor-pointer">
-                    <DocumentsPanel />
-                </div>
+                {/* Footer */}
+                <footer className="mt-20 flex flex-col items-center gap-2 pb-12 border-t border-white/5 pt-12">
+                    <div className="flex items-center gap-2 text-slate-500">
+                        <Terminal className="w-4 h-4 text-slate-600" />
+                        <span className="text-[11px] uppercase tracking-[0.2em] font-medium">
+                            Wnode Command — Executive Control v1.0
+                        </span>
+                    </div>
+                </footer>
 
             </main>
 
