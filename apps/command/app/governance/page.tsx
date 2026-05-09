@@ -5,6 +5,7 @@ import { usePageTitle } from "../components/PageTitleContext";
 import { Terminal } from 'lucide-react';
 import LeftNav from "./components/LeftNav";
 import OverviewPanel from "./components/OverviewPanel";
+import CommunityPanel from "./components/CommunityPanel";
 import ProposalsPanel from "./components/ProposalsPanel";
 import VotingPanel from "./components/VotingPanel";
 import DiscordPanel from "./components/DiscordPanel";
@@ -38,7 +39,12 @@ export default function GovernancePage() {
                         <OverviewPanel />
                     </div>
 
-                    {/* Row 2: Proposals & Voting */}
+                    {/* Row 2: Community (Discord Embed) */}
+                    <div id="community">
+                        <CommunityPanel />
+                    </div>
+
+                    {/* Row 3: Proposals & Voting */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div id="proposals" onClick={() => openSlideOut("Proposal Audit")} className="cursor-pointer">
                             <ProposalsPanel />
@@ -48,7 +54,7 @@ export default function GovernancePage() {
                         </div>
                     </div>
 
-                    {/* Row 3: Discord & Operational */}
+                    {/* Row 4: Discord & Operational */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div id="discord" onClick={() => openSlideOut("Discord Context")} className="cursor-pointer">
                             <DiscordPanel />
@@ -58,12 +64,12 @@ export default function GovernancePage() {
                         </div>
                     </div>
 
-                    {/* Row 4: Transparency */}
+                    {/* Row 5: Transparency */}
                     <div id="transparency" onClick={() => openSlideOut("Transparency Ledger")} className="cursor-pointer">
                         <TransparencyPanel />
                     </div>
 
-                    {/* Row 5: Documents */}
+                    {/* Row 6: Documents */}
                     <div id="documents" onClick={() => openSlideOut("Protocol Documents")} className="cursor-pointer">
                         <DocumentsPanel />
                     </div>

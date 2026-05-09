@@ -1,5 +1,6 @@
 import React from 'react';
 import { FileText, ArrowRight } from 'lucide-react';
+import Tooltip from '../../components/Tooltip';
 
 export default function ProposalsPanel() {
   const proposals = [
@@ -11,7 +12,9 @@ export default function ProposalsPanel() {
   return (
     <div id="proposals" className="bg-white/[0.02] border border-white/10 rounded-[5px] p-8 space-y-6 hover:shadow-[0_0_20px_rgba(250,204,21,0.05)] transition-all group h-[300px] flex flex-col">
       <div className="flex items-center gap-3">
-        <FileText className="w-6 h-6 text-yellow-400 group-hover:drop-shadow-[0_0_8px_rgba(250,204,21,0.4)] transition-all" />
+        <Tooltip text="Governance proposals">
+          <FileText className="w-6 h-6 text-yellow-400 group-hover:drop-shadow-[0_0_8px_rgba(250,204,21,0.4)] transition-all" />
+        </Tooltip>
         <h2 className="text-[14px] font-medium text-white uppercase tracking-widest">Active Proposals</h2>
       </div>
 
@@ -29,9 +32,11 @@ export default function ProposalsPanel() {
         ))}
       </div>
 
-      <button className="flex items-center gap-2 text-[10px] text-yellow-400 uppercase tracking-widest hover:brightness-110 transition-all pt-2 group/btn">
-        View All <ArrowRight className="w-3 h-3 group-hover/btn:translate-x-1 transition-transform" />
-      </button>
+      <Tooltip text="View full proposal list">
+        <button className="flex items-center gap-2 text-[10px] text-yellow-400 uppercase tracking-widest hover:brightness-110 transition-all pt-2 group/btn">
+          View All <ArrowRight className="w-3 h-3 group-hover/btn:translate-x-1 transition-transform" />
+        </button>
+      </Tooltip>
     </div>
   );
 }

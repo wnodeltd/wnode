@@ -1,5 +1,6 @@
 import React from 'react';
 import { BookOpen, Search, ExternalLink } from 'lucide-react';
+import Tooltip from '../../components/Tooltip';
 
 export default function DocumentsPanel() {
   const documents = [
@@ -14,7 +15,9 @@ export default function DocumentsPanel() {
     <div id="documents" className="bg-white/[0.02] border border-white/10 rounded-[5px] p-8 space-y-6 hover:shadow-[0_0_20px_rgba(156,163,175,0.05)] transition-all group h-[320px] flex flex-col">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <BookOpen className="w-6 h-6 text-gray-400 group-hover:drop-shadow-[0_0_8px_rgba(156,163,175,0.4)] transition-all" />
+          <Tooltip text="Protocol documentation repository">
+            <BookOpen className="w-6 h-6 text-gray-400 group-hover:drop-shadow-[0_0_8px_rgba(156,163,175,0.4)] transition-all" />
+          </Tooltip>
           <h2 className="text-[14px] font-medium text-white uppercase tracking-widest">Documents</h2>
         </div>
         <div className="relative">
@@ -43,9 +46,11 @@ export default function DocumentsPanel() {
                 <td className="py-3 text-slate-300 font-medium">{doc.title}</td>
                 <td className="py-3 text-slate-500 text-right font-mono">{doc.updated}</td>
                 <td className="py-3 text-right">
-                  <button className="text-gray-400 hover:text-white transition-colors flex items-center gap-1 ml-auto text-[10px] uppercase font-bold tracking-tighter">
-                    Open <ExternalLink className="w-3 h-3" />
-                  </button>
+                  <Tooltip text="Open document">
+                    <button className="text-gray-400 hover:text-white transition-colors flex items-center gap-1 ml-auto text-[10px] uppercase font-bold tracking-tighter">
+                      Open <ExternalLink className="w-3 h-3" />
+                    </button>
+                  </Tooltip>
                 </td>
               </tr>
             ))}

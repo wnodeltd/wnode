@@ -1,5 +1,6 @@
 import React from 'react';
 import { Eye, ArrowRight } from 'lucide-react';
+import Tooltip from '../../components/Tooltip';
 
 export default function TransparencyPanel() {
   const columns = [
@@ -12,7 +13,9 @@ export default function TransparencyPanel() {
   return (
     <div id="transparency" className="bg-white/[0.02] border border-white/10 rounded-[5px] p-8 space-y-6 hover:shadow-[0_0_20px_rgba(34,211,238,0.05)] transition-all group h-[320px] flex flex-col">
       <div className="flex items-center gap-3">
-        <Eye className="w-6 h-6 text-cyan-400 group-hover:drop-shadow-[0_0_8px_rgba(34,211,238,0.4)] transition-all" />
+        <Tooltip text="Audit and transparency ledger">
+          <Eye className="w-6 h-6 text-cyan-400 group-hover:drop-shadow-[0_0_8px_rgba(34,211,238,0.4)] transition-all" />
+        </Tooltip>
         <h2 className="text-[14px] font-medium text-white uppercase tracking-widest">Transparency</h2>
       </div>
 
@@ -31,9 +34,11 @@ export default function TransparencyPanel() {
         ))}
       </div>
 
-      <button className="flex items-center gap-2 text-[10px] text-cyan-400 uppercase tracking-widest hover:brightness-110 transition-all group/btn">
-        View All <ArrowRight className="w-3 h-3 group-hover/btn:translate-x-1 transition-transform" />
-      </button>
+      <Tooltip text="View full transparency reports">
+        <button className="flex items-center gap-2 text-[10px] text-cyan-400 uppercase tracking-widest hover:brightness-110 transition-all group/btn">
+          View All <ArrowRight className="w-3 h-3 group-hover/btn:translate-x-1 transition-transform" />
+        </button>
+      </Tooltip>
     </div>
   );
 }
