@@ -63,6 +63,7 @@ export default function Sidebar() {
         { name: 'Mesh Customers', href: '/clients', icon: Users, roles: ['owner', 'management', 'customer_service', 'visitor'], iconColor: 'text-teal-400' },
         { name: 'Affiliates', href: '/affiliates', icon: Share2, roles: ['owner', 'management', 'visitor'], iconColor: 'text-fuchsia-400' },
         { name: 'Money', href: '/ledger', icon: DollarSign, roles: ['owner', 'management', 'customer_service', 'visitor'], iconColor: 'text-emerald-400' },
+        { name: 'Governance', href: '/governance', icon: Shield, roles: ['owner', 'management', 'customer_service', 'visitor'], iconColor: 'text-[#22D3EE]' },
         { name: 'Personnel', href: '/staff', icon: ShieldAlert, roles: ['owner', 'management'], iconColor: 'text-rose-400' },
         { name: 'Help', href: '/help', icon: HelpCircle, roles: ['owner', 'management', 'customer_service', 'visitor'], iconColor: 'text-yellow-400' },
     ];
