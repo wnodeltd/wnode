@@ -39,7 +39,8 @@ export default function CommunityPanel() {
             height="100%" 
             allowTransparency={true}
             frameBorder="0"
-            sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts"
+            sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-forms"
+            loading="lazy"
           ></iframe>
         )}
       </div>

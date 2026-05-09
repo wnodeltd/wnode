@@ -2,6 +2,19 @@
 const nextConfig = {
     reactStrictMode: true,
     serverExternalPackages: ['onnxruntime-node'],
+    async headers() {
+        return [
+            {
+                source: '/governance',
+                headers: [
+                    {
+                        key: 'Content-Security-Policy',
+                        value: "frame-src 'self' https://discord.com https://*.discord.com;",
+                    },
+                ],
+            },
+        ];
+    },
 };
 
 export default nextConfig;

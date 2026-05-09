@@ -15,14 +15,31 @@ import DocumentsPanel from "./components/DocumentsPanel";
 import SlideOutHost from "./components/SlideOutHost";
 
 export default function GovernancePage() {
-    usePageTitle("Governance", "Participate in the decentralized management and evolution of the Nodl network.");
+    // Phase 3: Terminology correction & subtitle removal
+    usePageTitle("Governance");
     
     const [isSlideOutOpen, setIsSlideOutOpen] = useState(false);
     const [slideOutTitle, setSlideOutTitle] = useState("");
+    const [slideOutData, setSlideOutData] = useState<any>(null);
 
-    const openSlideOut = (title: string) => {
+    const openSlideOut = (title: string, data?: any) => {
         setSlideOutTitle(title);
+        setSlideOutData(data);
         setIsSlideOutOpen(true);
+    };
+
+    const handleSectionClick = (id: string) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        
+        const container = el.closest('.overflow-y-auto');
+        const header = document.querySelector('header');
+        const headerHeight = header ? (header as HTMLElement).offsetHeight : 80;
+        
+        if (container) {
+          const top = (el as HTMLElement).offsetTop - headerHeight - 20;
+          container.scrollTo({ top, behavior: "smooth" });
+        }
     };
 
     return (
@@ -36,7 +53,10 @@ export default function GovernancePage() {
                 <div className="grid grid-cols-1 gap-8">
                     {/* Row 1: Overview */}
                     <section id="overview">
-                        <OverviewPanel />
+                        <OverviewPanel 
+                            onCrmClick={(name, wuid) => openSlideOut(`CRM - ${name}`, { name, wuid })}
+                            onSectionClick={handleSectionClick}
+                        />
                     </section>
 
                     {/* Row 2: Community (Discord Embed) */}
@@ -92,6 +112,7 @@ export default function GovernancePage() {
                 isOpen={isSlideOutOpen} 
                 onClose={() => setIsSlideOutOpen(false)} 
                 title={slideOutTitle} 
+                data={slideOutData}
             />
         </div>
     );
