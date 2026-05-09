@@ -30,7 +30,7 @@ export default function GovernancePage() {
             <LeftNav />
 
             {/* Main Content Column */}
-            <main className="flex-1 xl:ml-64 p-8 pt-24 pb-12 max-w-7xl mx-auto w-full">
+            <main className="flex-1 p-6 pt-10 pb-12 w-full flex flex-col min-h-screen">
                 
                 <div className="grid grid-cols-1 gap-8">
                     {/* Row 1: Overview */}

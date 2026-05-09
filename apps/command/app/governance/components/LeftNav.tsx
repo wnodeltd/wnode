@@ -19,7 +19,7 @@ export default function LeftNav() {
   };
 
   return (
-    <nav className="fixed left-0 top-32 bottom-0 w-64 p-8 hidden xl:block">
+    <nav className="sticky top-32 h-fit w-48 p-4 hidden xl:block shrink-0">
       <div className="space-y-1">
         {NAV_ITEMS.map((item) => (
           <button
