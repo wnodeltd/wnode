@@ -11,7 +11,7 @@ export default function TransparencyPanel() {
   ];
 
   return (
-    <div id="transparency" className="bg-white/[0.02] border border-white/10 rounded-[5px] p-8 space-y-6 hover:shadow-[0_0_20px_rgba(34,211,238,0.05)] transition-all group h-[320px] flex flex-col">
+    <div  className="bg-white/[0.02] border border-white/10 rounded-[5px] p-8 space-y-6 hover:shadow-[0_0_20px_rgba(34,211,238,0.05)] transition-all group h-[320px] flex flex-col">
       <div className="flex items-center gap-3">
         <Tooltip text="Audit and transparency ledger">
           <Eye className="w-6 h-6 text-cyan-400 group-hover:drop-shadow-[0_0_8px_rgba(34,211,238,0.4)] transition-all" />

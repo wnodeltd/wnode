@@ -12,7 +12,7 @@ export default function DocumentsPanel() {
   ];
 
   return (
-    <div id="documents" className="bg-white/[0.02] border border-white/10 rounded-[5px] p-8 space-y-6 hover:shadow-[0_0_20px_rgba(156,163,175,0.05)] transition-all group h-[320px] flex flex-col">
+    <div  className="bg-white/[0.02] border border-white/10 rounded-[5px] p-8 space-y-6 hover:shadow-[0_0_20px_rgba(156,163,175,0.05)] transition-all group h-[320px] flex flex-col">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Tooltip text="Protocol documentation repository">

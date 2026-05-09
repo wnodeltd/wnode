@@ -16,7 +16,7 @@ export default function Shell({ children }: { children: React.ReactNode }) {
                 <Sidebar />
                 <div className="flex-1 lg:pl-64 flex flex-col min-w-0 bg-neutral-950 relative">
                     <TopHeader />
-                    <div className="flex-1 relative flex flex-col items-stretch w-full">
+                    <div className="flex-1 relative flex flex-col items-stretch w-full overflow-y-auto custom-scrollbar">
                         {children}
                     </div>
                 </div>

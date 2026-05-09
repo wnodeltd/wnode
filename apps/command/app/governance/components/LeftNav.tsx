@@ -5,9 +5,9 @@ import Tooltip from '../../components/Tooltip';
 
 const NAV_ITEMS = [
   { id: 'overview', label: 'Overview', tooltip: 'Jump to protocol summary' },
+  { id: 'community', label: 'Community', tooltip: 'Discord integration and social' },
   { id: 'proposals', label: 'Proposals', tooltip: 'View active network proposals' },
   { id: 'voting', label: 'Voting', tooltip: 'Access the voting terminal' },
-  { id: 'community', label: 'Community', tooltip: 'Discord integration and social' },
   { id: 'discord', label: 'Announcements', tooltip: 'Governance announcements' },
   { id: 'operational', label: 'Operational', tooltip: 'Infrastructure management' },
   { id: 'transparency', label: 'Transparency', tooltip: 'Audit logs and ledger' },
@@ -15,12 +15,22 @@ const NAV_ITEMS = [
 ];
 
 export default function LeftNav() {
-  const scrollToAnchor = (id: string) => {
-    const element = document.getElementById(id);
-    if (element) {
-        const yOffset = -120; // Account for fixed header and padding
-        const y = element.getBoundingClientRect().top + window.pageYOffset + yOffset;
-        window.scrollTo({ top: y, behavior: 'smooth' });
+  const scrollTo = (id: string) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    
+    // Find the scroll container (the one with overflow-y-auto in Shell)
+    const container = el.closest('.overflow-y-auto');
+    const header = document.querySelector('header');
+    const headerHeight = header ? header.offsetHeight : 80;
+    
+    if (container) {
+      const top = el.offsetTop - headerHeight - 20;
+      container.scrollTo({ top, behavior: "smooth" });
+    } else {
+      // Fallback to window scroll if container not found
+      const y = el.getBoundingClientRect().top + window.scrollY - headerHeight - 20;
+      window.scrollTo({ top: y, behavior: "smooth" });
     }
   };
 
@@ -30,7 +40,7 @@ export default function LeftNav() {
         {NAV_ITEMS.map((item) => (
           <Tooltip key={item.id} text={item.tooltip} direction="down">
             <button
-              onClick={() => scrollToAnchor(item.id)}
+              onClick={() => scrollTo(item.id)}
               className="w-full text-left px-4 py-2 text-[11px] font-medium uppercase tracking-widest text-slate-500 hover:text-[#22D3EE] transition-all border-l border-white/5 hover:border-[#22D3EE]/50"
             >
               {item.label}

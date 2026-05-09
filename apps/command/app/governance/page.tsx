@@ -31,48 +31,48 @@ export default function GovernancePage() {
             <LeftNav />
 
             {/* Main Content Column */}
-            <main className="flex-1 p-6 pt-10 pb-12 w-full flex flex-col min-h-screen">
+            <main className="flex-1 p-6 pt-10 pb-12 w-full flex flex-col">
                 
                 <div className="grid grid-cols-1 gap-8">
                     {/* Row 1: Overview */}
-                    <div id="overview" onClick={() => openSlideOut("Overview Details")} className="cursor-pointer">
+                    <section id="overview">
                         <OverviewPanel />
-                    </div>
+                    </section>
 
                     {/* Row 2: Community (Discord Embed) */}
-                    <div id="community">
+                    <section id="community">
                         <CommunityPanel />
-                    </div>
+                    </section>
 
                     {/* Row 3: Proposals & Voting */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div id="proposals" onClick={() => openSlideOut("Proposal Audit")} className="cursor-pointer">
+                        <section id="proposals" onClick={() => openSlideOut("Proposal Audit")} className="cursor-pointer">
                             <ProposalsPanel />
-                        </div>
-                        <div id="voting" onClick={() => openSlideOut("Voting terminal")} className="cursor-pointer">
+                        </section>
+                        <section id="voting" onClick={() => openSlideOut("Voting terminal")} className="cursor-pointer">
                             <VotingPanel />
-                        </div>
+                        </section>
                     </div>
 
                     {/* Row 4: Discord & Operational */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div id="discord" onClick={() => openSlideOut("Discord Context")} className="cursor-pointer">
+                        <section id="discord" onClick={() => openSlideOut("Discord Context")} className="cursor-pointer">
                             <DiscordPanel />
-                        </div>
-                        <div id="operational" onClick={() => openSlideOut("Operational Intelligence")} className="cursor-pointer">
+                        </section>
+                        <section id="operational" onClick={() => openSlideOut("Operational Intelligence")} className="cursor-pointer">
                             <OperationalPanel />
-                        </div>
+                        </section>
                     </div>
 
                     {/* Row 5: Transparency */}
-                    <div id="transparency" onClick={() => openSlideOut("Transparency Ledger")} className="cursor-pointer">
+                    <section id="transparency" onClick={() => openSlideOut("Transparency Ledger")} className="cursor-pointer">
                         <TransparencyPanel />
-                    </div>
+                    </section>
 
                     {/* Row 6: Documents */}
-                    <div id="documents" onClick={() => openSlideOut("Protocol Documents")} className="cursor-pointer">
+                    <section id="documents" onClick={() => openSlideOut("Protocol Documents")} className="cursor-pointer">
                         <DocumentsPanel />
-                    </div>
+                    </section>
                 </div>
 
                 {/* Footer */}
