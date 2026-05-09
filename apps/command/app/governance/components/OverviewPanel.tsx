@@ -23,7 +23,7 @@ export default function OverviewPanel({ onCrmClick, onSectionClick }: OverviewPa
           setManager(normalizeAccount(data));
         }
       } catch (e) {
-        console.warn("[OverviewPanel] Failed to fetch identity:", e);
+        console.error("Governance SOT fetch failed:", e);
       } finally {
         setIsLoaded(true);
       }

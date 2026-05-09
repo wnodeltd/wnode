@@ -37,11 +37,11 @@ export default function CommunityPanel() {
             src="https://discord.com/widget?id=1496144706776600697&theme=dark"
             width="100%" 
             height="100%" 
-            allowTransparency={true}
             frameBorder="0"
             sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-forms"
             loading="lazy"
-          ></iframe>
+            title="Discord Community Widget"
+          />
         )}
       </div>
 
