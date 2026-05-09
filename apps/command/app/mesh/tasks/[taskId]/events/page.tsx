@@ -19,14 +19,20 @@ import {
 } from "lucide-react";
 
 export default function TaskEventsPage() {
-    const { taskId } = useParams();
+    const params = useParams<{ taskId: string }>();
+
+    if (!params) {
+        throw new Error("Missing route params");
+    }
+
+    const { taskId } = params;
     const [task, setTask] = useState<MeshTask | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         if (!taskId) return;
-        getTask(taskId as string)
+        getTask(taskId)
             .then(setTask)
             .catch(err => setError(err.message))
             .finally(() => setLoading(false));

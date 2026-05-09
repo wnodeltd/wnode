@@ -24,14 +24,20 @@ import {
 } from "lucide-react";
 
 export default function NodeEventsPage() {
-    const { nodeId } = useParams();
+    const params = useParams<{ nodeId: string }>();
+
+    if (!params) {
+        throw new Error("Missing route params");
+    }
+
+    const { nodeId } = params;
     const [node, setNode] = useState<MeshNode | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         if (!nodeId) return;
-        getNode(nodeId as string)
+        getNode(nodeId)
             .then(setNode)
             .catch(err => setError(err.message))
             .finally(() => setLoading(false));

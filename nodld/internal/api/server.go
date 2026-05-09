@@ -695,7 +695,7 @@ func (s *Server) handleVerifyMagicLink(c *fiber.Ctx) error {
 		Value:    sessionID,
 		Expires:  time.Now().Add(24 * time.Hour),
 		HTTPOnly: true,
-		Secure:   true,
+		Secure:   false,
 		SameSite: "Lax",
 	})
 
@@ -1478,7 +1478,7 @@ func (s *Server) handleDebugSession(c *fiber.Ctx) error {
 		Value:    sessionID,
 		Expires:  time.Now().Add(24 * time.Hour),
 		HTTPOnly: true,
-		Secure:   true,
+		Secure:   false,
 		SameSite: "Lax",
 	})
 

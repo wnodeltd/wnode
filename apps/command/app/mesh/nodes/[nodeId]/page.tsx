@@ -8,7 +8,13 @@ import { Server, Activity, Clock, Shield, History, Loader2, ChevronRight } from 
 import Link from "next/link";
 
 export default function NodeDetailPage() {
-    const { nodeId } = useParams();
+    const params = useParams<{ nodeId: string }>();
+
+    if (!params) {
+        throw new Error("Missing route params");
+    }
+
+    const { nodeId } = params;
     const [node, setNode] = useState<MeshNode | null>(null);
     const [tasks, setTasks] = useState<MeshTask[]>([]);
     const [loading, setLoading] = useState(true);
@@ -18,7 +24,7 @@ export default function NodeDetailPage() {
         if (!nodeId) return;
 
         Promise.all([
-            getNode(nodeId as string),
+            getNode(nodeId),
             listTasks()
         ]).then(([nodeData, allTasks]) => {
             setNode(nodeData);

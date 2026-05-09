@@ -25,7 +25,6 @@ export function ClientLayout({ children }: { children: React.ReactNode }) {
                             { name: 'Finances', href: '/finances' },
                             { name: 'Providers', href: '/providers' },
                             { name: 'Clients', href: '/clients' },
-                            { name: 'Settings', href: '/settings' },
                         ].map((item) => (
                             <Link
                                 key={item.name}

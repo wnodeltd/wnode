@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { 
-    LayoutDashboard, Activity, Shield, BarChart3, Sliders, Settings, Zap, LogOut, Users, Share2, DollarSign, Brain, History as HistoryIcon, ShieldAlert, Wallet, HelpCircle, Search as SearchIcon
+    LayoutDashboard, Activity, Shield, BarChart3, Sliders, Zap, LogOut, Users, Share2, DollarSign, Brain, History as HistoryIcon, ShieldAlert, Wallet, HelpCircle, Search as SearchIcon
 } from "lucide-react";
 
 export default function Sidebar() {
@@ -65,7 +65,6 @@ export default function Sidebar() {
         { name: 'Money', href: '/ledger', icon: DollarSign, roles: ['owner', 'management', 'customer_service', 'visitor'], iconColor: 'text-emerald-400' },
         { name: 'Personnel', href: '/staff', icon: ShieldAlert, roles: ['owner', 'management'], iconColor: 'text-rose-400' },
         { name: 'Help', href: '/help', icon: HelpCircle, roles: ['owner', 'management', 'customer_service', 'visitor'], iconColor: 'text-yellow-400' },
-        { name: 'Settings', href: '/settings', icon: Settings, roles: ['owner', 'management', 'customer_service', 'visitor'], iconColor: 'text-slate-400' },
     ];
 
     // During SSR and initial hydration, only show the base 'visitor' items to match the server output
