@@ -59,18 +59,18 @@ export default function OverviewPanel({ onCrmClick, onSectionClick }: OverviewPa
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div className="flex flex-row items-center justify-start gap-4 w-full">
       {metrics.map((m, i) => (
         <Tooltip key={i} text={m.tooltip} direction="down">
           <div 
             onClick={() => onSectionClick(m.id)}
-            className="bg-white/[0.02] border border-white/10 rounded-[5px] p-5 hover:bg-white/[0.04] hover:border-white/20 transition-all group cursor-pointer flex flex-col justify-between h-[100px]"
+            className="flex-1 min-w-0 bg-white/[0.02] border border-white/10 rounded-[5px] p-5 hover:bg-white/[0.04] hover:border-white/20 transition-all group cursor-pointer flex flex-col justify-between h-[100px]"
           >
-            <div className="flex items-center gap-2.5">
-              <div className="group-hover:scale-110 transition-transform">
-                {React.cloneElement(m.icon as React.ReactElement, { className: "w-5 h-5 " + (m.icon as React.ReactElement).props.className })}
+            <div className="flex items-center gap-2">
+              <div className="opacity-60 group-hover:opacity-100 transition-opacity">
+                {React.cloneElement(m.icon as React.ReactElement, { className: "w-[18px] h-[18px] " + (m.icon as React.ReactElement).props.className })}
               </div>
-              <span className="text-[12px] text-white uppercase tracking-widest font-semibold">{m.label}</span>
+              <span className="text-[11px] text-white uppercase tracking-widest font-semibold">{m.label}</span>
             </div>
             <div className="flex flex-col">
               <span className="text-[16px] text-white font-mono">{m.value}</span>
@@ -82,15 +82,15 @@ export default function OverviewPanel({ onCrmClick, onSectionClick }: OverviewPa
       <Tooltip text="View Infrastructure Manager CRM details" direction="down">
         <div 
           onClick={() => onCrmClick(managerName, managerWUID)}
-          className="bg-white/[0.02] border border-white/10 rounded-[5px] p-5 hover:bg-white/[0.04] hover:border-white/20 transition-all group cursor-pointer flex flex-col justify-between h-[100px]"
+          className="flex-1 min-w-0 bg-white/[0.02] border border-white/10 rounded-[5px] p-5 hover:bg-white/[0.04] hover:border-white/20 transition-all group cursor-pointer flex flex-col justify-between h-[100px]"
         >
-          <div className="flex items-center gap-2.5">
-            <Shield className="w-5 h-5 text-cyan-400 group-hover:scale-110 transition-transform" />
-            <span className="text-[12px] text-white uppercase tracking-widest font-semibold">Infra Manager</span>
+          <div className="flex items-center gap-2">
+            <Shield className="w-[18px] h-[18px] text-cyan-400 opacity-60 group-hover:opacity-100 transition-opacity" />
+            <span className="text-[11px] text-white uppercase tracking-widest font-semibold">Infra Manager</span>
           </div>
-          <div className="flex flex-col overflow-hidden gap-0.5">
-            <span className="text-[16px] text-white font-mono truncate leading-none">{managerWUID}</span>
-            <span className="text-[9px] text-slate-500 uppercase tracking-widest font-bold truncate leading-none">{managerName}</span>
+          <div className="flex flex-col gap-0.5 overflow-hidden">
+            <span className="text-[13px] text-white font-medium truncate leading-tight">{managerName}</span>
+            <span className="text-[12px] text-cyan-400 font-mono truncate leading-tight">{managerWUID}</span>
           </div>
         </div>
       </Tooltip>
