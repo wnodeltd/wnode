@@ -71,7 +71,7 @@ export class DiscordGatewayClient extends EventEmitter {
       op: 2,
       d: {
         token: this.token,
-        intents: 1, // GUILDS only
+        intents: 513, // GUILDS + GUILD_MESSAGES
         properties: {
           os: 'linux',
           browser: 'nextjs',
