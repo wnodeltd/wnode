@@ -1,34 +1,111 @@
-/**
- * Discord Gateway Client Stub
- * 
- * This is a placeholder for the live WebSocket integration with Discord Gateway.
- * It provides the structure for managing real-time events like message updates and presence.
- */
+import { EventEmitter } from 'events';
 
-export class DiscordGatewayClient {
+export class DiscordGatewayClient extends EventEmitter {
   private token: string;
   private socket: WebSocket | null = null;
+  private heartbeatInterval: NodeJS.Timeout | null = null;
+  private lastSequence: number | null = null;
 
   constructor(token: string) {
+    super();
     this.token = token;
   }
 
   public connect() {
-    console.log("Discord Gateway: Connecting (STUB)...");
-    // TODO: Implement actual WebSocket connection logic
-    // const ws = new WebSocket("wss://gateway.discord.gg/?v=10&encoding=json");
+    if (this.socket || !this.token) return;
+
+    console.log("Discord Gateway: Connecting...");
+    this.socket = new WebSocket("wss://gateway.discord.gg/?v=10&encoding=json");
+
+    this.socket.onopen = () => {
+      console.log("Discord Gateway: WebSocket opened");
+    };
+
+    this.socket.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data.toString());
+        this.handlePayload(data);
+      } catch (err) {
+        console.error("Discord Gateway: Failed to parse payload", err);
+      }
+    };
+
+    this.socket.onclose = (event) => {
+      console.log(`Discord Gateway: WebSocket closed (${event.code})`);
+      this.cleanup();
+      if (event.code === 4014) {
+        console.error("Discord Gateway: Disallowed Intents. Verify Portal Settings.");
+        return;
+      }
+      if (event.code !== 1000) {
+        setTimeout(() => this.connect(), 10000);
+      }
+    };
+
+    this.socket.onerror = (error) => {
+      console.error("Discord Gateway: WebSocket error", error);
+    };
   }
 
-  public disconnect() {
-    console.log("Discord Gateway: Disconnecting...");
-    if (this.socket) {
-      this.socket.close();
+  private handlePayload(payload: any) {
+    const { op, d, t, s } = payload;
+    if (s) this.lastSequence = s;
+
+    switch (op) {
+      case 10: // HELLO
+        this.startHeartbeat(d.heartbeat_interval);
+        this.identify();
+        break;
+      case 11: // HEARTBEAT ACK
+        break;
+      case 0: // DISPATCH
+        if (['MESSAGE_CREATE', 'MESSAGE_UPDATE', 'MESSAGE_DELETE'].includes(t)) {
+          this.emit('discord_event', { t, d });
+        }
+        break;
     }
   }
 
-  public onMessage(callback: (msg: any) => void) {
-    console.log("Discord Gateway: onMessage handler registered (STUB)");
+  private identify() {
+    const payload = {
+      op: 2,
+      d: {
+        token: this.token,
+        intents: 1, // GUILDS only
+        properties: {
+          os: 'linux',
+          browser: 'nextjs',
+          device: 'server'
+        }
+      }
+    };
+    this.socket?.send(JSON.stringify(payload));
+  }
+
+  private startHeartbeat(interval: number) {
+    if (this.heartbeatInterval) clearInterval(this.heartbeatInterval);
+    this.heartbeatInterval = setInterval(() => {
+      this.socket?.send(JSON.stringify({ op: 1, d: this.lastSequence }));
+    }, interval);
+  }
+
+  private cleanup() {
+    if (this.heartbeatInterval) clearInterval(this.heartbeatInterval);
+    this.heartbeatInterval = null;
+    this.socket = null;
+  }
+
+  public disconnect() {
+    this.socket?.close();
+    this.cleanup();
   }
 }
 
-export const discordGateway = new DiscordGatewayClient(process.env.DISCORD_BOT_TOKEN || "");
+const globalForDiscord = global as unknown as { discordGateway: DiscordGatewayClient };
+export const discordGateway = globalForDiscord.discordGateway || new DiscordGatewayClient(process.env.DISCORD_BOT_TOKEN || "");
+
+if (process.env.NODE_ENV !== 'production') globalForDiscord.discordGateway = discordGateway;
+
+if (process.env.DISCORD_BOT_TOKEN) {
+  discordGateway.connect();
+}
