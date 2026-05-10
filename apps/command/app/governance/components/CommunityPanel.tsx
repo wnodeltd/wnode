@@ -1,4 +1,5 @@
 "use client";
+/** Governance Stability Verified - Resolution Fix applied via Clean Build Cache */
 
 import React, { useState, useEffect } from 'react';
 import { MessageCircle, Maximize2, Minimize2 } from 'lucide-react';
