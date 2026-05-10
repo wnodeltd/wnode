@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
     X, User, Mail, Phone, MapPin, Building2, 
     Calendar, FileText, Pin, PinOff, Plus, 
-    ArrowRight, Activity, Users, Shield, Zap, Send
+    ArrowLeft, ArrowRight, Activity, Users, Shield, Zap, Send
 } from "lucide-react";
 import { CrmPerson, CrmEvent, CrmNote } from "../types";
 
@@ -14,9 +14,14 @@ interface CrmDetailPanelProps {
     onClose: () => void;
     person: CrmPerson | null;
     onUpdate: (updated: CrmPerson) => void;
+    onNavigate?: (wuid: string) => void;
+    history: string[];
+    onBack?: () => void;
 }
 
-export default function CrmDetailPanel({ isOpen, onClose, person, onUpdate }: CrmDetailPanelProps) {
+export default function CrmDetailPanel({ 
+    isOpen, onClose, person, onUpdate, onNavigate, history, onBack 
+}: CrmDetailPanelProps) {
     const [editingField, setEditingField] = useState<string | null>(null);
     const [editValue, setEditValue] = useState("");
     const [isAddingNote, setIsAddingNote] = useState(false);
@@ -32,6 +37,9 @@ export default function CrmDetailPanel({ isOpen, onClose, person, onUpdate }: Cr
     };
 
     const startEditing = (field: keyof CrmPerson, value: string) => {
+        // Hard-lock: Affiliate Referrer is non-editable
+        if (field === 'affiliateReferrer') return;
+        
         setEditingField(field);
         setEditValue(value || "");
     };
@@ -41,7 +49,7 @@ export default function CrmDetailPanel({ isOpen, onClose, person, onUpdate }: Cr
 
         const newNote: CrmNote = {
             id: `note-${Date.now()}`,
-            author: "System Admin", // Default for now
+            author: "System Admin",
             date: new Date().toISOString(),
             content: newNoteContent.trim()
         };
@@ -80,9 +88,19 @@ export default function CrmDetailPanel({ isOpen, onClose, person, onUpdate }: Cr
                 <div className="p-8 space-y-10 h-full overflow-y-auto custom-scrollbar">
                     {/* Header Top */}
                     <div className="flex items-center justify-between">
-                        <div className="space-y-1">
-                            <h2 className="text-[14px] font-bold text-white uppercase tracking-widest">CRM Entity Detail</h2>
-                            <p className="text-[10px] text-[#22D3EE] font-mono tracking-tighter">Unified Identity Record</p>
+                        <div className="flex items-center gap-4">
+                            {history.length > 1 && (
+                                <button 
+                                    onClick={onBack}
+                                    className="p-2 hover:bg-white/5 rounded-full transition-colors text-slate-500 hover:text-white group"
+                                >
+                                    <ArrowLeft className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" />
+                                </button>
+                            )}
+                            <div className="space-y-1">
+                                <h2 className="text-[14px] font-bold text-white uppercase tracking-widest">CRM Entity Detail</h2>
+                                <p className="text-[10px] text-[#22D3EE] font-mono tracking-tighter">Unified Identity Record</p>
+                            </div>
                         </div>
                         <button 
                             onClick={onClose}
@@ -133,7 +151,7 @@ export default function CrmDetailPanel({ isOpen, onClose, person, onUpdate }: Cr
                                 </div>
                             </header>
 
-                            {/* Summary Strip (Refined Phase 2.1) */}
+                            {/* Summary Strip (Refined Phase 2.2) */}
                             <section className="grid grid-cols-3 gap-2 border-y border-white/5 py-8">
                                 {[
                                     { label: "Last Contact", value: lastContact },
@@ -192,15 +210,17 @@ export default function CrmDetailPanel({ isOpen, onClose, person, onUpdate }: Cr
                                         placeholder="Add backup phone..."
                                         mono
                                     />
-                                    <EditableField 
-                                        label="Affiliate Referrer" 
-                                        value={person.affiliateReferrer} 
-                                        isEditing={editingField === 'affiliateReferrer'}
-                                        onEdit={() => startEditing('affiliateReferrer', person.affiliateReferrer || "")}
-                                        onSave={() => handleSaveField('affiliateReferrer')}
-                                        onChange={setEditValue}
-                                        placeholder="None"
-                                    />
+                                    <div className="p-4 flex justify-between items-center hover:bg-white/[0.02] transition-all group">
+                                        <span className="text-[12px] text-slate-500 font-normal">Affiliate Referrer</span>
+                                        <div className="flex-1 flex justify-end items-center gap-3">
+                                            <div 
+                                                onClick={() => person.affiliateReferrer && onNavigate?.(person.affiliateReferrer)}
+                                                className={`text-[13px] ${person.affiliateReferrer ? 'text-[#22D3EE] hover:underline cursor-pointer' : 'text-slate-600 italic'} font-mono text-right truncate max-w-[200px]`}
+                                            >
+                                                {person.affiliateReferrer || "None"}
+                                            </div>
+                                        </div>
+                                    </div>
                                     <EditableField 
                                         label="Organization" 
                                         value={person.org} 

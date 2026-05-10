@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { 
     Search, Plus, Shield, Users, 
     RefreshCw, CheckCircle2, Database, Zap, Clock, ShieldAlert,
@@ -33,11 +33,41 @@ export default function NodlrsCRM() {
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedPerson, setSelectedPerson] = useState<CrmPerson | null>(null);
     const [crmRecords, setCrmRecords] = useState<CrmPerson[]>([]);
+    const [navigationHistory, setNavigationHistory] = useState<string[]>([]);
     const [stats, setStats] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [message, setMessage] = useState<{type: 'success'|'error', text: string}|null>(null);
 
-    // Persistence Hook (Phase 2.1)
+    // Referral Tree Verification Engine (Phase 2.2)
+    const verifyReferralTree = useCallback((records: CrmPerson[]) => {
+        console.log("CRM -> Starting Referral Tree Verification...");
+        let errors: string[] = [];
+        
+        records.forEach(person => {
+            const referrer = person.affiliateReferrer;
+            if (referrer && referrer !== "Founder") {
+                const parent = records.find(r => r.wuid === referrer);
+                if (!parent) {
+                    errors.push(`Orphan found: ${person.name} (${person.wuid}) refers to missing WUID ${referrer}`);
+                }
+                // Check for self-reference
+                if (referrer === person.wuid) {
+                    errors.push(`Circular reference: ${person.name} (${person.wuid}) refers to self`);
+                }
+            }
+        });
+
+        if (errors.length === 0) {
+            console.log("%cReferral Tree Integrity: PASS", "color: #22D3EE; font-weight: bold");
+            return { pass: true, errors: [] };
+        } else {
+            console.warn("Referral Tree Integrity: FAIL");
+            errors.forEach(e => console.error(`[Referral Error] ${e}`));
+            return { pass: false, errors };
+        }
+    }, []);
+
+    // Persistence & Verification Hook
     useEffect(() => {
         const saved = localStorage.getItem('crm_records');
         if (saved) {
@@ -45,12 +75,13 @@ export default function NodlrsCRM() {
                 const parsed = JSON.parse(saved);
                 if (Array.isArray(parsed) && parsed.length > 0) {
                     setCrmRecords(parsed);
+                    verifyReferralTree(parsed);
                 }
             } catch (e) {
                 console.error("Failed to load CRM records from storage");
             }
         }
-    }, []);
+    }, [verifyReferralTree]);
 
     const fetchData = async () => {
         setIsLoading(true);
@@ -82,13 +113,12 @@ export default function NodlrsCRM() {
                     address: r.address || "",
                     phone1: r.phone1 || "",
                     phone2: r.phone2 || "",
-                    affiliateReferrer: r.referrerName || r.referrerWuid || (r.isFounder ? "Founder" : "Partner"),
+                    affiliateReferrer: r.referrerWuid || (r.isFounder ? "Founder" : "Partner"),
                     events: r.events || [],
                     notes: r.notes || []
                 }));
             }
 
-            // Merge with local storage (to preserve notes/edits)
             const saved = localStorage.getItem('crm_records');
             const localRecords = saved ? JSON.parse(saved) : [];
 
@@ -98,18 +128,24 @@ export default function NodlrsCRM() {
             ].map(apiRecord => {
                 const local = localRecords.find((l: CrmPerson) => l.wuid === apiRecord.wuid);
                 if (local) {
-                    // Preserve local notes and specific fields
-                    return { ...apiRecord, notes: local.notes, address: local.address || apiRecord.address, phone1: local.phone1 || apiRecord.phone1, phone2: local.phone2 || apiRecord.phone2 };
+                    return { 
+                        ...apiRecord, 
+                        notes: local.notes, 
+                        address: local.address || apiRecord.address, 
+                        phone1: local.phone1 || apiRecord.phone1, 
+                        phone2: local.phone2 || apiRecord.phone2,
+                        affiliateReferrer: local.affiliateReferrer || apiRecord.affiliateReferrer
+                    };
                 }
                 return apiRecord;
             });
 
-            // Add any local-only records (e.g. from invite simulation)
             const localOnly = localRecords.filter((l: CrmPerson) => !merged.find(m => m.wuid === l.wuid));
             const finalRecords = [...merged, ...localOnly];
 
             setCrmRecords(finalRecords);
             localStorage.setItem('crm_records', JSON.stringify(finalRecords));
+            verifyReferralTree(finalRecords);
 
             if (statsRes.ok) {
                 const statsData = await statsRes.json();
@@ -140,37 +176,75 @@ export default function NodlrsCRM() {
         const newRecords = crmRecords.map(p => p.wuid === updated.wuid ? updated : p);
         setCrmRecords(newRecords);
         localStorage.setItem('crm_records', JSON.stringify(newRecords));
+        verifyReferralTree(newRecords);
         if (selectedPerson?.wuid === updated.wuid) {
             setSelectedPerson(updated);
         }
     };
 
-    // Invite Simulation Pipeline (Phase 2.1)
+    const handleSelectPerson = (person: CrmPerson) => {
+        setNavigationHistory([person.wuid]);
+        setSelectedPerson(person);
+    };
+
+    const handleNavigateToReferrer = (wuid: string) => {
+        const referrer = crmRecords.find(r => r.wuid === wuid);
+        if (referrer) {
+            setNavigationHistory(prev => [...prev, wuid]);
+            setSelectedPerson(referrer);
+        } else {
+            console.warn(`Cannot navigate to unknown referrer: ${wuid}`);
+        }
+    };
+
+    const handleBack = () => {
+        if (navigationHistory.length > 1) {
+            const newHistory = [...navigationHistory];
+            newHistory.pop();
+            const prevWuid = newHistory[newHistory.length - 1];
+            const prevPerson = crmRecords.find(r => r.wuid === prevWuid);
+            if (prevPerson) {
+                setNavigationHistory(newHistory);
+                setSelectedPerson(prevPerson);
+            }
+        }
+    };
+
+    // Invite Simulation Pipeline (Phase 2.2 Refined)
     const simulateInviteAcceptance = () => {
+        if (!selectedPerson) {
+            setMessage({ type: 'error', text: "Open a CRM record to simulate an invite from them." });
+            setTimeout(() => setMessage(null), 3000);
+            return;
+        }
+
+        const inviter = selectedPerson;
         const newWuid = `1000${Math.floor(Math.random() * 9000)}-${Math.floor(Math.random() * 9000)}-01-AA`;
+        
         const newNodlr: CrmPerson = {
             wuid: newWuid,
-            name: "New Invited Nodlr",
+            name: `Invitee of ${inviter.name.split(' ')[0]}`,
             email: `nodlr-${Math.floor(Math.random()*1000)}@test.com`,
             address: "",
             phone1: "",
             phone2: "",
-            affiliateReferrer: STEPHEN_SOOS.wuid, // Referred by Stephen
+            affiliateReferrer: inviter.wuid, // Locked to inviter
             isNodlr: true,
             isFounderOrPartner: false,
             isMeshCustomer: true,
             activeNodes: 1,
             l1Affiliates: 0,
             l2Affiliates: 0,
-            events: [{ id: 'evt-1', type: 'INVITE_ACCEPTED', date: new Date().toISOString(), description: 'Accepted invitation to the network.' }],
+            events: [{ id: `evt-${Date.now()}`, type: 'INVITE_ACCEPTED', date: new Date().toISOString(), description: `Accepted invitation from ${inviter.name}.` }],
             notes: []
         };
 
         const updated = [...crmRecords, newNodlr];
         setCrmRecords(updated);
         localStorage.setItem('crm_records', JSON.stringify(updated));
+        verifyReferralTree(updated);
         
-        setMessage({ type: 'success', text: `New Nodlr Created: ${newWuid}` });
+        setMessage({ type: 'success', text: `New CRM Record Created for ${newWuid}` });
         setTimeout(() => setMessage(null), 3000);
     };
 
@@ -230,12 +304,6 @@ export default function NodlrsCRM() {
                     />
                 </div>
                 <div className="flex items-center gap-3">
-                    <button 
-                        onClick={simulateInviteAcceptance}
-                        className="bg-white/5 hover:bg-white/10 text-slate-400 border border-white/10 px-4 py-3 rounded-[5px] text-[11px] font-bold uppercase tracking-widest transition-all"
-                    >
-                        Simulate Invite
-                    </button>
                     <button className="bg-[#22D3EE] hover:bg-[#22D3EE]/80 text-black px-8 py-3 rounded-[5px] flex items-center gap-3 text-[13px] font-bold uppercase tracking-widest transition-all shadow-[0_0_15px_rgba(34,211,238,0.2)]">
                         <Plus className="w-4 h-4" />
                         New Record
@@ -258,7 +326,7 @@ export default function NodlrsCRM() {
                     {filteredRecords.map((person) => (
                         <div 
                             key={person.wuid} 
-                            onClick={() => setSelectedPerson(person)}
+                            onClick={() => handleSelectPerson(person)}
                             className="grid grid-cols-[180px_1fr_140px_140px_140px] items-center px-6 py-4 rounded-[4px] transition-all cursor-pointer hover:bg-white/[0.04] border border-transparent hover:border-white/10 group"
                         >
                             <span className="text-[12px] font-mono text-slate-400 group-hover:text-white transition-colors">{person.wuid}</span>
@@ -302,7 +370,20 @@ export default function NodlrsCRM() {
                 onClose={() => setSelectedPerson(null)}
                 person={selectedPerson}
                 onUpdate={handleUpdatePerson}
+                onNavigate={handleNavigateToReferrer}
+                history={navigationHistory}
+                onBack={handleBack}
             />
+
+            {/* Float Simulation Trigger */}
+            {selectedPerson && (
+                <button 
+                    onClick={simulateInviteAcceptance}
+                    className="fixed bottom-8 right-8 bg-[#22D3EE] text-black px-6 py-3 rounded-full flex items-center gap-2 text-[12px] font-bold uppercase tracking-widest shadow-2xl z-[110] hover:scale-105 transition-all"
+                >
+                    <Plus className="w-4 h-4" /> Simulate Invite from {selectedPerson.name.split(' ')[0]}
+                </button>
+            )}
         </div>
     );
 }
