@@ -5,7 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
     X, User, Mail, Phone, MapPin, Building2, 
     Calendar, FileText, Pin, PinOff, Plus, 
-    ArrowLeft, ArrowRight, Activity, Users, Shield, Zap, Send, Info
+    ArrowLeft, ArrowRight, Activity, Users, Shield, Zap, Send, Info,
+    CreditCard, DollarSign, Wallet, ArrowUpRight, ArrowDownLeft, Receipt, ChevronRight, ChevronDown
 } from "lucide-react";
 import { CrmPerson, CrmEvent, CrmNote } from "../types";
 
@@ -19,6 +20,14 @@ interface CrmDetailPanelProps {
     onBack?: () => void;
 }
 
+interface Transaction {
+    id: string;
+    date: string;
+    amount: number;
+    type: 'payout' | 'purchase' | 'fee' | 'adjustment' | 'affiliate_earning' | 'refund';
+    description: string;
+}
+
 export default function CrmDetailPanel({ 
     isOpen, onClose, person, onUpdate, onNavigate, history, onBack 
 }: CrmDetailPanelProps) {
@@ -26,6 +35,7 @@ export default function CrmDetailPanel({
     const [editValue, setEditValue] = useState("");
     const [isAddingNote, setIsAddingNote] = useState(false);
     const [newNoteContent, setNewNoteContent] = useState("");
+    const [showLedger, setShowLedger] = useState<'in' | 'out' | null>(null);
 
     if (!person && !isOpen) return null;
 
@@ -97,14 +107,13 @@ export default function CrmDetailPanel({
                                 </button>
                             )}
                             <div className="space-y-1">
-                                <h2 className="text-[14px] font-bold text-white uppercase tracking-widest">CRM Entity Detail</h2>
+                                <h2 className="text-[14px] font-bold text-white uppercase tracking-widest">CRM Identity Detail</h2>
                                 <p className="text-[10px] text-[#22D3EE] font-mono tracking-tighter">Unified Identity Record</p>
                             </div>
                         </div>
                         <button 
                             onClick={onClose}
                             className="p-2 hover:bg-white/5 rounded-full transition-colors text-slate-500 hover:text-white"
-                            title="Close panel"
                         >
                             <X className="w-5 h-5" />
                         </button>
@@ -134,7 +143,7 @@ export default function CrmDetailPanel({
                                             </div>
                                         </div>
                                         <p className="text-[13px] font-mono text-[#22D3EE]">{person.wuid}</p>
-                                        <div className="flex items-center gap-2 text-slate-500" title="Primary contact email">
+                                        <div className="flex items-center gap-2 text-slate-500">
                                             <Mail className="w-3.5 h-3.5" />
                                             <span className="text-[12px] font-mono">{person.email || "—"}</span>
                                         </div>
@@ -145,25 +154,44 @@ export default function CrmDetailPanel({
                                     <button 
                                         onClick={() => setIsAddingNote(true)}
                                         className="flex-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-[5px] py-2.5 text-[11px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2"
-                                        title="Create a new internal note for this record"
                                     >
                                         <FileText className="w-3.5 h-3.5 text-[#22D3EE]" /> Add Note
                                     </button>
                                 </div>
                             </header>
 
-                            {/* Summary Strip */}
-                            <section className="grid grid-cols-3 gap-2 border-y border-white/5 py-8">
-                                {[
-                                    { label: "Last Contact", value: lastContact, tip: "Most recent interaction date recorded." },
-                                    { label: "L1 Net", value: person.l1Affiliates, tip: "Direct direct referrals (Level 1)." },
-                                    { label: "L2 Net", value: person.l2Affiliates, tip: "Indirect referrals (Level 2)." },
-                                ].map((s, i) => (
-                                    <div key={i} className="text-center space-y-2 group cursor-help" title={s.tip}>
-                                        <span className="text-[11px] text-white uppercase font-bold tracking-widest block">{s.label}</span>
-                                        <span className="text-[16px] font-mono text-white block">{s.value}</span>
+                            {/* Transaction History Panels (Phase 2.4) */}
+                            <section className="grid grid-cols-2 gap-3">
+                                {person.isNodlr && (
+                                    <div 
+                                        onClick={() => setShowLedger('out')}
+                                        className="bg-emerald-500/5 border border-emerald-500/20 rounded-[5px] p-4 space-y-2 cursor-pointer hover:bg-emerald-500/10 transition-all group"
+                                    >
+                                        <div className="flex items-center justify-between">
+                                            <ArrowUpRight className="w-4 h-4 text-emerald-400" />
+                                            <span className="text-[9px] text-emerald-400 font-bold uppercase tracking-widest">Payments Out</span>
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-[18px] text-white font-mono font-bold">$1,240.50</span>
+                                            <span className="text-[9px] text-slate-500 uppercase tracking-tighter">Nodlr Earnings</span>
+                                        </div>
                                     </div>
-                                ))}
+                                )}
+                                {person.isMeshCustomer && (
+                                    <div 
+                                        onClick={() => setShowLedger('in')}
+                                        className="bg-blue-500/5 border border-blue-500/20 rounded-[5px] p-4 space-y-2 cursor-pointer hover:bg-blue-500/10 transition-all group"
+                                    >
+                                        <div className="flex items-center justify-between">
+                                            <ArrowDownLeft className="w-4 h-4 text-blue-400" />
+                                            <span className="text-[9px] text-blue-400 font-bold uppercase tracking-widest">Payments In</span>
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-[18px] text-white font-mono font-bold">$4,820.00</span>
+                                            <span className="text-[9px] text-slate-500 uppercase tracking-tighter">Client Spend</span>
+                                        </div>
+                                    </div>
+                                )}
                             </section>
 
                             {/* Personal Details Section */}
@@ -181,7 +209,6 @@ export default function CrmDetailPanel({
                                         onSave={() => handleSaveField('email')}
                                         onChange={setEditValue}
                                         mono
-                                        tooltip="Primary communication email address."
                                     />
                                     <EditableField 
                                         label="Address" 
@@ -191,7 +218,6 @@ export default function CrmDetailPanel({
                                         onSave={() => handleSaveField('address')}
                                         onChange={setEditValue}
                                         placeholder="Add address..."
-                                        tooltip="Physical mailing or service address."
                                     />
                                     <EditableField 
                                         label="Phone 1" 
@@ -202,20 +228,8 @@ export default function CrmDetailPanel({
                                         onChange={setEditValue}
                                         placeholder="Add phone..."
                                         mono
-                                        tooltip="Primary contact phone number."
                                     />
-                                    <EditableField 
-                                        label="Phone 2" 
-                                        value={person.phone2} 
-                                        isEditing={editingField === 'phone2'}
-                                        onEdit={() => startEditing('phone2', person.phone2 || "")}
-                                        onSave={() => handleSaveField('phone2')}
-                                        onChange={setEditValue}
-                                        placeholder="Add backup phone..."
-                                        mono
-                                        tooltip="Secondary or backup contact number."
-                                    />
-                                    <div className="p-4 flex justify-between items-center hover:bg-white/[0.02] transition-all group cursor-help" title="Locked: Click to navigate to this referrer's record.">
+                                    <div className="p-4 flex justify-between items-center hover:bg-white/[0.02] transition-all group">
                                         <span className="text-[12px] text-slate-500 font-normal">Affiliate Referrer</span>
                                         <div className="flex-1 flex justify-end items-center gap-3">
                                             <div 
@@ -234,7 +248,6 @@ export default function CrmDetailPanel({
                                         onSave={() => handleSaveField('org')}
                                         onChange={setEditValue}
                                         placeholder="Add organization..."
-                                        tooltip="Professional affiliation or company name."
                                     />
                                 </div>
                             </section>
@@ -249,7 +262,6 @@ export default function CrmDetailPanel({
                                     <button 
                                         onClick={() => setIsAddingNote(true)}
                                         className="text-[9px] text-[#22D3EE] uppercase font-bold tracking-widest hover:brightness-110 transition-all flex items-center gap-1"
-                                        title="Create a new note"
                                     >
                                         <Plus className="w-3 h-3" /> Add Note
                                     </button>
@@ -291,7 +303,7 @@ export default function CrmDetailPanel({
                                 <div className="space-y-2">
                                     {person.notes.length > 0 ? (
                                         person.notes.map((n) => (
-                                            <div key={n.id} className="p-4 bg-white/[0.02] border border-white/5 rounded-[5px] space-y-3 group cursor-pointer hover:bg-white/[0.04] transition-all" title="Click to view full note or pin it.">
+                                            <div key={n.id} className="p-4 bg-white/[0.02] border border-white/5 rounded-[5px] space-y-3 group cursor-pointer hover:bg-white/[0.04] transition-all">
                                                 <div className="flex items-center justify-between">
                                                     <div className="flex items-center gap-2">
                                                         <div className="w-6 h-6 rounded-full bg-[#22D3EE]/10 flex items-center justify-center text-[10px] font-bold text-[#22D3EE]">
@@ -303,7 +315,6 @@ export default function CrmDetailPanel({
                                                     <button 
                                                         onClick={(e) => { e.stopPropagation(); togglePin(n.id); }}
                                                         className="text-slate-600 hover:text-[#22D3EE] transition-colors"
-                                                        title={ (n as any).pinned ? "Unpin note" : "Pin note to top" }
                                                     >
                                                         {(n as any).pinned ? <Pin className="w-3.5 h-3.5 text-[#22D3EE]" /> : <PinOff className="w-3.5 h-3.5" />}
                                                     </button>
@@ -316,37 +327,140 @@ export default function CrmDetailPanel({
                                     )}
                                 </div>
                             </section>
-
-                            {/* Cross-Links Section */}
-                            <section className="space-y-4">
-                                <div className="flex items-center gap-2 border-b border-white/5 pb-2">
-                                    <Zap className="w-4 h-4 text-[#22D3EE]" />
-                                    <h4 className="text-[11px] font-bold text-slate-300 uppercase tracking-widest">Cross-Links</h4>
-                                </div>
-                                <div className="flex flex-wrap gap-2">
-                                    <button className="flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded-full text-[10px] font-bold text-white uppercase tracking-widest hover:bg-white/10 transition-all" title="Navigate to the Affiliates module for this node.">
-                                        <Users className="w-3 h-3 text-[#22D3EE]" /> View Affiliates
-                                    </button>
-                                    <button className="flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded-full text-[10px] font-bold text-white uppercase tracking-widest hover:bg-white/10 transition-all" title="View active telemetry and metrics for this node.">
-                                        <Activity className="w-3 h-3 text-green-400" /> Active Nodes
-                                    </button>
-                                </div>
-                            </section>
                         </div>
                     )}
                 </div>
+
+                {/* Unified Ledger Modal (Phase 2.4) */}
+                <LedgerModal 
+                    isOpen={!!showLedger} 
+                    onClose={() => setShowLedger(null)} 
+                    type={showLedger} 
+                    person={person}
+                />
             </div>
         </>
     );
 }
 
+function LedgerModal({ isOpen, onClose, type, person }: { isOpen: boolean, onClose: () => void, type: 'in' | 'out' | null, person: CrmPerson | null }) {
+    if (!isOpen || !person) return null;
+
+    // Mock Transaction Generation
+    const mockTransactions: Transaction[] = [
+        { id: 'TX-1001', date: '2024-05-12T10:00:00Z', amount: 450.00, type: 'purchase', description: 'Monthly Compute Subscription' },
+        { id: 'TX-1002', date: '2024-05-08T14:30:00Z', amount: -25.00, type: 'fee', description: 'Network Service Fee' },
+        { id: 'TX-1003', date: '2024-04-20T09:15:00Z', amount: 1240.50, type: 'payout', description: 'Infrastructure Earning Payout' },
+        { id: 'TX-1004', date: '2024-04-15T11:00:00Z', amount: 150.25, type: 'affiliate_earning', description: 'L1 Referral Bonus' },
+        { id: 'TX-1005', date: '2024-03-25T16:45:00Z', amount: 500.00, type: 'purchase', description: 'Resource Expansion' },
+        { id: 'TX-1006', date: '2024-03-10T12:00:00Z', amount: -50.00, type: 'refund', description: 'Overcharge Correction' }
+    ];
+
+    const grouped = mockTransactions.reduce((acc: any, tx) => {
+        const date = new Date(tx.date);
+        const key = `${date.getFullYear()} - ${date.toLocaleString('default', { month: 'long' })}`;
+        if (!acc[key]) acc[key] = [];
+        acc[key].push(tx);
+        return acc;
+    }, {});
+
+    return (
+        <AnimatePresence>
+            <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black/80 backdrop-blur-xl z-[150] flex items-center justify-center p-8"
+                onClick={onClose}
+            >
+                <motion.div 
+                    initial={{ scale: 0.95, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.95, opacity: 0 }}
+                    className="w-full max-w-4xl bg-[#050505] border border-white/10 rounded-[10px] overflow-hidden flex flex-col max-h-full"
+                    onClick={e => e.stopPropagation()}
+                >
+                    <header className="p-6 border-b border-white/10 flex items-center justify-between bg-white/[0.02]">
+                        <div className="flex items-center gap-4">
+                            <div className={`p-3 rounded-full ${type === 'out' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-blue-500/10 text-blue-400'}`}>
+                                <Receipt className="w-5 h-5" />
+                            </div>
+                            <div>
+                                <h3 className="text-lg font-bold text-white uppercase tracking-widest">
+                                    {type === 'out' ? 'Earnings & Payouts Ledger' : 'Spending & Consumption Ledger'}
+                                </h3>
+                                <p className="text-xs text-slate-500 font-mono italic">Client: {person.name} ({person.wuid})</p>
+                            </div>
+                        </div>
+                        <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full transition-colors text-slate-500 hover:text-white">
+                            <X className="w-6 h-6" />
+                        </button>
+                    </header>
+
+                    <div className="flex-1 overflow-y-auto p-8 custom-scrollbar space-y-12">
+                        {Object.entries(grouped).map(([month, txs]: [string, any]) => (
+                            <section key={month} className="space-y-4">
+                                <div className="flex items-center gap-4">
+                                    <h4 className="text-[12px] font-bold text-white uppercase tracking-[0.2em]">{month}</h4>
+                                    <div className="flex-1 h-px bg-white/10" />
+                                    <span className="text-[10px] text-slate-500 font-mono uppercase">Statement Verified</span>
+                                </div>
+                                <div className="space-y-1">
+                                    {txs.map((tx: Transaction) => (
+                                        <div key={tx.id} className="grid grid-cols-[120px_1fr_120px_100px] items-center p-4 bg-white/[0.01] hover:bg-white/[0.03] border border-transparent hover:border-white/5 rounded-[5px] transition-all group">
+                                            <span className="text-[11px] text-slate-500 font-mono">{new Date(tx.date).toLocaleDateString()}</span>
+                                            <div className="flex flex-col">
+                                                <span className="text-[13px] text-white font-medium">{tx.description}</span>
+                                                <span className="text-[9px] text-slate-600 uppercase tracking-tighter">{tx.id}</span>
+                                            </div>
+                                            <span className={`text-[13px] font-mono font-bold text-right ${tx.amount > 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                                {tx.amount > 0 ? '+' : ''}{tx.amount.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+                                            </span>
+                                            <div className="flex justify-end">
+                                                <div className={`px-2 py-0.5 rounded-[2px] text-[8px] font-bold uppercase tracking-widest ${
+                                                    tx.type === 'payout' ? 'bg-emerald-500/10 text-emerald-400' :
+                                                    tx.type === 'purchase' ? 'bg-blue-500/10 text-blue-400' :
+                                                    tx.type === 'fee' ? 'bg-red-500/10 text-red-400' :
+                                                    'bg-white/5 text-slate-400'
+                                                }`}>
+                                                    {tx.type.replace('_', ' ')}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </section>
+                        ))}
+                    </div>
+
+                    <footer className="p-6 border-t border-white/10 bg-white/[0.01] flex justify-between items-center">
+                        <div className="flex gap-8">
+                            <div className="flex flex-col">
+                                <span className="text-[9px] text-slate-500 uppercase tracking-widest">Period Balance</span>
+                                <span className="text-xl text-white font-mono font-bold">$6,540.25</span>
+                            </div>
+                            <div className="flex flex-col">
+                                <span className="text-[9px] text-slate-500 uppercase tracking-widest">Fees & Adjustments</span>
+                                <span className="text-xl text-rose-400 font-mono font-bold">-$75.00</span>
+                            </div>
+                        </div>
+                        <button className="bg-white/5 hover:bg-white/10 border border-white/10 px-6 py-2 rounded-[5px] text-[11px] font-bold text-white uppercase tracking-widest transition-all">
+                            Export PDF Statement
+                        </button>
+                    </footer>
+                </motion.div>
+            </motion.div>
+        </AnimatePresence>
+    );
+}
+
 function EditableField({ 
-    label, value, isEditing, onEdit, onSave, onChange, placeholder = "—", mono, tooltip 
+    label, value, isEditing, onEdit, onSave, onChange, placeholder = "—", mono 
 }: { 
-    label: string, value?: string, isEditing: boolean, onEdit: () => void, onSave: () => void, onChange: (v: string) => void, placeholder?: string, mono?: boolean, tooltip?: string 
+    label: string, value?: string, isEditing: boolean, onEdit: () => void, onSave: () => void, onChange: (v: string) => void, placeholder?: string, mono?: boolean 
 }) {
     return (
-        <div className="p-4 flex justify-between items-center hover:bg-white/[0.02] transition-all group cursor-help" title={tooltip}>
+        <div className="p-4 flex justify-between items-center hover:bg-white/[0.02] transition-all group">
             <span className="text-[12px] text-slate-500 font-normal">{label}</span>
             <div className="flex-1 flex justify-end items-center gap-3">
                 {isEditing ? (
@@ -360,13 +474,12 @@ function EditableField({
                             onKeyDown={(e) => e.key === 'Enter' && onSave()}
                             className="w-full bg-black/40 border border-[#22D3EE]/30 rounded px-2 py-1 text-[13px] text-white focus:outline-none focus:border-[#22D3EE] transition-all"
                         />
-                        <button onClick={onSave} className="text-[#22D3EE] text-[10px] font-bold uppercase hover:brightness-125 transition-all">Save</button>
+                        <button onClick={onSave} className="text-[#22D3EE] text-[10px] font-bold uppercase">Save</button>
                     </div>
                 ) : (
                     <div 
                         onClick={onEdit}
                         className={`text-[13px] ${value ? 'text-white' : 'text-slate-600 italic'} cursor-pointer hover:text-[#22D3EE] transition-colors ${mono ? 'font-mono' : ''} text-right truncate max-w-[200px]`}
-                        title="Click to edit field"
                     >
                         {value || placeholder}
                     </div>

@@ -5,7 +5,7 @@ import {
     Search, Plus, Shield, Users, 
     RefreshCw, CheckCircle2, Database, Zap, Clock, ShieldAlert,
     User, Mail, Phone, MapPin, Building2, LayoutGrid, Calendar, FileText, ArrowRight, Pin, PinOff,
-    Handshake, TrendingUp, Network, PlusCircle
+    Handshake, TrendingUp, Network, PlusCircle, CreditCard, DollarSign, Wallet
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CrmPerson, CrmEvent, CrmNote } from "./types";
@@ -31,7 +31,7 @@ const STEPHEN_SOOS: CrmPerson = {
   notes: []
 };
 
-export default function NodlrsCRM() {
+export default function UserCrmPage() {
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedPerson, setSelectedPerson] = useState<CrmPerson | null>(null);
     const [crmRecords, setCrmRecords] = useState<CrmPerson[]>([]);
@@ -67,21 +67,28 @@ export default function NodlrsCRM() {
         }
     }, []);
 
+    // Initial Load & Migration (Phase 2.4)
     useEffect(() => {
         const saved = localStorage.getItem('crm_records');
         if (saved) {
             try {
                 let parsed = JSON.parse(saved);
                 if (Array.isArray(parsed)) {
+                    // Seed Stephen
                     const hasStephen = parsed.find(p => p.wuid === STEPHEN_SOOS.wuid);
                     const records = hasStephen ? parsed : [STEPHEN_SOOS, ...parsed];
-                    const migrated = records.map(p => ({
+                    
+                    // Normalize
+                    const normalized = records.map(p => ({
                         ...p,
                         createdAt: p.createdAt || new Date().toISOString(),
-                        lastContact: p.lastContact || p.createdAt || new Date().toISOString()
+                        lastContact: p.lastContact || p.createdAt || new Date().toISOString(),
+                        isMeshCustomer: p.isMeshCustomer !== undefined ? p.isMeshCustomer : false,
+                        isNodlr: p.isNodlr !== undefined ? p.isNodlr : true
                     }));
-                    setCrmRecords(migrated);
-                    verifyReferralTree(migrated);
+
+                    setCrmRecords(normalized);
+                    verifyReferralTree(normalized);
                 }
             } catch (e) {
                 console.error("Failed to load CRM records");
@@ -91,19 +98,24 @@ export default function NodlrsCRM() {
         }
     }, [verifyReferralTree]);
 
+    // Unified Fetch (Nodlrs + Clients)
     const fetchData = async () => {
         setIsLoading(true);
         try {
-            const nodlrsRes = await fetch('/api/nodlrs/all');
-            let normalized: CrmPerson[] = [];
+            const [nodlrsRes, clientsRes] = await Promise.all([
+                fetch('/api/nodlrs/all'),
+                fetch('/api/clients/all')
+            ]);
+            
+            let nodlrs: CrmPerson[] = [];
+            let clients: CrmPerson[] = [];
             
             if (nodlrsRes.ok) {
                 const data = await nodlrsRes.json();
-                const rawNodlrs = Array.isArray(data) ? data : (data?.nodlrs || []);
-                
-                normalized = rawNodlrs.map((r: any) => ({
+                const raw = Array.isArray(data) ? data : (data?.nodlrs || []);
+                nodlrs = raw.map((r: any) => ({
                     wuid: r.protocolId || r.id || "W-UNKNOWN",
-                    name: r.displayName || r.email || "Unknown Identity",
+                    name: r.displayName || r.name || r.email || "Unknown Identity",
                     email: r.email,
                     createdAt: r.createdAt || new Date().toISOString(),
                     lastContact: r.lastContact || r.createdAt || new Date().toISOString(),
@@ -119,33 +131,49 @@ export default function NodlrsCRM() {
                 }));
             }
 
-            const saved = localStorage.getItem('crm_records');
-            const localRecords = saved ? JSON.parse(saved) : [];
+            if (clientsRes.ok) {
+                const data = await clientsRes.json();
+                const raw = Array.isArray(data) ? data : (data?.clients || []);
+                clients = raw.map((r: any) => ({
+                    wuid: r.id || "W-MESH-UNKNOWN",
+                    name: r.name || r.email || "Mesh Client",
+                    email: r.email,
+                    createdAt: r.createdAt || new Date().toISOString(),
+                    lastContact: r.lastContact || r.createdAt || new Date().toISOString(),
+                    isNodlr: !!r.isNodlr,
+                    isMeshCustomer: true,
+                    isFounderOrPartner: !!r.isFounder,
+                    activeNodes: 0,
+                    l1Affiliates: 0,
+                    l2Affiliates: 0,
+                    affiliateReferrer: r.referrerWuid || "Partner",
+                    events: r.events || [],
+                    notes: r.notes || []
+                }));
+            }
 
-            const merged = [
-                STEPHEN_SOOS,
-                ...normalized.filter((p: CrmPerson) => p.wuid !== STEPHEN_SOOS.wuid)
-            ].map(apiRecord => {
-                const local = localRecords.find((l: CrmPerson) => l.wuid === apiRecord.wuid);
-                if (local) {
-                    return { 
-                        ...apiRecord, 
-                        notes: local.notes || [],
-                        address: local.address || "",
-                        phone1: local.phone1 || "",
-                        phone2: local.phone2 || "",
-                        createdAt: local.createdAt || apiRecord.createdAt,
-                        lastContact: local.lastContact || apiRecord.lastContact
-                    };
+            // Merge into unified set
+            const unifiedMap = new Map<string, CrmPerson>();
+            [STEPHEN_SOOS, ...nodlrs, ...clients].forEach(p => {
+                if (unifiedMap.has(p.wuid)) {
+                    const existing = unifiedMap.get(p.wuid)!;
+                    unifiedMap.set(p.wuid, {
+                        ...existing,
+                        isNodlr: existing.isNodlr || p.isNodlr,
+                        isMeshCustomer: existing.isMeshCustomer || p.isMeshCustomer,
+                        isFounderOrPartner: existing.isFounderOrPartner || p.isFounderOrPartner
+                    });
+                } else {
+                    unifiedMap.set(p.wuid, p);
                 }
-                return apiRecord;
             });
 
+            const merged = Array.from(unifiedMap.values());
             setCrmRecords(merged);
             localStorage.setItem('crm_records', JSON.stringify(merged));
             verifyReferralTree(merged);
         } catch (error) {
-            console.error('CRM Hub -> Fetch Error:', error);
+            console.error('CRM Hub -> Unified Fetch Error:', error);
         } finally {
             setIsLoading(false);
         }
@@ -166,6 +194,7 @@ export default function NodlrsCRM() {
     const dashboardStats = useMemo(() => {
         const now = new Date();
         const thirtyDaysAgo = new Date(now.getTime() - (30 * 24 * 60 * 60 * 1000));
+
         const totalClients = crmRecords.length;
         const activeClients = crmRecords.filter(p => {
             const last = p.lastContact ? new Date(p.lastContact) : new Date(0);
@@ -176,6 +205,7 @@ export default function NodlrsCRM() {
             return created >= thirtyDaysAgo;
         }).length;
         const totalNodes = crmRecords.reduce((acc, p) => acc + (p.activeNodes || 0), 0);
+
         return { totalClients, activeClients, newClients, totalNodes };
     }, [crmRecords]);
 
@@ -219,7 +249,7 @@ export default function NodlrsCRM() {
         <div className="flex-1 p-8 overflow-y-auto pb-24 relative custom-scrollbar h-full">
             <header className="flex flex-col gap-2 mb-10">
                 <div className="flex items-center justify-start gap-6">
-                    <h1 className="text-xl font-normal tracking-tight text-white uppercase tracking-widest">Nodl'r CRM Database</h1>
+                    <h1 className="text-xl font-normal tracking-tight text-white uppercase tracking-widest">User CRM Database</h1>
                     <AnimatePresence>
                         {message && (
                             <motion.div 
@@ -235,6 +265,7 @@ export default function NodlrsCRM() {
                 </div>
             </header>
 
+            {/* Rebuilt Dashboard Panels (Phase 2.4 - Consolidated) */}
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-10">
                 <CrmMetricCard 
                     label="Total Clients / Contacts" 
@@ -243,7 +274,7 @@ export default function NodlrsCRM() {
                     color="text-blue-400" 
                     border="border-blue-500/30"
                     subtext="Aggregated"
-                    tooltip="Total number of unique identities in the database."
+                    tooltip="Total unique identities (Nodlrs, Clients, Partners)."
                 />
                 <CrmMetricCard 
                     label="Active Clients" 
@@ -252,7 +283,7 @@ export default function NodlrsCRM() {
                     color="text-green-400" 
                     border="border-green-500/30"
                     subtext="Last 30 days"
-                    tooltip="Clients who have interacted within the last 30 days."
+                    tooltip="Users with interaction in the last 30 days."
                 />
                 <CrmMetricCard 
                     label="New Clients" 
@@ -261,7 +292,7 @@ export default function NodlrsCRM() {
                     color="text-teal-400" 
                     border="border-teal-500/30"
                     subtext="Last 30 days"
-                    tooltip="Growth indicator: records created in the last 30 days."
+                    tooltip="Records created in the last 30 days."
                 />
                 <CrmMetricCard 
                     label="Active Nodes" 
@@ -270,7 +301,7 @@ export default function NodlrsCRM() {
                     color="text-yellow-500" 
                     border="border-yellow-500/30"
                     subtext="Network Registry"
-                    tooltip="Real-time count of active network infrastructure."
+                    tooltip="Real-time count of active nodes linked to CRM users."
                 />
             </div>
 
@@ -279,7 +310,7 @@ export default function NodlrsCRM() {
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-[#22D3EE] transition-colors" />
                     <input 
                         type="text" 
-                        placeholder="Search Database: Name, Email, or WUID..."
+                        placeholder="Search Unified Database: Name, Email, or WUID..."
                         value={searchQuery}
                         onChange={(e) => setSearchQuery(e.target.value)}
                         className="max-w-[400px] w-full bg-black/50 border border-white/10 rounded-[5px] pl-12 pr-4 py-3 text-[14px] text-white focus:outline-none focus:border-[#22D3EE]/50 transition-all placeholder:text-slate-700 font-normal"
@@ -288,18 +319,18 @@ export default function NodlrsCRM() {
                 <div className="flex items-center gap-3">
                     <button className="bg-[#22D3EE] hover:bg-[#22D3EE]/80 text-black px-8 py-3 rounded-[5px] flex items-center gap-3 text-[13px] font-bold uppercase tracking-widest transition-all shadow-[0_0_15px_rgba(34,211,238,0.2)]">
                         <Plus className="w-4 h-4" />
-                        New Entry
+                        Add Record
                     </button>
                 </div>
             </div>
 
             <div className="bg-white/[0.01] border border-white/10 rounded-[5px] overflow-hidden">
-                <div className="grid grid-cols-[180px_1fr_140px_140px_140px] border-b border-white/10 bg-white/[0.02] px-6 py-4">
-                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">WUID</span>
-                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Name / Status</span>
+                <div className="grid grid-cols-[180px_1fr_120px_120px_120px] border-b border-white/10 bg-white/[0.02] px-6 py-4">
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">WUID / Root</span>
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Identity / Role</span>
                     <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center">Nodes</span>
-                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center">L1</span>
-                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center">L2</span>
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center">L1 Net</span>
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest text-center">L2 Net</span>
                 </div>
 
                 <div className="divide-y divide-white/5 p-1 space-y-1">
@@ -307,8 +338,8 @@ export default function NodlrsCRM() {
                         <div 
                             key={person.wuid} 
                             onClick={() => handleSelectPerson(person)}
-                            className="grid grid-cols-[180px_1fr_140px_140px_140px] items-center px-6 py-4 rounded-[4px] transition-all cursor-pointer hover:bg-white/[0.04] border border-transparent hover:border-white/10 group"
-                            title={`View details for ${person.name}`}
+                            className="grid grid-cols-[180px_1fr_120px_120px_120px] items-center px-6 py-4 rounded-[4px] transition-all cursor-pointer hover:bg-white/[0.04] border border-transparent hover:border-white/10 group"
+                            title={`Inspect ${person.name}`}
                         >
                             <span className="text-[12px] font-mono text-slate-400 group-hover:text-white transition-colors">{person.wuid}</span>
                             <div className="flex items-center gap-4 overflow-hidden">
@@ -357,32 +388,18 @@ function CrmMetricCard({ label, value, icon: Icon, color, border, subtext, toolt
 
     return (
         <div 
-            className={`relative bg-white/[0.02] border ${border} rounded-[5px] p-6 flex flex-col gap-4 group hover:bg-white/[0.04] transition-all cursor-help`}
+            className={`relative bg-white/[0.02] border ${border} rounded-[5px] p-6 flex flex-col gap-3 group hover:bg-white/[0.04] transition-all cursor-help`}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
             title={tooltip}
         >
-            <AnimatePresence>
-                {isHovered && tooltip && (
-                    <motion.div 
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 10 }}
-                        className="absolute -top-12 left-1/2 -translate-x-1/2 z-[120] bg-black border border-white/20 px-3 py-1.5 rounded text-[10px] text-white uppercase tracking-widest whitespace-nowrap shadow-2xl pointer-events-none"
-                    >
-                        {tooltip}
-                        <div className="absolute top-full left-1/2 -translate-x-1/2 w-2 h-2 bg-black border-r border-b border-white/20 rotate-45 -mt-1" />
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
             <div className="flex items-center justify-between">
-                <Icon className={`w-5 h-5 ${color} opacity-80 group-hover:opacity-100 transition-opacity`} />
-                <span className="text-[11px] text-white uppercase font-bold tracking-widest">{label}</span>
+                <Icon className={`w-4 h-4 ${color} opacity-80 group-hover:opacity-100 transition-opacity`} />
+                <span className="text-[10px] text-white uppercase font-bold tracking-widest">{label}</span>
             </div>
-            <div className="flex flex-col items-center justify-center gap-1">
-                <span className="text-[28px] text-white font-mono font-bold leading-none">{value}</span>
-                <span className="text-[10px] text-slate-400 uppercase tracking-widest">{subtext}</span>
+            <div className="flex flex-col items-center justify-center gap-0.5">
+                <span className="text-[20px] text-white font-mono font-bold leading-none">{value}</span>
+                <span className="text-[9px] text-slate-400 uppercase tracking-widest">{subtext}</span>
             </div>
         </div>
     );
