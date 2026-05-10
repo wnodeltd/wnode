@@ -49,6 +49,7 @@ export class DiscordGatewayClient extends EventEmitter {
 
   private handlePayload(payload: any) {
     const { op, d, t, s } = payload;
+    console.log("GW DISPATCH:", { op, t, hasData: !!d });
     if (s) this.lastSequence = s;
 
     switch (op) {
@@ -71,12 +72,13 @@ export class DiscordGatewayClient extends EventEmitter {
       op: 2,
       d: {
         token: this.token,
-        intents: 513, // GUILDS + GUILD_MESSAGES
+        intents: 33281, // GUILDS + GUILD_MESSAGES + MESSAGE_CONTENT
         properties: {
           os: 'linux',
           browser: 'nextjs',
           device: 'server'
-        }
+        },
+        subscriptions: ["MESSAGE_CREATE"]
       }
     };
     this.socket?.send(JSON.stringify(payload));

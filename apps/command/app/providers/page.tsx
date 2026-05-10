@@ -89,7 +89,7 @@ export default function ProvidersPage() {
                         <div className="relative group">
                             <button className="flex items-center gap-2 px-4 py-2 bg-white/[0.03] border border-white/10 rounded-[5px] text-[13px] text-slate-300 hover:bg-white/[0.06] transition-all">
                                 <Filter className="w-3.5 h-3.5 text-[#22D3EE]" />
-                                <span>Registry Filters</span>
+                                <span>Search Filters</span>
                                 <ChevronRight className="w-3.5 h-3.5 opacity-40 rotate-90" />
                             </button>
                         </div>

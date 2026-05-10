@@ -4,6 +4,7 @@ export async function GET() {
   const stream = new ReadableStream({
     start(controller) {
       const onEvent = (event: any) => {
+        console.log("SSE FORWARD:", event?.t);
         const data = `data: ${JSON.stringify(event)}\n\n`;
         controller.enqueue(new TextEncoder().encode(data));
       };
