@@ -49,6 +49,10 @@ export default function DiscordLivePanel() {
 
     // SSE Subscription
     const eventSource = new EventSource('/api/discord/gateway/stream');
+    
+    eventSource.onopen = () => {
+      console.log("SSE Stream Connected");
+    };
 
     eventSource.onmessage = (event) => {
       const payload = JSON.parse(event.data);

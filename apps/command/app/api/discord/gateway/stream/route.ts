@@ -11,7 +11,7 @@ export async function GET() {
       discordGateway.on('discord_event', onEvent);
       
       const heartbeat = setInterval(() => {
-        controller.enqueue(new TextEncoder().encode(": heartbeat\n\n"));
+        controller.enqueue(new TextEncoder().encode("event: ping\ndata: {}\n\n"));
       }, 15000);
       
       // Cleanup on close
