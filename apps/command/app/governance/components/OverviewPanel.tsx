@@ -39,32 +39,35 @@ export default function OverviewPanel({ onCrmClick, onSectionClick }: OverviewPa
       id: 'proposals',
       label: "New Proposals", 
       value: "—", 
-      icon: <FilePlus className="w-6 h-6 text-yellow-400" />,
-      tooltip: "Jump to active network proposals"
+      icon: <FilePlus className="w-6 h-6 text-yellow-400 group-hover:drop-shadow-[0_0_8px_rgba(250,204,21,0.4)] transition-all" />,
+      tooltip: "Jump to active network proposals",
+      shadow: "hover:shadow-[0_0_20px_rgba(250,204,21,0.05)]"
     },
     { 
       id: 'voting',
       label: "New Votes", 
       value: "—", 
-      icon: <Vote className="w-6 h-6 text-blue-400" />,
-      tooltip: "Jump to the voting terminal"
+      icon: <Vote className="w-6 h-6 text-blue-400 group-hover:drop-shadow-[0_0_8px_rgba(59,130,246,0.4)] transition-all" />,
+      tooltip: "Jump to the voting terminal",
+      shadow: "hover:shadow-[0_0_20px_rgba(59,130,246,0.05)]"
     },
     { 
       id: 'transparency',
       label: "New Resolutions", 
       value: "—", 
-      icon: <CheckCircle className="w-6 h-6 text-green-400" />,
-      tooltip: "Jump to the transparency ledger"
+      icon: <CheckCircle className="w-6 h-6 text-green-400 group-hover:drop-shadow-[0_0_8px_rgba(34,197,94,0.4)] transition-all" />,
+      tooltip: "Jump to the transparency ledger",
+      shadow: "hover:shadow-[0_0_20px_rgba(34,197,94,0.05)]"
     }
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
       {metrics.map((m, i) => (
         <Tooltip key={i} text={m.tooltip} direction="down">
           <div 
             onClick={() => onSectionClick(m.id)}
-            className="bg-white/[0.02] border border-white/10 rounded-[8px] p-[18px] space-y-2 hover:shadow-[0_0_20px_rgba(255,255,255,0.02)] transition-all group cursor-pointer flex flex-col justify-between h-[110px]"
+            className={`bg-white/[0.02] border border-white/10 rounded-[8px] p-[18px] space-y-2 ${m.shadow} hover:bg-white/[0.04] transition-all group cursor-pointer flex flex-col justify-between h-[110px]`}
           >
             <div className="flex items-center justify-between">
               <span className="text-[14px] text-slate-500 uppercase tracking-widest font-bold">{m.label}</span>
@@ -73,7 +76,7 @@ export default function OverviewPanel({ onCrmClick, onSectionClick }: OverviewPa
               </div>
             </div>
             <div className="flex flex-col">
-              <span className="text-[20px] text-white font-mono font-semibold">{m.value}</span>
+              <span className="text-[20px] text-white font-mono font-bold">{m.value}</span>
             </div>
           </div>
         </Tooltip>
@@ -82,16 +85,16 @@ export default function OverviewPanel({ onCrmClick, onSectionClick }: OverviewPa
       <Tooltip text="View Infrastructure Manager CRM details" direction="down">
         <div 
           onClick={() => onCrmClick(managerName, managerWUID)}
-          className="bg-white/[0.02] border border-white/10 rounded-[8px] p-[18px] space-y-2 hover:shadow-[0_0_20px_rgba(34,211,238,0.05)] transition-all group cursor-pointer flex flex-col justify-between h-[110px]"
+          className="bg-white/[0.02] border border-white/10 rounded-[8px] p-[18px] space-y-2 hover:shadow-[0_0_20px_rgba(34,211,238,0.05)] hover:bg-white/[0.04] transition-all group cursor-pointer flex flex-col justify-between h-[110px]"
         >
           <div className="flex items-center justify-between">
             <span className="text-[14px] text-slate-500 uppercase tracking-widest font-bold">Infra Manager</span>
             <div className="group-hover:scale-110 transition-transform text-cyan-400">
-              <Shield className="w-6 h-6" />
+              <Shield className="w-6 h-6 group-hover:drop-shadow-[0_0_8px_rgba(34,211,238,0.4)] transition-all" />
             </div>
           </div>
           <div className="flex flex-col overflow-hidden">
-            <span className="text-[20px] text-white font-semibold truncate">{managerName}</span>
+            <span className="text-[20px] text-white font-bold truncate">{managerName}</span>
             <span className="text-[10px] text-slate-500 font-mono truncate">{managerWUID}</span>
           </div>
         </div>
