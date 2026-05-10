@@ -34,11 +34,10 @@ export default function NodlrsCRM() {
     const [selectedPerson, setSelectedPerson] = useState<CrmPerson | null>(null);
     const [crmRecords, setCrmRecords] = useState<CrmPerson[]>([]);
     const [navigationHistory, setNavigationHistory] = useState<string[]>([]);
-    const [stats, setStats] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [message, setMessage] = useState<{type: 'success'|'error', text: string}|null>(null);
 
-    // Referral Tree Verification Engine (Phase 2.2)
+    // Referral Tree Verification Engine
     const verifyReferralTree = useCallback((records: CrmPerson[]) => {
         console.log("CRM -> Starting Referral Tree Verification...");
         let errors: string[] = [];
@@ -50,7 +49,6 @@ export default function NodlrsCRM() {
                 if (!parent) {
                     errors.push(`Orphan found: ${person.name} (${person.wuid}) refers to missing WUID ${referrer}`);
                 }
-                // Check for self-reference
                 if (referrer === person.wuid) {
                     errors.push(`Circular reference: ${person.name} (${person.wuid}) refers to self`);
                 }
@@ -67,28 +65,33 @@ export default function NodlrsCRM() {
         }
     }, []);
 
-    // Persistence & Verification Hook
+    // Canonical Cleanup & Persistence Hook (Phase 2.3)
     useEffect(() => {
         const saved = localStorage.getItem('crm_records');
         if (saved) {
             try {
-                const parsed = JSON.parse(saved);
-                if (Array.isArray(parsed) && parsed.length > 0) {
-                    setCrmRecords(parsed);
-                    verifyReferralTree(parsed);
+                let parsed = JSON.parse(saved);
+                if (Array.isArray(parsed)) {
+                    // Cleanup: Keep only Stephen Soos (or non-simulated records if any existed)
+                    // The prompt says "Keep only Stephen Soos"
+                    const cleaned = [STEPHEN_SOOS];
+                    setCrmRecords(cleaned);
+                    localStorage.setItem('crm_records', JSON.stringify(cleaned));
+                    verifyReferralTree(cleaned);
                 }
             } catch (e) {
                 console.error("Failed to load CRM records from storage");
             }
+        } else {
+            setCrmRecords([STEPHEN_SOOS]);
         }
     }, [verifyReferralTree]);
 
     const fetchData = async () => {
         setIsLoading(true);
         try {
-            const [nodlrsRes, statsRes] = await Promise.all([
-                fetch('/api/nodlrs/all'),
-                fetch('/api/stats')
+            const [nodlrsRes] = await Promise.all([
+                fetch('/api/nodlrs/all')
             ]);
             
             let normalized: CrmPerson[] = [];
@@ -119,42 +122,18 @@ export default function NodlrsCRM() {
                 }));
             }
 
-            const saved = localStorage.getItem('crm_records');
-            const localRecords = saved ? JSON.parse(saved) : [];
-
-            const merged = [
+            // Merge with local storage (keeping only canonical state)
+            const cleaned = [
                 STEPHEN_SOOS,
                 ...normalized.filter((p: CrmPerson) => p.wuid !== STEPHEN_SOOS.wuid)
-            ].map(apiRecord => {
-                const local = localRecords.find((l: CrmPerson) => l.wuid === apiRecord.wuid);
-                if (local) {
-                    return { 
-                        ...apiRecord, 
-                        notes: local.notes, 
-                        address: local.address || apiRecord.address, 
-                        phone1: local.phone1 || apiRecord.phone1, 
-                        phone2: local.phone2 || apiRecord.phone2,
-                        affiliateReferrer: local.affiliateReferrer || apiRecord.affiliateReferrer
-                    };
-                }
-                return apiRecord;
-            });
+            ];
 
-            const localOnly = localRecords.filter((l: CrmPerson) => !merged.find(m => m.wuid === l.wuid));
-            const finalRecords = [...merged, ...localOnly];
-
-            setCrmRecords(finalRecords);
-            localStorage.setItem('crm_records', JSON.stringify(finalRecords));
-            verifyReferralTree(finalRecords);
-
-            if (statsRes.ok) {
-                const statsData = await statsRes.json();
-                setStats(statsData);
-            }
+            setCrmRecords(cleaned);
+            localStorage.setItem('crm_records', JSON.stringify(cleaned));
+            verifyReferralTree(cleaned);
         } catch (error) {
             console.error('CRM Hub -> Critical Fetch Error:', error);
-            const saved = localStorage.getItem('crm_records');
-            setCrmRecords(saved ? JSON.parse(saved) : [STEPHEN_SOOS]);
+            setCrmRecords([STEPHEN_SOOS]);
         } finally {
             setIsLoading(false);
         }
@@ -171,6 +150,22 @@ export default function NodlrsCRM() {
             r.wuid.toLowerCase().includes(searchQuery.toLowerCase())
         );
     }, [crmRecords, searchQuery]);
+
+    // Canonical Aggregates for Top Panels
+    const aggregates = useMemo(() => {
+        const totalNodes = crmRecords.reduce((acc, p) => acc + p.activeNodes, 0);
+        const totalL1 = crmRecords.reduce((acc, p) => acc + p.l1Affiliates, 0);
+        const totalL2 = crmRecords.reduce((acc, p) => acc + p.l2Affiliates, 0);
+        
+        let lastContactDate = "—";
+        const allEvents = crmRecords.flatMap(p => p.events);
+        if (allEvents.length > 0) {
+            const sorted = allEvents.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+            lastContactDate = new Date(sorted[0].date).toLocaleDateString();
+        }
+
+        return { totalNodes, totalL1, totalL2, lastContactDate };
+    }, [crmRecords]);
 
     const handleUpdatePerson = (updated: CrmPerson) => {
         const newRecords = crmRecords.map(p => p.wuid === updated.wuid ? updated : p);
@@ -192,8 +187,6 @@ export default function NodlrsCRM() {
         if (referrer) {
             setNavigationHistory(prev => [...prev, wuid]);
             setSelectedPerson(referrer);
-        } else {
-            console.warn(`Cannot navigate to unknown referrer: ${wuid}`);
         }
     };
 
@@ -208,44 +201,6 @@ export default function NodlrsCRM() {
                 setSelectedPerson(prevPerson);
             }
         }
-    };
-
-    // Invite Simulation Pipeline (Phase 2.2 Refined)
-    const simulateInviteAcceptance = () => {
-        if (!selectedPerson) {
-            setMessage({ type: 'error', text: "Open a CRM record to simulate an invite from them." });
-            setTimeout(() => setMessage(null), 3000);
-            return;
-        }
-
-        const inviter = selectedPerson;
-        const newWuid = `1000${Math.floor(Math.random() * 9000)}-${Math.floor(Math.random() * 9000)}-01-AA`;
-        
-        const newNodlr: CrmPerson = {
-            wuid: newWuid,
-            name: `Invitee of ${inviter.name.split(' ')[0]}`,
-            email: `nodlr-${Math.floor(Math.random()*1000)}@test.com`,
-            address: "",
-            phone1: "",
-            phone2: "",
-            affiliateReferrer: inviter.wuid, // Locked to inviter
-            isNodlr: true,
-            isFounderOrPartner: false,
-            isMeshCustomer: true,
-            activeNodes: 1,
-            l1Affiliates: 0,
-            l2Affiliates: 0,
-            events: [{ id: `evt-${Date.now()}`, type: 'INVITE_ACCEPTED', date: new Date().toISOString(), description: `Accepted invitation from ${inviter.name}.` }],
-            notes: []
-        };
-
-        const updated = [...crmRecords, newNodlr];
-        setCrmRecords(updated);
-        localStorage.setItem('crm_records', JSON.stringify(updated));
-        verifyReferralTree(updated);
-        
-        setMessage({ type: 'success', text: `New CRM Record Created for ${newWuid}` });
-        setTimeout(() => setMessage(null), 3000);
     };
 
     return (
@@ -266,27 +221,24 @@ export default function NodlrsCRM() {
                         )}
                     </AnimatePresence>
                 </div>
-                <p className="text-[14px] text-slate-500 font-normal">Unified CRM hub for all Nodl'r and Mesh identities.</p>
             </header>
 
-            {/* Summary Box */}
-            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-4 mb-10">
+            {/* Canonical Top Panels (Phase 2.3) */}
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-10">
                 {[
-                    { label: "Total CRM Records", value: crmRecords.length, icon: Users, color: "text-white" },
-                    { label: "Active Nodes", value: stats?.activeNodes || 0, icon: CheckCircle2, color: "text-green-400" },
-                    { label: "Flagged Nodes", value: stats?.flaggedNodes || 0, icon: ShieldAlert, color: "text-orange-400" },
-                    { label: "Inactive Nodes", value: (stats?.totalNodes || 0) - (stats?.activeNodes || 0), icon: Clock, color: "text-blue-400" },
-                    { label: "Mesh Inventory", value: stats?.totalNodes || 0, icon: Database, color: "text-[#22D3EE]" },
-                    { label: "State Integrity", value: "Verified", icon: Zap, color: "text-white" },
+                    { label: "Active Nodes", value: aggregates.totalNodes, icon: CheckCircle2, color: "text-blue-400", border: "border-blue-500/30" },
+                    { label: "L1 Net", value: aggregates.totalL1, icon: Users, color: "text-green-400", border: "border-green-500/30" },
+                    { label: "L2 Net", value: aggregates.totalL2, icon: Users, color: "text-purple-400", border: "border-purple-500/30" },
+                    { label: "Last Contact", value: aggregates.lastContactDate, icon: Clock, color: "text-yellow-500", border: "border-yellow-500/30" },
                 ].map((stat, i) => (
-                    <div key={i} className="bg-white/[0.02] border border-white/10 rounded-[5px] p-5 flex flex-col gap-3 group hover:border-white/20 transition-all">
-                        <div className="flex items-center justify-start gap-4">
-                            <stat.icon className={`w-4 h-4 ${stat.color} opacity-40 group-hover:opacity-100 transition-opacity`} />
-                            <span className="text-[9px] text-slate-600 uppercase font-bold tracking-widest">CRM Baseline</span>
+                    <div key={i} className={`bg-white/[0.02] border ${stat.border} rounded-[5px] p-6 flex flex-col gap-4 group hover:bg-white/[0.04] transition-all`}>
+                        <div className="flex items-center justify-between">
+                            <stat.icon className={`w-5 h-5 ${stat.color} opacity-80 group-hover:opacity-100 transition-opacity`} />
+                            <span className="text-[11px] text-white uppercase font-bold tracking-widest">{stat.label}</span>
                         </div>
-                        <div className="flex flex-col">
-                            <span className="text-[20px] text-white font-mono">{isLoading ? '...' : stat.value}</span>
-                            <span className="text-[10px] text-slate-500 uppercase tracking-tighter">{stat.label}</span>
+                        <div className="flex flex-col gap-1">
+                            <span className="text-[24px] text-white font-mono font-bold leading-none">{isLoading ? '...' : stat.value}</span>
+                            <span className="text-[10px] text-slate-400 uppercase tracking-widest">Network Aggregated</span>
                         </div>
                     </div>
                 ))}
@@ -374,16 +326,6 @@ export default function NodlrsCRM() {
                 history={navigationHistory}
                 onBack={handleBack}
             />
-
-            {/* Float Simulation Trigger */}
-            {selectedPerson && (
-                <button 
-                    onClick={simulateInviteAcceptance}
-                    className="fixed bottom-8 right-8 bg-[#22D3EE] text-black px-6 py-3 rounded-full flex items-center gap-2 text-[12px] font-bold uppercase tracking-widest shadow-2xl z-[110] hover:scale-105 transition-all"
-                >
-                    <Plus className="w-4 h-4" /> Simulate Invite from {selectedPerson.name.split(' ')[0]}
-                </button>
-            )}
         </div>
     );
 }
