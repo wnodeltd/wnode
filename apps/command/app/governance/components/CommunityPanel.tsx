@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { MessageCircle, Maximize2, Minimize2 } from 'lucide-react';
 import Tooltip from '../../components/Tooltip';
+import DiscordLivePanel from '../../discord/components/DiscordLivePanel';
 
 export default function CommunityPanel() {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -32,16 +33,12 @@ export default function CommunityPanel() {
       </div>
 
       <div className={`flex-1 border border-white/5 rounded-[5px] bg-black/40 overflow-hidden ${isExpanded ? 'h-[calc(100vh-140px)]' : 'h-[320px]'}`}>
-        {ready && (
-          <iframe 
-            src="https://discord.com/widget?id=1496144706776600697&theme=dark"
-            width="100%" 
-            height="100%" 
-            frameBorder="0"
-            sandbox="allow-popups allow-popups-to-escape-sandbox allow-same-origin allow-scripts allow-forms"
-            loading="lazy"
-            title="Discord Community Widget"
-          />
+        {ready ? (
+          <DiscordLivePanel />
+        ) : (
+          <div className="flex items-center justify-center h-full">
+            <span className="text-[11px] text-slate-500 uppercase tracking-widest animate-pulse">Discord integration is initializing.</span>
+          </div>
         )}
       </div>
 
@@ -51,7 +48,7 @@ export default function CommunityPanel() {
                 onClick={() => setIsExpanded(true)}
                 className="flex items-center gap-2 text-[10px] text-purple-400 uppercase tracking-widest hover:brightness-110 transition-all font-bold"
             >
-                Expand Discord
+                Expand Community Feed
             </button>
         </div>
       )}
