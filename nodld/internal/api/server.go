@@ -216,8 +216,11 @@ func (s *Server) registerRoutes() {
 	apiV1.Post("/nodes/pairing-code/create", s.requireLevel(account.RoleStandard), s.handleCreatePairingCode)
 	apiV1.Post("/nodes/pairing-code/consume", s.requireLevel(account.RoleStandard), s.handleConsumePairingCode)
 	apiV1.Post("/nodes/register", s.requireLevel(account.RoleStandard), s.handleRegisterNode)
-	apiV1.Get("/nodes", s.handleListNodes)
 	apiV1.Get("/nodes/verify-token", s.requireDeviceToken(), s.handleVerifyToken)
+	
+	// CRM Registry
+	apiV1.Get("/nodlrs", s.handleListNodlrs)
+	apiV1.Get("/clients", s.handleListClients)
 	
 	// Stripe Routes
 	if s.stripeSvc != nil {
@@ -1100,6 +1103,18 @@ func (s *Server) handleGetRegistry(c *fiber.Ctx) error {
 		return c.JSON(fiber.Map{})
 	}
 	return c.JSON(s.host.Registry().List())
+}
+
+func (s *Server) handleListNodlrs(c *fiber.Ctx) error {
+	nodlrs := s.accountStore.ListNodlrs()
+	return c.JSON(nodlrs)
+}
+
+func (s *Server) handleListClients(c *fiber.Ctx) error {
+	// For now, mesh clients are a subset or separate list
+	// In the unified CRM, we list everyone
+	nodlrs := s.accountStore.ListNodlrs()
+	return c.JSON(nodlrs)
 }
 
 func (s *Server) handleGetSystemPulse(c *fiber.Ctx) error {
