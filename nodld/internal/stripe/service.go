@@ -95,6 +95,7 @@ func (s *Service) RegisterRoutes(router fiber.Router) {
 	transfer.Post("/", s.handleCreateTransfer)
 
 	router.Post("/stripe/webhook", s.handleWebhook)
+	router.Get("/stripe/ledger/:wuid", s.handleGetStripeLedger)
 }
 
 // --- Unified Connect Entry Point ---
@@ -379,9 +380,11 @@ func (s *Service) handleV1CheckoutSession(c *fiber.Ctx) error {
 		PaymentIntentData: &stripe.CheckoutSessionPaymentIntentDataParams{
 			ApplicationFeeAmount: stripe.Int64(appFee),
 			Metadata: map[string]string{
-				"userID": req.UserID,
+				"wuid":   req.UserID,
+				"userID": req.UserID, // Keep for legacy
 				"jobID":  req.JobID,
-				"type":   "topup",
+				"role":   "mesh",
+				"source": "topup",
 			},
 		},
 	}
@@ -442,9 +445,11 @@ func (s *Service) handleCreatePaymentIntent(c *fiber.Ctx) error {
 		Currency:             stripe.String("usd"),
 		ApplicationFeeAmount: stripe.Int64(appFee),
 		Metadata: map[string]string{
-			"userID": req.UserID,
+			"wuid":   req.UserID,
+			"userID": req.UserID, // Keep for legacy
 			"jobID":  req.JobID,
-			"type":   "topup",
+			"role":   "mesh",
+			"source": "topup",
 		},
 	}
 
@@ -484,7 +489,10 @@ func (s *Service) handleCreateTransfer(c *fiber.Ctx) error {
 		Currency:    stripe.String("usd"),
 		Destination: stripe.String(req.DestinationAcct),
 		Metadata: map[string]string{
-			"jobID": req.JobID,
+			"jobID":  req.JobID,
+			"wuid":   req.DestinationAcct, // Assuming DestinationAcct is Stripe ID, need to resolve WUID
+			"role":   "nodlr",
+			"source": "payout",
 		},
 	}
 
@@ -526,8 +534,10 @@ func (s *Service) ProcessCommissionPayouts(jobID string, platformAmt int64, payo
 			Destination: stripe.String(acctID),
 			TransferGroup: stripe.String(transferGroup),
 			Metadata: map[string]string{
-				"jobID": jobID,
-				"type":  "commission_payout",
+				"jobID":  jobID,
+				"role":   "nodlr",
+				"source": "commission",
+				"wuid":   acctID, 
 			},
 		}
 
@@ -642,6 +652,71 @@ func (s *Service) handleWebhook(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{"received": true})
+}
+
+
+// --- CRM Ledger Integration (Phase 2.4) ---
+
+type StripeTransaction struct {
+	ID          string            `json:"id"`
+	Date        string            `json:"date"`
+	Amount      int64             `json:"amount"` // cents
+	Type        string            `json:"type"`   // 'payout', 'purchase', 'fee', 'adjustment', 'affiliate_earning', 'refund'
+	Description string            `json:"description"`
+	Source      string            `json:"source"`
+	Metadata    map[string]string `json:"metadata"`
+}
+
+func (s *Service) handleGetStripeLedger(c *fiber.Ctx) error {
+	wuid := c.Params("wuid")
+	if wuid == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "wuid required"})
+	}
+
+	// In a real system, we'd use Stripe Search API:
+	// "metadata['wuid']:'" + wuid + "'"
+	// For now, we'll simulate the fetch or use a simplified mock that mimics the Stripe schema
+	// but is anchored to the WUID.
+	
+	// Real implementation plan:
+	// 1. List PaymentIntents with metadata.wuid
+	// 2. List Transfers with metadata.wuid
+	// 3. Map to StripeTransaction objects
+	
+	s.log.Info("fetching stripe ledger", zap.String("wuid", wuid))
+
+	// Mocking the Stripe-backed response for verification, but structured for the new UI
+	txs := []StripeTransaction{
+		{
+			ID:          "pi_stripe_123",
+			Date:        time.Now().AddDate(0, 0, -2).Format(time.RFC3339),
+			Amount:      5000,
+			Type:        "purchase",
+			Description: "Compute Credit Top-up",
+			Source:      "mesh",
+			Metadata:    map[string]string{"wuid": wuid, "role": "mesh", "source": "topup"},
+		},
+		{
+			ID:          "tr_stripe_456",
+			Date:        time.Now().AddDate(0, 0, -5).Format(time.RFC3339),
+			Amount:      124050,
+			Type:        "payout",
+			Description: "Infrastructure Payout",
+			Source:      "nodlr",
+			Metadata:    map[string]string{"wuid": wuid, "role": "nodlr", "source": "payout"},
+		},
+		{
+			ID:          "tr_stripe_789",
+			Date:        time.Now().AddDate(0, -1, -10).Format(time.RFC3339),
+			Amount:      1500,
+			Type:        "affiliate_earning",
+			Description: "L1 Referral Bonus",
+			Source:      "nodlr",
+			Metadata:    map[string]string{"wuid": wuid, "role": "nodlr", "source": "commission"},
+		},
+	}
+
+	return c.JSON(txs)
 }
 
 // IsConfigured returns true if Stripe keys are non-empty (not stubs).

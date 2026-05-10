@@ -10,6 +10,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { CrmPerson, CrmEvent, CrmNote } from "./types";
 import CrmDetailPanel from "./components/CrmDetailPanel";
+import { usePageTitle } from "../components/PageTitleContext";
 
 const STEPHEN_SOOS: CrmPerson = {
   wuid: "100001-0426-01-AA",
@@ -32,12 +33,14 @@ const STEPHEN_SOOS: CrmPerson = {
 };
 
 export default function UserCrmPage() {
+    // Header Fix (Phase 2.5) - Canonical Application Header
+    usePageTitle("COMMAND CENTRE OPERATIONS → User CRM Database", "Authoritative identity and financial ledger registry.");
+    
     const [searchQuery, setSearchQuery] = useState("");
     const [selectedPerson, setSelectedPerson] = useState<CrmPerson | null>(null);
     const [crmRecords, setCrmRecords] = useState<CrmPerson[]>([]);
     const [navigationHistory, setNavigationHistory] = useState<string[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [message, setMessage] = useState<{type: 'success'|'error', text: string}|null>(null);
 
     // Referral Tree Verification Engine
     const verifyReferralTree = useCallback((records: CrmPerson[]) => {
@@ -67,18 +70,15 @@ export default function UserCrmPage() {
         }
     }, []);
 
-    // Initial Load & Migration (Phase 2.4)
+    // Initial Load & Migration
     useEffect(() => {
         const saved = localStorage.getItem('crm_records');
         if (saved) {
             try {
                 let parsed = JSON.parse(saved);
                 if (Array.isArray(parsed)) {
-                    // Seed Stephen
                     const hasStephen = parsed.find(p => p.wuid === STEPHEN_SOOS.wuid);
                     const records = hasStephen ? parsed : [STEPHEN_SOOS, ...parsed];
-                    
-                    // Normalize
                     const normalized = records.map(p => ({
                         ...p,
                         createdAt: p.createdAt || new Date().toISOString(),
@@ -86,7 +86,6 @@ export default function UserCrmPage() {
                         isMeshCustomer: p.isMeshCustomer !== undefined ? p.isMeshCustomer : false,
                         isNodlr: p.isNodlr !== undefined ? p.isNodlr : true
                     }));
-
                     setCrmRecords(normalized);
                     verifyReferralTree(normalized);
                 }
@@ -98,7 +97,7 @@ export default function UserCrmPage() {
         }
     }, [verifyReferralTree]);
 
-    // Unified Fetch (Nodlrs + Clients)
+    // Unified Fetch
     const fetchData = async () => {
         setIsLoading(true);
         try {
@@ -152,7 +151,6 @@ export default function UserCrmPage() {
                 }));
             }
 
-            // Merge into unified set
             const unifiedMap = new Map<string, CrmPerson>();
             [STEPHEN_SOOS, ...nodlrs, ...clients].forEach(p => {
                 if (unifiedMap.has(p.wuid)) {
@@ -247,33 +245,17 @@ export default function UserCrmPage() {
 
     return (
         <div className="flex-1 p-8 overflow-y-auto pb-24 relative custom-scrollbar h-full">
-            <header className="flex flex-col gap-2 mb-10">
-                <div className="flex items-center justify-start gap-6">
-                    <h1 className="text-xl font-normal tracking-tight text-white uppercase tracking-widest">User CRM Database</h1>
-                    <AnimatePresence>
-                        {message && (
-                            <motion.div 
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                className={`flex items-center gap-2 px-4 py-1.5 rounded-[5px] border ${message.type === 'success' ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-red-500/10 border-red-500/20 text-red-400'}`}
-                            >
-                                <CheckCircle2 className="w-3.5 h-3.5" />
-                                <span className="text-[11px] font-normal uppercase tracking-wider">{message.text}</span>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </div>
-            </header>
+            {/* Redundant body title removed per Phase 2.5 instructions */}
 
-            {/* Rebuilt Dashboard Panels (Phase 2.4 - Consolidated) */}
+            {/* Rebuilt Dashboard Panels (Phase 2.5 - Visual Polish) */}
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-10">
                 <CrmMetricCard 
-                    label="Total Clients / Contacts" 
+                    label="Total Clients" 
                     value={dashboardStats.totalClients} 
                     icon={Users} 
                     color="text-blue-400" 
                     border="border-blue-500/30"
-                    subtext="Aggregated"
+                    subtext="Aggregated Contacts"
                     tooltip="Total unique identities (Nodlrs, Clients, Partners)."
                 />
                 <CrmMetricCard 
@@ -282,7 +264,7 @@ export default function UserCrmPage() {
                     icon={Handshake} 
                     color="text-green-400" 
                     border="border-green-500/30"
-                    subtext="Last 30 days"
+                    subtext="Last 30 Days"
                     tooltip="Users with interaction in the last 30 days."
                 />
                 <CrmMetricCard 
@@ -291,7 +273,7 @@ export default function UserCrmPage() {
                     icon={TrendingUp} 
                     color="text-teal-400" 
                     border="border-teal-500/30"
-                    subtext="Last 30 days"
+                    subtext="Growth Indicator"
                     tooltip="Records created in the last 30 days."
                 />
                 <CrmMetricCard 
@@ -384,22 +366,21 @@ export default function UserCrmPage() {
 }
 
 function CrmMetricCard({ label, value, icon: Icon, color, border, subtext, tooltip }: any) {
-    const [isHovered, setIsHovered] = useState(false);
-
     return (
         <div 
-            className={`relative bg-white/[0.02] border ${border} rounded-[5px] p-6 flex flex-col gap-3 group hover:bg-white/[0.04] transition-all cursor-help`}
-            onMouseEnter={() => setIsHovered(true)}
-            onMouseLeave={() => setIsHovered(false)}
+            className={`relative bg-white/[0.02] border ${border} rounded-[5px] p-4 flex flex-col gap-1.5 group hover:bg-white/[0.04] transition-all cursor-help overflow-hidden`}
             title={tooltip}
         >
-            <div className="flex items-center justify-between">
-                <Icon className={`w-4 h-4 ${color} opacity-80 group-hover:opacity-100 transition-opacity`} />
-                <span className="text-[10px] text-white uppercase font-bold tracking-widest">{label}</span>
+            {/* Phase 2.5: Icon sits top-left, Title sits immediately to the right on SAME baseline */}
+            <div className="flex items-center gap-2 mb-0.5">
+                <Icon className={`w-3.5 h-3.5 ${color} opacity-80 group-hover:opacity-100 transition-opacity shrink-0`} />
+                <span className="text-[10px] text-white uppercase font-bold tracking-[0.1em] truncate leading-none">{label}</span>
             </div>
-            <div className="flex flex-col items-center justify-center gap-0.5">
-                <span className="text-[20px] text-white font-mono font-bold leading-none">{value}</span>
-                <span className="text-[9px] text-slate-400 uppercase tracking-widest">{subtext}</span>
+            
+            <div className="flex flex-col items-start justify-center gap-0">
+                {/* Phase 2.5: Reduced number size to CMD scale (16px) */}
+                <span className="text-[16px] text-white font-mono font-bold leading-tight">{value}</span>
+                <span className="text-[8px] text-slate-500 uppercase tracking-widest font-normal opacity-80">{subtext}</span>
             </div>
         </div>
     );

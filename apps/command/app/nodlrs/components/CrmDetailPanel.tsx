@@ -1,12 +1,13 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
     X, User, Mail, Phone, MapPin, Building2, 
     Calendar, FileText, Pin, PinOff, Plus, 
     ArrowLeft, ArrowRight, Activity, Users, Shield, Zap, Send, Info,
-    CreditCard, DollarSign, Wallet, ArrowUpRight, ArrowDownLeft, Receipt, ChevronRight, ChevronDown
+    CreditCard, DollarSign, Wallet, ArrowUpRight, ArrowDownLeft, Receipt, ChevronRight, ChevronDown,
+    RefreshCw
 } from "lucide-react";
 import { CrmPerson, CrmEvent, CrmNote } from "../types";
 
@@ -20,12 +21,14 @@ interface CrmDetailPanelProps {
     onBack?: () => void;
 }
 
-interface Transaction {
+interface StripeTransaction {
     id: string;
     date: string;
     amount: number;
     type: 'payout' | 'purchase' | 'fee' | 'adjustment' | 'affiliate_earning' | 'refund';
     description: string;
+    source: string;
+    metadata?: any;
 }
 
 export default function CrmDetailPanel({ 
@@ -36,7 +39,52 @@ export default function CrmDetailPanel({
     const [isAddingNote, setIsAddingNote] = useState(false);
     const [newNoteContent, setNewNoteContent] = useState("");
     const [showLedger, setShowLedger] = useState<'in' | 'out' | null>(null);
+    const [stripeTxs, setStripeTxs] = useState<StripeTransaction[]>([]);
+    const [isLoadingLedger, setIsLoadingLedger] = useState(false);
 
+    // Rule: Hooks must be called before any conditional returns
+    useEffect(() => {
+        if (isOpen && person?.wuid) {
+            setIsLoadingLedger(true);
+            fetch(`/api/v1/stripe/ledger/${person.wuid}`)
+                .then(res => res.ok ? res.json() : [])
+                .then(data => {
+                    setStripeTxs(data);
+                })
+                .catch(err => console.error("Stripe Ledger Fetch Error:", err))
+                .finally(() => setIsLoadingLedger(false));
+        } else if (!isOpen) {
+            // Reset when closed
+            setStripeTxs([]);
+            setShowLedger(null);
+        }
+    }, [isOpen, person?.wuid]);
+
+    const ledgerTxs = useMemo(() => {
+        if (showLedger === 'out') {
+            return stripeTxs.filter(tx => tx.source === 'nodlr' || ['payout', 'affiliate_earning', 'adjustment'].includes(tx.type));
+        }
+        if (showLedger === 'in') {
+            return stripeTxs.filter(tx => tx.source === 'mesh' || ['purchase', 'refund', 'fee'].includes(tx.type));
+        }
+        return [];
+    }, [stripeTxs, showLedger]);
+
+    const lastMonthTxs = useMemo(() => {
+        const now = new Date();
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        return stripeTxs.filter(tx => new Date(tx.date) >= startOfMonth);
+    }, [stripeTxs]);
+
+    const outTotal = useMemo(() => stripeTxs
+        .filter(tx => tx.source === 'nodlr')
+        .reduce((acc, tx) => acc + tx.amount, 0), [stripeTxs]);
+
+    const inTotal = useMemo(() => stripeTxs
+        .filter(tx => tx.source === 'mesh')
+        .reduce((acc, tx) => acc + tx.amount, 0), [stripeTxs]);
+
+    // Now safe to return
     if (!person && !isOpen) return null;
 
     const handleSaveField = (field: keyof CrmPerson) => {
@@ -80,10 +128,6 @@ export default function CrmDetailPanel({
             )
         });
     };
-
-    const lastContact = person?.lastContact 
-        ? new Date(person.lastContact).toLocaleDateString() 
-        : "—";
 
     return (
         <>
@@ -160,39 +204,70 @@ export default function CrmDetailPanel({
                                 </div>
                             </header>
 
-                            {/* Transaction History Panels (Phase 2.4) */}
-                            <section className="grid grid-cols-2 gap-3">
-                                {person.isNodlr && (
-                                    <div 
-                                        onClick={() => setShowLedger('out')}
-                                        className="bg-emerald-500/5 border border-emerald-500/20 rounded-[5px] p-4 space-y-2 cursor-pointer hover:bg-emerald-500/10 transition-all group"
-                                    >
-                                        <div className="flex items-center justify-between">
-                                            <ArrowUpRight className="w-4 h-4 text-emerald-400" />
-                                            <span className="text-[9px] text-emerald-400 font-bold uppercase tracking-widest">Payments Out</span>
+                            {/* Stripe-Backed Ledger Overview */}
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-2 text-[10px] text-slate-500 uppercase tracking-widest font-bold">
+                                    <CreditCard className="w-3.5 h-3.5" />
+                                    <span>Financial Summaries (Stripe-Auth)</span>
+                                </div>
+                                <section className="grid grid-cols-2 gap-3">
+                                    {person.isNodlr && (
+                                        <div 
+                                            onClick={() => setShowLedger('out')}
+                                            className="bg-emerald-500/5 border border-emerald-500/20 rounded-[5px] p-4 space-y-2 cursor-pointer hover:bg-emerald-500/10 transition-all group"
+                                        >
+                                            <div className="flex items-center justify-between">
+                                                <ArrowUpRight className="w-4 h-4 text-emerald-400" />
+                                                <span className="text-[9px] text-emerald-400 font-bold uppercase tracking-widest">Payments Out</span>
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="text-[18px] text-white font-mono font-bold">{(outTotal / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</span>
+                                                <span className="text-[9px] text-slate-500 uppercase tracking-tighter">Life Earnings</span>
+                                            </div>
                                         </div>
-                                        <div className="flex flex-col">
-                                            <span className="text-[18px] text-white font-mono font-bold">$1,240.50</span>
-                                            <span className="text-[9px] text-slate-500 uppercase tracking-tighter">Nodlr Earnings</span>
+                                    )}
+                                    {person.isMeshCustomer && (
+                                        <div 
+                                            onClick={() => setShowLedger('in')}
+                                            className="bg-blue-500/5 border border-blue-500/20 rounded-[5px] p-4 space-y-2 cursor-pointer hover:bg-blue-500/10 transition-all group"
+                                        >
+                                            <div className="flex items-center justify-between">
+                                                <ArrowDownLeft className="w-4 h-4 text-blue-400" />
+                                                <span className="text-[9px] text-blue-400 font-bold uppercase tracking-widest">Payments In</span>
+                                            </div>
+                                            <div className="flex flex-col">
+                                                <span className="text-[18px] text-white font-mono font-bold">{(inTotal / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</span>
+                                                <span className="text-[9px] text-slate-500 uppercase tracking-tighter">Life Spend</span>
+                                            </div>
                                         </div>
+                                    )}
+                                </section>
+
+                                {/* Current Statement Snapshot */}
+                                <div className="bg-white/[0.02] border border-white/10 rounded-[5px] p-4 space-y-3">
+                                    <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                                        <span className="text-[10px] text-slate-400 uppercase tracking-widest">Current Statement Snapshot</span>
+                                        <span className="text-[9px] text-[#22D3EE] font-mono">{new Date().toLocaleString('default', { month: 'long', year: 'numeric' })}</span>
                                     </div>
-                                )}
-                                {person.isMeshCustomer && (
-                                    <div 
-                                        onClick={() => setShowLedger('in')}
-                                        className="bg-blue-500/5 border border-blue-500/20 rounded-[5px] p-4 space-y-2 cursor-pointer hover:bg-blue-500/10 transition-all group"
-                                    >
-                                        <div className="flex items-center justify-between">
-                                            <ArrowDownLeft className="w-4 h-4 text-blue-400" />
-                                            <span className="text-[9px] text-blue-400 font-bold uppercase tracking-widest">Payments In</span>
-                                        </div>
-                                        <div className="flex flex-col">
-                                            <span className="text-[18px] text-white font-mono font-bold">$4,820.00</span>
-                                            <span className="text-[9px] text-slate-500 uppercase tracking-tighter">Client Spend</span>
-                                        </div>
+                                    <div className="space-y-2">
+                                        {lastMonthTxs.slice(0, 3).map(tx => (
+                                            <div key={tx.id} className="flex justify-between items-center text-[12px]">
+                                                <span className="text-slate-400 truncate max-w-[180px]">{tx.description}</span>
+                                                <span className={`font-mono ${tx.amount > 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                                    {(tx.amount / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+                                                </span>
+                                            </div>
+                                        ))}
+                                        {lastMonthTxs.length === 0 && <p className="text-[11px] text-slate-600 text-center py-2 italic">No activity this month</p>}
+                                        <button 
+                                            onClick={() => setShowLedger(person.isNodlr ? 'out' : 'in')} 
+                                            className="w-full text-[10px] text-slate-500 hover:text-white transition-colors pt-2 uppercase tracking-widest text-center"
+                                        >
+                                            View Full Ledger
+                                        </button>
                                     </div>
-                                )}
-                            </section>
+                                </div>
+                            </div>
 
                             {/* Personal Details Section */}
                             <section className="space-y-4">
@@ -331,38 +406,31 @@ export default function CrmDetailPanel({
                     )}
                 </div>
 
-                {/* Unified Ledger Modal (Phase 2.4) */}
                 <LedgerModal 
                     isOpen={!!showLedger} 
                     onClose={() => setShowLedger(null)} 
                     type={showLedger} 
                     person={person}
+                    transactions={ledgerTxs}
+                    isLoading={isLoadingLedger}
                 />
             </div>
         </>
     );
 }
 
-function LedgerModal({ isOpen, onClose, type, person }: { isOpen: boolean, onClose: () => void, type: 'in' | 'out' | null, person: CrmPerson | null }) {
+function LedgerModal({ isOpen, onClose, type, person, transactions, isLoading }: { isOpen: boolean, onClose: () => void, type: 'in' | 'out' | null, person: CrmPerson | null, transactions: StripeTransaction[], isLoading: boolean }) {
     if (!isOpen || !person) return null;
 
-    // Mock Transaction Generation
-    const mockTransactions: Transaction[] = [
-        { id: 'TX-1001', date: '2024-05-12T10:00:00Z', amount: 450.00, type: 'purchase', description: 'Monthly Compute Subscription' },
-        { id: 'TX-1002', date: '2024-05-08T14:30:00Z', amount: -25.00, type: 'fee', description: 'Network Service Fee' },
-        { id: 'TX-1003', date: '2024-04-20T09:15:00Z', amount: 1240.50, type: 'payout', description: 'Infrastructure Earning Payout' },
-        { id: 'TX-1004', date: '2024-04-15T11:00:00Z', amount: 150.25, type: 'affiliate_earning', description: 'L1 Referral Bonus' },
-        { id: 'TX-1005', date: '2024-03-25T16:45:00Z', amount: 500.00, type: 'purchase', description: 'Resource Expansion' },
-        { id: 'TX-1006', date: '2024-03-10T12:00:00Z', amount: -50.00, type: 'refund', description: 'Overcharge Correction' }
-    ];
-
-    const grouped = mockTransactions.reduce((acc: any, tx) => {
+    const grouped = transactions.reduce((acc: any, tx) => {
         const date = new Date(tx.date);
         const key = `${date.getFullYear()} - ${date.toLocaleString('default', { month: 'long' })}`;
         if (!acc[key]) acc[key] = [];
         acc[key].push(tx);
         return acc;
     }, {});
+
+    const totalAmount = transactions.reduce((acc, tx) => acc + tx.amount, 0);
 
     return (
         <AnimatePresence>
@@ -389,7 +457,7 @@ function LedgerModal({ isOpen, onClose, type, person }: { isOpen: boolean, onClo
                                 <h3 className="text-lg font-bold text-white uppercase tracking-widest">
                                     {type === 'out' ? 'Earnings & Payouts Ledger' : 'Spending & Consumption Ledger'}
                                 </h3>
-                                <p className="text-xs text-slate-500 font-mono italic">Client: {person.name} ({person.wuid})</p>
+                                <p className="text-xs text-slate-500 font-mono italic">Client: {person.name} ({person.wuid}) • Stripe Authority</p>
                             </div>
                         </div>
                         <button onClick={onClose} className="p-2 hover:bg-white/5 rounded-full transition-colors text-slate-500 hover:text-white">
@@ -397,51 +465,62 @@ function LedgerModal({ isOpen, onClose, type, person }: { isOpen: boolean, onClo
                         </button>
                     </header>
 
-                    <div className="flex-1 overflow-y-auto p-8 custom-scrollbar space-y-12">
-                        {Object.entries(grouped).map(([month, txs]: [string, any]) => (
-                            <section key={month} className="space-y-4">
-                                <div className="flex items-center gap-4">
-                                    <h4 className="text-[12px] font-bold text-white uppercase tracking-[0.2em]">{month}</h4>
-                                    <div className="flex-1 h-px bg-white/10" />
-                                    <span className="text-[10px] text-slate-500 font-mono uppercase">Statement Verified</span>
-                                </div>
-                                <div className="space-y-1">
-                                    {txs.map((tx: Transaction) => (
-                                        <div key={tx.id} className="grid grid-cols-[120px_1fr_120px_100px] items-center p-4 bg-white/[0.01] hover:bg-white/[0.03] border border-transparent hover:border-white/5 rounded-[5px] transition-all group">
-                                            <span className="text-[11px] text-slate-500 font-mono">{new Date(tx.date).toLocaleDateString()}</span>
-                                            <div className="flex flex-col">
-                                                <span className="text-[13px] text-white font-medium">{tx.description}</span>
-                                                <span className="text-[9px] text-slate-600 uppercase tracking-tighter">{tx.id}</span>
-                                            </div>
-                                            <span className={`text-[13px] font-mono font-bold text-right ${tx.amount > 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
-                                                {tx.amount > 0 ? '+' : ''}{tx.amount.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
-                                            </span>
-                                            <div className="flex justify-end">
-                                                <div className={`px-2 py-0.5 rounded-[2px] text-[8px] font-bold uppercase tracking-widest ${
-                                                    tx.type === 'payout' ? 'bg-emerald-500/10 text-emerald-400' :
-                                                    tx.type === 'purchase' ? 'bg-blue-500/10 text-blue-400' :
-                                                    tx.type === 'fee' ? 'bg-red-500/10 text-red-400' :
-                                                    'bg-white/5 text-slate-400'
-                                                }`}>
-                                                    {tx.type.replace('_', ' ')}
-                                                </div>
-                                            </div>
+                    <div className="flex-1 overflow-y-auto p-8 custom-scrollbar space-y-12 min-h-[400px]">
+                        {isLoading ? (
+                            <div className="flex flex-col items-center justify-center h-full py-20 space-y-4">
+                                <RefreshCw className="w-8 h-8 text-[#22D3EE] animate-spin" />
+                                <span className="text-[11px] text-slate-500 uppercase tracking-widest">Retrieving Stripe Statements...</span>
+                            </div>
+                        ) : (
+                            <>
+                                {Object.entries(grouped).map(([month, txs]: [string, any]) => (
+                                    <section key={month} className="space-y-4">
+                                        <div className="flex items-center gap-4">
+                                            <h4 className="text-[12px] font-bold text-white uppercase tracking-[0.2em]">{month}</h4>
+                                            <div className="flex-1 h-px bg-white/10" />
+                                            <span className="text-[10px] text-slate-500 font-mono uppercase">Statement Verified</span>
                                         </div>
-                                    ))}
-                                </div>
-                            </section>
-                        ))}
+                                        <div className="space-y-1">
+                                            {txs.map((tx: StripeTransaction) => (
+                                                <div key={tx.id} className="grid grid-cols-[120px_1fr_120px_100px] items-center p-4 bg-white/[0.01] hover:bg-white/[0.03] border border-transparent hover:border-white/5 rounded-[5px] transition-all group">
+                                                    <span className="text-[11px] text-slate-500 font-mono">{new Date(tx.date).toLocaleDateString()}</span>
+                                                    <div className="flex flex-col">
+                                                        <span className="text-[13px] text-white font-medium">{tx.description}</span>
+                                                        <span className="text-[9px] text-slate-600 uppercase tracking-tighter">{tx.id}</span>
+                                                    </div>
+                                                    <span className={`text-[13px] font-mono font-bold text-right ${tx.amount > 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
+                                                        {tx.amount > 0 ? '+' : ''}{(tx.amount / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+                                                    </span>
+                                                    <div className="flex justify-end">
+                                                        <div className={`px-2 py-0.5 rounded-[2px] text-[8px] font-bold uppercase tracking-widest ${
+                                                            tx.type === 'payout' ? 'bg-emerald-500/10 text-emerald-400' :
+                                                            tx.type === 'purchase' ? 'bg-blue-500/10 text-blue-400' :
+                                                            tx.type === 'fee' ? 'bg-red-500/10 text-red-400' :
+                                                            'bg-white/5 text-slate-400'
+                                                        }`}>
+                                                            {tx.type.replace('_', ' ')}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </section>
+                                ))}
+                                {transactions.length === 0 && (
+                                    <div className="text-center py-20">
+                                        <Info className="w-8 h-8 text-slate-700 mx-auto mb-4" />
+                                        <p className="text-[11px] text-slate-500 uppercase tracking-widest">No transaction history found for this identity.</p>
+                                    </div>
+                                )}
+                            </>
+                        )}
                     </div>
 
                     <footer className="p-6 border-t border-white/10 bg-white/[0.01] flex justify-between items-center">
                         <div className="flex gap-8">
                             <div className="flex flex-col">
-                                <span className="text-[9px] text-slate-500 uppercase tracking-widest">Period Balance</span>
-                                <span className="text-xl text-white font-mono font-bold">$6,540.25</span>
-                            </div>
-                            <div className="flex flex-col">
-                                <span className="text-[9px] text-slate-500 uppercase tracking-widest">Fees & Adjustments</span>
-                                <span className="text-xl text-rose-400 font-mono font-bold">-$75.00</span>
+                                <span className="text-[9px] text-slate-500 uppercase tracking-widest">Statement Balance</span>
+                                <span className="text-xl text-white font-mono font-bold">{(totalAmount / 100).toLocaleString('en-US', { style: 'currency', currency: 'USD' })}</span>
                             </div>
                         </div>
                         <button className="bg-white/5 hover:bg-white/10 border border-white/10 px-6 py-2 rounded-[5px] text-[11px] font-bold text-white uppercase tracking-widest transition-all">
