@@ -61,13 +61,12 @@ export default function OverviewPanel({ onCrmClick, onSectionClick }: OverviewPa
     }
   ];
 
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+  return <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
       {metrics.map((m, i) => (
         <Tooltip key={i} text={m.tooltip} direction="down">
           <div 
             onClick={() => onSectionClick(m.id)}
-            className={`bg-white/[0.02] border border-white/10 rounded-[8px] p-[18px] space-y-2 ${m.shadow} hover:bg-white/[0.04] transition-all group cursor-pointer flex flex-col justify-between h-[110px]`}
+            className={`bg-white/[0.02] border border-white/10 !rounded-[8px] p-[18px] space-y-2 ${m.shadow} hover:bg-white/[0.04] hover:border-white/20 transition-all group cursor-pointer flex flex-col justify-between h-[110px]`}
           >
             <div className="flex items-center justify-between">
               <span className="text-[14px] text-slate-500 uppercase tracking-widest font-bold">{m.label}</span>
@@ -85,7 +84,7 @@ export default function OverviewPanel({ onCrmClick, onSectionClick }: OverviewPa
       <Tooltip text="View Infrastructure Manager CRM details" direction="down">
         <div 
           onClick={() => onCrmClick(managerName, managerWUID)}
-          className="bg-white/[0.02] border border-white/10 rounded-[8px] p-[18px] space-y-2 hover:shadow-[0_0_20px_rgba(34,211,238,0.05)] hover:bg-white/[0.04] transition-all group cursor-pointer flex flex-col justify-between h-[110px]"
+          className="bg-white/[0.02] border border-white/10 !rounded-[8px] p-[18px] space-y-2 hover:shadow-[0_0_20px_rgba(34,211,238,0.05)] hover:bg-white/[0.04] hover:border-white/20 transition-all group cursor-pointer flex flex-col justify-between h-[110px]"
         >
           <div className="flex items-center justify-between">
             <span className="text-[14px] text-slate-500 uppercase tracking-widest font-bold">Infra Manager</span>
@@ -99,6 +98,5 @@ export default function OverviewPanel({ onCrmClick, onSectionClick }: OverviewPa
           </div>
         </div>
       </Tooltip>
-    </div>
-  );
+    </div>;
 }
