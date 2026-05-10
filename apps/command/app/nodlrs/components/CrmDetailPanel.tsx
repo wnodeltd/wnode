@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { 
     X, User, Mail, Phone, MapPin, Building2, 
     Calendar, FileText, Pin, PinOff, Plus, 
-    ArrowLeft, ArrowRight, Activity, Users, Shield, Zap, Send
+    ArrowLeft, ArrowRight, Activity, Users, Shield, Zap, Send, Info
 } from "lucide-react";
 import { CrmPerson, CrmEvent, CrmNote } from "../types";
 
@@ -37,9 +37,7 @@ export default function CrmDetailPanel({
     };
 
     const startEditing = (field: keyof CrmPerson, value: string) => {
-        // Hard-lock: Affiliate Referrer is non-editable
         if (field === 'affiliateReferrer') return;
-        
         setEditingField(field);
         setEditValue(value || "");
     };
@@ -73,8 +71,8 @@ export default function CrmDetailPanel({
         });
     };
 
-    const lastContact = person?.events && person.events.length > 0 
-        ? new Date(person.events[0].date).toLocaleDateString() 
+    const lastContact = person?.lastContact 
+        ? new Date(person.lastContact).toLocaleDateString() 
         : "—";
 
     return (
@@ -93,6 +91,7 @@ export default function CrmDetailPanel({
                                 <button 
                                     onClick={onBack}
                                     className="p-2 hover:bg-white/5 rounded-full transition-colors text-slate-500 hover:text-white group"
+                                    title="Back to previous record"
                                 >
                                     <ArrowLeft className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" />
                                 </button>
@@ -105,6 +104,7 @@ export default function CrmDetailPanel({
                         <button 
                             onClick={onClose}
                             className="p-2 hover:bg-white/5 rounded-full transition-colors text-slate-500 hover:text-white"
+                            title="Close panel"
                         >
                             <X className="w-5 h-5" />
                         </button>
@@ -134,7 +134,7 @@ export default function CrmDetailPanel({
                                             </div>
                                         </div>
                                         <p className="text-[13px] font-mono text-[#22D3EE]">{person.wuid}</p>
-                                        <div className="flex items-center gap-2 text-slate-500">
+                                        <div className="flex items-center gap-2 text-slate-500" title="Primary contact email">
                                             <Mail className="w-3.5 h-3.5" />
                                             <span className="text-[12px] font-mono">{person.email || "—"}</span>
                                         </div>
@@ -145,20 +145,21 @@ export default function CrmDetailPanel({
                                     <button 
                                         onClick={() => setIsAddingNote(true)}
                                         className="flex-1 bg-white/5 hover:bg-white/10 border border-white/10 rounded-[5px] py-2.5 text-[11px] font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2"
+                                        title="Create a new internal note for this record"
                                     >
                                         <FileText className="w-3.5 h-3.5 text-[#22D3EE]" /> Add Note
                                     </button>
                                 </div>
                             </header>
 
-                            {/* Summary Strip (Refined Phase 2.2) */}
+                            {/* Summary Strip */}
                             <section className="grid grid-cols-3 gap-2 border-y border-white/5 py-8">
                                 {[
-                                    { label: "Last Contact", value: lastContact },
-                                    { label: "L1 Net", value: person.l1Affiliates },
-                                    { label: "L2 Net", value: person.l2Affiliates },
+                                    { label: "Last Contact", value: lastContact, tip: "Most recent interaction date recorded." },
+                                    { label: "L1 Net", value: person.l1Affiliates, tip: "Direct direct referrals (Level 1)." },
+                                    { label: "L2 Net", value: person.l2Affiliates, tip: "Indirect referrals (Level 2)." },
                                 ].map((s, i) => (
-                                    <div key={i} className="text-center space-y-2">
+                                    <div key={i} className="text-center space-y-2 group cursor-help" title={s.tip}>
                                         <span className="text-[11px] text-white uppercase font-bold tracking-widest block">{s.label}</span>
                                         <span className="text-[16px] font-mono text-white block">{s.value}</span>
                                     </div>
@@ -180,6 +181,7 @@ export default function CrmDetailPanel({
                                         onSave={() => handleSaveField('email')}
                                         onChange={setEditValue}
                                         mono
+                                        tooltip="Primary communication email address."
                                     />
                                     <EditableField 
                                         label="Address" 
@@ -189,6 +191,7 @@ export default function CrmDetailPanel({
                                         onSave={() => handleSaveField('address')}
                                         onChange={setEditValue}
                                         placeholder="Add address..."
+                                        tooltip="Physical mailing or service address."
                                     />
                                     <EditableField 
                                         label="Phone 1" 
@@ -199,6 +202,7 @@ export default function CrmDetailPanel({
                                         onChange={setEditValue}
                                         placeholder="Add phone..."
                                         mono
+                                        tooltip="Primary contact phone number."
                                     />
                                     <EditableField 
                                         label="Phone 2" 
@@ -209,8 +213,9 @@ export default function CrmDetailPanel({
                                         onChange={setEditValue}
                                         placeholder="Add backup phone..."
                                         mono
+                                        tooltip="Secondary or backup contact number."
                                     />
-                                    <div className="p-4 flex justify-between items-center hover:bg-white/[0.02] transition-all group">
+                                    <div className="p-4 flex justify-between items-center hover:bg-white/[0.02] transition-all group cursor-help" title="Locked: Click to navigate to this referrer's record.">
                                         <span className="text-[12px] text-slate-500 font-normal">Affiliate Referrer</span>
                                         <div className="flex-1 flex justify-end items-center gap-3">
                                             <div 
@@ -229,6 +234,7 @@ export default function CrmDetailPanel({
                                         onSave={() => handleSaveField('org')}
                                         onChange={setEditValue}
                                         placeholder="Add organization..."
+                                        tooltip="Professional affiliation or company name."
                                     />
                                 </div>
                             </section>
@@ -243,6 +249,7 @@ export default function CrmDetailPanel({
                                     <button 
                                         onClick={() => setIsAddingNote(true)}
                                         className="text-[9px] text-[#22D3EE] uppercase font-bold tracking-widest hover:brightness-110 transition-all flex items-center gap-1"
+                                        title="Create a new note"
                                     >
                                         <Plus className="w-3 h-3" /> Add Note
                                     </button>
@@ -284,7 +291,7 @@ export default function CrmDetailPanel({
                                 <div className="space-y-2">
                                     {person.notes.length > 0 ? (
                                         person.notes.map((n) => (
-                                            <div key={n.id} className="p-4 bg-white/[0.02] border border-white/5 rounded-[5px] space-y-3 group cursor-pointer hover:bg-white/[0.04] transition-all">
+                                            <div key={n.id} className="p-4 bg-white/[0.02] border border-white/5 rounded-[5px] space-y-3 group cursor-pointer hover:bg-white/[0.04] transition-all" title="Click to view full note or pin it.">
                                                 <div className="flex items-center justify-between">
                                                     <div className="flex items-center gap-2">
                                                         <div className="w-6 h-6 rounded-full bg-[#22D3EE]/10 flex items-center justify-center text-[10px] font-bold text-[#22D3EE]">
@@ -296,6 +303,7 @@ export default function CrmDetailPanel({
                                                     <button 
                                                         onClick={(e) => { e.stopPropagation(); togglePin(n.id); }}
                                                         className="text-slate-600 hover:text-[#22D3EE] transition-colors"
+                                                        title={ (n as any).pinned ? "Unpin note" : "Pin note to top" }
                                                     >
                                                         {(n as any).pinned ? <Pin className="w-3.5 h-3.5 text-[#22D3EE]" /> : <PinOff className="w-3.5 h-3.5" />}
                                                     </button>
@@ -316,10 +324,10 @@ export default function CrmDetailPanel({
                                     <h4 className="text-[11px] font-bold text-slate-300 uppercase tracking-widest">Cross-Links</h4>
                                 </div>
                                 <div className="flex flex-wrap gap-2">
-                                    <button className="flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded-full text-[10px] font-bold text-white uppercase tracking-widest hover:bg-white/10 transition-all">
+                                    <button className="flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded-full text-[10px] font-bold text-white uppercase tracking-widest hover:bg-white/10 transition-all" title="Navigate to the Affiliates module for this node.">
                                         <Users className="w-3 h-3 text-[#22D3EE]" /> View Affiliates
                                     </button>
-                                    <button className="flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded-full text-[10px] font-bold text-white uppercase tracking-widest hover:bg-white/10 transition-all">
+                                    <button className="flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded-full text-[10px] font-bold text-white uppercase tracking-widest hover:bg-white/10 transition-all" title="View active telemetry and metrics for this node.">
                                         <Activity className="w-3 h-3 text-green-400" /> Active Nodes
                                     </button>
                                 </div>
@@ -333,12 +341,12 @@ export default function CrmDetailPanel({
 }
 
 function EditableField({ 
-    label, value, isEditing, onEdit, onSave, onChange, placeholder = "—", mono 
+    label, value, isEditing, onEdit, onSave, onChange, placeholder = "—", mono, tooltip 
 }: { 
-    label: string, value?: string, isEditing: boolean, onEdit: () => void, onSave: () => void, onChange: (v: string) => void, placeholder?: string, mono?: boolean 
+    label: string, value?: string, isEditing: boolean, onEdit: () => void, onSave: () => void, onChange: (v: string) => void, placeholder?: string, mono?: boolean, tooltip?: string 
 }) {
     return (
-        <div className="p-4 flex justify-between items-center hover:bg-white/[0.02] transition-all group">
+        <div className="p-4 flex justify-between items-center hover:bg-white/[0.02] transition-all group cursor-help" title={tooltip}>
             <span className="text-[12px] text-slate-500 font-normal">{label}</span>
             <div className="flex-1 flex justify-end items-center gap-3">
                 {isEditing ? (
@@ -350,14 +358,15 @@ function EditableField({
                             onChange={(e) => onChange(e.target.value)}
                             onBlur={onSave}
                             onKeyDown={(e) => e.key === 'Enter' && onSave()}
-                            className="w-full bg-white/5 border border-[#22D3EE]/30 rounded px-2 py-1 text-[13px] text-white focus:outline-none focus:border-[#22D3EE] transition-all"
+                            className="w-full bg-black/40 border border-[#22D3EE]/30 rounded px-2 py-1 text-[13px] text-white focus:outline-none focus:border-[#22D3EE] transition-all"
                         />
-                        <button onClick={onSave} className="text-[#22D3EE] text-[10px] font-bold uppercase">Save</button>
+                        <button onClick={onSave} className="text-[#22D3EE] text-[10px] font-bold uppercase hover:brightness-125 transition-all">Save</button>
                     </div>
                 ) : (
                     <div 
                         onClick={onEdit}
                         className={`text-[13px] ${value ? 'text-white' : 'text-slate-600 italic'} cursor-pointer hover:text-[#22D3EE] transition-colors ${mono ? 'font-mono' : ''} text-right truncate max-w-[200px]`}
+                        title="Click to edit field"
                     >
                         {value || placeholder}
                     </div>

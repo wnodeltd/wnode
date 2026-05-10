@@ -27,6 +27,9 @@ export interface CrmPerson {
   phone2?: string;
   affiliateReferrer?: string;
 
+  createdAt: string;
+  lastContact?: string;
+
   activeNodes: number;
   l1Affiliates: number;
   l2Affiliates: number;
