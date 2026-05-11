@@ -27,7 +27,7 @@ export default function CrmHelpPage() {
                         The User CRM is the authoritative registry for all platform participants. It anchors every individual to a unique Wnode Universal ID (WUID) and tracks their real-time financial and operational footprint.
                     </p>
 
-                    <ImagePlaceholder name="crm-slideout.png" />
+                    <img src="/docs/cmd/screenshots/crm-slideout.png" alt="CRM Slide-out" className="rounded-md border border-gray-700 shadow-2xl mb-12" />
 
                     <div className="space-y-16">
                         {/* 1. WUIDs (Universal IDs) */}

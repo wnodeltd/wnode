@@ -10,13 +10,13 @@ const topics = [
   {
     title: "Dashboard Overview",
     desc: "Real-time telemetry and global fleet oversight.",
-    href: "/help/overview",
+    href: "/help/dashboard",
     icon: <Layout className="w-5 h-5 text-cyan-400" />
   },
   {
     title: "CRM & WUIDs",
     desc: "Universal Identity and participant management.",
-    href: "/help/personnel",
+    href: "/help/crm",
     icon: <Users className="w-5 h-5 text-purple-400" />
   },
   {
@@ -28,7 +28,7 @@ const topics = [
   {
     title: "Nodes & Health",
     desc: "Compute health metrics and inventory lifecycle.",
-    href: "/help/inventory",
+    href: "/help/nodes",
     icon: <Activity className="w-5 h-5 text-orange-400" />
   },
   {

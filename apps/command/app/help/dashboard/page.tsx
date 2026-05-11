@@ -29,7 +29,7 @@ export default function HelpOverviewPage() {
                         and institutional economic stability.
                     </p>
 
-                    <ImagePlaceholder name="dashboard-overview.png" />
+                    <img src="/docs/cmd/screenshots/dashboard-overview.png" alt="Dashboard Overview" className="rounded-md border border-gray-700 shadow-2xl mb-12" />
 
                     <div className="space-y-16">
                         <section>

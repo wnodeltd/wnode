@@ -26,7 +26,7 @@ export default function NavigationHelpPage() {
                         The Command Portal is designed for high-density executive oversight. Understanding the sidebar, panels, and slide-out patterns is key to efficient resource management.
                     </p>
 
-                    <ImagePlaceholder name="cmd-navigation.png" />
+                    <img src="/docs/cmd/screenshots/cmd-navigation.png" alt="CMD Navigation" className="rounded-md border border-gray-700 shadow-2xl mb-12" />
 
                     <div className="space-y-16">
                         {/* 1. Global Sidebar */}

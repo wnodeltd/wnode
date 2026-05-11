@@ -28,7 +28,7 @@ export default function NodesHelpPage() {
                         Administrators can monitor health, evaluate compute scores, and investigate offline events.
                     </p>
 
-                    <ImagePlaceholder name="nodes-overview.png" />
+                    <img src="/docs/cmd/screenshots/nodes-overview.png" alt="Nodes Overview" className="rounded-md border border-gray-700 shadow-2xl mb-12" />
 
                     <div className="space-y-16">
                         {/* 1. Node Status */}

@@ -32,7 +32,7 @@ export default function LedgerHelpPage() {
                         It provides an immutable, cryptographically-verified ledger of all network value transitions.
                     </p>
 
-                    <ImagePlaceholder name="ledger-statements.png" />
+                    <img src="/docs/cmd/screenshots/ledger-statements.png" alt="Ledger Statements" className="rounded-md border border-gray-700 shadow-2xl mb-12" />
 
                     <div className="space-y-16">
                         {/* 1. Payments In (Compute & Billing) */}
