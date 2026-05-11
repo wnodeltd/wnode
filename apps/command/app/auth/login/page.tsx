@@ -38,6 +38,7 @@ export default function LoginPage() {
 
             const res = await fetch('/api/auth/debug-session', {
                 method: 'POST',
+                credentials: 'include',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(body)
             });
