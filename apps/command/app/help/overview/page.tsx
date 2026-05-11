@@ -5,6 +5,8 @@ import Link from "next/link";
 import { ChevronLeft, Info, BookOpen, ShieldCheck, Activity } from "lucide-react";
 import { usePageTitle } from "../../components/PageTitleContext";
 
+import ImagePlaceholder from "../components/ImagePlaceholder";
+
 export default function HelpOverviewPage() {
     usePageTitle("Platform Overview", "High-level understanding of the Wnode Command ecosystem.");
 
@@ -27,73 +29,45 @@ export default function HelpOverviewPage() {
                         and institutional economic stability.
                     </p>
 
+                    <ImagePlaceholder name="dashboard-overview.png" />
+
                     <div className="space-y-16">
                         <section>
                             <h2 className="text-[11px] font-bold text-cyan-400 uppercase tracking-[0.3em] mb-6 flex items-center gap-2">
                                 <BookOpen className="w-4 h-4" />
-                                Core Architecture
+                                1. Dashboard Overview
                             </h2>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                <div className="space-y-4">
-                                    <h3 className="text-white text-sm font-bold">The Mesh Layer</h3>
-                                    <p className="text-slate-400 text-[13px] leading-relaxed">
-                                        A globally distributed network of operator nodes that execute compute tasks. 
-                                        Each node is verified through cryptographic pairing and hardware fingerprints.
-                                    </p>
-                                </div>
-                                <div className="space-y-4">
-                                    <h3 className="text-white text-sm font-bold">The Executive Engine</h3>
-                                    <p className="text-slate-400 text-[13px] leading-relaxed">
-                                        An automated settlement and monitoring system that captures performance and 
-                                        distributes rewards based on the 80/20 platform economic manifest.
-                                    </p>
-                                </div>
-                            </div>
-                        </section>
-
-                        <section>
-                            <h2 className="text-[11px] font-bold text-cyan-400 uppercase tracking-[0.3em] mb-6 flex items-center gap-2">
-                                <ShieldCheck className="w-4 h-4" />
-                                Operational Trust
-                            </h2>
-                            <ul className="space-y-4">
-                                <li className="flex gap-4 p-4 bg-white/[0.01] border border-white/5 rounded">
-                                    <span className="text-cyan-400 font-mono text-xs">01</span>
-                                    <div>
-                                        <p className="text-white text-xs font-bold mb-1">Real-time Telemetry</p>
-                                        <p className="text-slate-500 text-[12px]">Every node heartbeat and API request is evaluated for network integrity and latency thresholds.</p>
-                                    </div>
-                                </li>
-                                <li className="flex gap-4 p-4 bg-white/[0.01] border border-white/5 rounded">
-                                    <span className="text-cyan-400 font-mono text-xs">02</span>
-                                    <div>
-                                        <p className="text-white text-xs font-bold mb-1">Institutional Oversight</p>
-                                        <p className="text-slate-500 text-[12px]">Authoritative management of founder affiliate layers and personnel RBAC tiers.</p>
-                                    </div>
-                                </li>
+                            <p className="text-slate-400 text-[13px] leading-relaxed mb-6">
+                                The Command Centre Operations dashboard provides a high-density, real-time visualization of the global mesh network. 
+                                It is divided into three primary functional zones: Vitals, Operational Metrics, and the Global Fleet Map.
+                            </p>
+                            <ul className="list-disc pl-5 text-[12px] text-slate-400 space-y-2 mb-8">
+                                <li><strong>Network Vitals:</strong> High-level aggregates of vCPUs, RAM, and growth metrics.</li>
+                                <li><strong>Operational Status:</strong> Real-time health indicators including API latency and backend connectivity.</li>
+                                <li><strong>Global Fleet Map:</strong> A geospatial representation of all active and inactive nodes worldwide.</li>
                             </ul>
                         </section>
 
                         <section>
                             <h2 className="text-[11px] font-bold text-cyan-400 uppercase tracking-[0.3em] mb-6 flex items-center gap-2">
-                                <Activity className="w-4 h-4" />
-                                Executive Metrics
+                                <ShieldCheck className="w-4 h-4" />
+                                2. How Metrics Work
                             </h2>
                             <p className="text-slate-400 text-[13px] leading-relaxed mb-6">
-                                The main dashboard provides high-density visibility into the ecosystem's momentum:
+                                Metrics are polled every 10 seconds from the authoritative backend. Each card provides specific tooltips explaining the data source.
                             </p>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-                                <div className="p-4 border border-white/5 bg-white/[0.01]">
-                                    <p className="text-[10px] text-slate-500 uppercase tracking-widest mb-2">Capacity</p>
-                                    <p className="text-white text-xs font-medium">Network Compute (vCPUs)</p>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                <div className="space-y-4">
+                                    <h3 className="text-white text-sm font-bold">Capacity Metrics</h3>
+                                    <p className="text-slate-400 text-[13px] leading-relaxed">
+                                        Total Cores and Unified Memory represent the aggregate resources available for compute jobs across the entire network.
+                                    </p>
                                 </div>
-                                <div className="p-4 border border-white/5 bg-white/[0.01]">
-                                    <p className="text-[10px] text-slate-500 uppercase tracking-widest mb-2">Growth</p>
-                                    <p className="text-white text-xs font-medium">New Users This Month</p>
-                                </div>
-                                <div className="p-4 border border-white/5 bg-white/[0.01]">
-                                    <p className="text-[10px] text-slate-500 uppercase tracking-widest mb-2">Health</p>
-                                    <p className="text-white text-xs font-medium">API Latency (ms)</p>
+                                <div className="space-y-4">
+                                    <h3 className="text-white text-sm font-bold">Growth Metrics</h3>
+                                    <p className="text-slate-400 text-[13px] leading-relaxed">
+                                        New Users and Nodes tracked over the current billing period compared to the previous month.
+                                    </p>
                                 </div>
                             </div>
                         </section>
@@ -101,7 +75,7 @@ export default function HelpOverviewPage() {
                 </div>
 
                 <div className="mt-12 text-center">
-                    <p className="text-slate-600 text-[10px] uppercase tracking-[0.2em]">© 2025 Wnode Technologies // Executive Documentation</p>
+                    <p className="text-slate-600 text-[10px] uppercase tracking-[0.2em]">© 2026 Wnode Technologies // Executive Documentation</p>
                 </div>
             </div>
         </main>

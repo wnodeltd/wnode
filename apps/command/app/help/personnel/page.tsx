@@ -2,14 +2,16 @@
 
 import React from "react";
 import Link from "next/link";
-import { ChevronLeft, ShieldCheck, Users, Mail, Ban, Lock, BadgeCheck, ShieldAlert, Search } from "lucide-react";
+import { ChevronLeft, ShieldCheck, Users, Mail, Ban, Lock, BadgeCheck, ShieldAlert, Search, DollarSign } from "lucide-react";
 import { usePageTitle } from "../../components/PageTitleContext";
 
-export default function PersonnelHelpPage() {
-    usePageTitle("Personnel Governance", "Operational guidance for staff roles and access control.");
+import ImagePlaceholder from "../components/ImagePlaceholder";
+
+export default function CrmHelpPage() {
+    usePageTitle("User CRM & WUIDs", "Authoritative identity and financial ledger registry.");
 
     return (
-        <main className="flex-1 p-8 overflow-y-auto pb-24 font-sans">
+        <main className="flex-1 p-8 overflow-y-auto pb-24 font-sans text-slate-300">
             <div className="max-w-4xl mx-auto">
                 <Link 
                     href="/help" 
@@ -19,116 +21,60 @@ export default function PersonnelHelpPage() {
                     Back to Help Center
                 </Link>
 
-                <div className="bg-white/[0.02] border border-white/10 p-12 rounded-[5px]">
-                    <h1 className="text-3xl font-bold text-white mb-4 uppercase tracking-tighter">Personnel Governance</h1>
+                <div className="bg-white/[0.02] border border-white/10 p-12 rounded-[5px] shadow-2xl">
+                    <h1 className="text-3xl font-bold text-white mb-4 uppercase tracking-tighter">User CRM Database</h1>
                     <p className="text-slate-400 text-sm leading-relaxed mb-12 max-w-2xl">
-                        The Command Portal utilizes a strict Role-Based Access Control (RBAC) system to ensure platform security. 
-                        Administrators can manage staff identities, assign operational tiers, and monitor access integrity.
+                        The User CRM is the authoritative registry for all platform participants. It anchors every individual to a unique Wnode Universal ID (WUID) and tracks their real-time financial and operational footprint.
                     </p>
 
+                    <ImagePlaceholder name="crm-slideout.png" />
+
                     <div className="space-y-16">
-                        <section>
+                        {/* 1. WUIDs (Universal IDs) */}
+                        <section id="wuids" className="scroll-mt-20">
                             <h2 className="text-[11px] font-bold text-cyan-400 uppercase tracking-[0.3em] mb-6 flex items-center gap-2">
                                 <BadgeCheck className="w-4 h-4" />
-                                Operational Tiers
-                            </h2>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="p-6 bg-white/[0.02] border border-white/5 rounded-[5px] space-y-3">
-                                    <div className="flex items-center gap-2 text-cyan-400">
-                                        <Lock className="w-4 h-4" />
-                                        <h3 className="text-xs font-bold uppercase tracking-widest">Owner (Sovereign)</h3>
-                                    </div>
-                                    <p className="text-slate-400 text-[13px] leading-relaxed">
-                                        Full platform authority. Access to all financial ledgers, system overrides, 
-                                        and the ability to assign/revoke Management roles. Limited to exactly one active account.
-                                    </p>
-                                </div>
-                                <div className="p-6 bg-white/[0.02] border border-white/5 rounded-[5px] space-y-3">
-                                    <div className="flex items-center gap-2 text-purple-400">
-                                        <ShieldAlert className="w-4 h-4" />
-                                        <h3 className="text-xs font-bold uppercase tracking-widest">Management</h3>
-                                    </div>
-                                    <p className="text-slate-400 text-[13px] leading-relaxed">
-                                        High-privilege access for cluster operations. Can manage personnel, monitor network 
-                                        inventory, and access institutional financial stats.
-                                    </p>
-                                </div>
-                                <div className="p-6 bg-white/[0.02] border border-white/5 rounded-[5px] space-y-3">
-                                    <div className="flex items-center gap-2 text-emerald-400">
-                                        <Users className="w-4 h-4" />
-                                        <h3 className="text-xs font-bold uppercase tracking-widest">Customer Service</h3>
-                                    </div>
-                                    <p className="text-slate-400 text-[13px] leading-relaxed">
-                                        Support-tier access. Can view node telemetry and operator profiles to assist with 
-                                        onboarding and technical troubleshooting.
-                                    </p>
-                                </div>
-                                <div className="p-6 bg-white/[0.02] border border-white/5 rounded-[5px] space-y-3">
-                                    <div className="flex items-center gap-2 text-slate-500">
-                                        <Search className="w-4 h-4" />
-                                        <h3 className="text-xs font-bold uppercase tracking-widest">Visitor</h3>
-                                    </div>
-                                    <p className="text-slate-400 text-[13px] leading-relaxed">
-                                        Read-only transparency tier. Restricted to public-facing telemetry and basic platform metrics. 
-                                        Cannot perform state-modifying actions.
-                                    </p>
-                                </div>
-                            </div>
-                        </section>
-
-                        <section>
-                            <h2 className="text-[11px] font-bold text-cyan-400 uppercase tracking-[0.3em] mb-6 flex items-center gap-2">
-                                <Mail className="w-4 h-4" />
-                                Invitation Workflow
-                            </h2>
-                            <div className="space-y-4">
-                                <div className="bg-black/40 border border-white/5 p-6 rounded-[5px] flex gap-4">
-                                    <div className="w-8 h-8 rounded-full bg-cyan-400/10 flex items-center justify-center shrink-0">
-                                        <span className="text-cyan-400 text-xs font-bold">01</span>
-                                    </div>
-                                    <p className="text-slate-400 text-[13px] leading-relaxed">
-                                        <strong className="text-white">Secure Invite:</strong> Administrators provide a canonical email and assign a role. 
-                                        The system generates a time-limited invitation token.
-                                    </p>
-                                </div>
-                                <div className="bg-black/40 border border-white/5 p-6 rounded-[5px] flex gap-4">
-                                    <div className="w-8 h-8 rounded-full bg-cyan-400/10 flex items-center justify-center shrink-0">
-                                        <span className="text-cyan-400 text-xs font-bold">02</span>
-                                    </div>
-                                    <p className="text-slate-400 text-[13px] leading-relaxed">
-                                        <strong className="text-white">Verification:</strong> The user receives a secure link to authenticate and initialize 
-                                        their specific personnel credentials.
-                                    </p>
-                                </div>
-                                <div className="bg-black/40 border border-white/5 p-6 rounded-[5px] flex gap-4">
-                                    <div className="w-8 h-8 rounded-full bg-cyan-400/10 flex items-center justify-center shrink-0">
-                                        <span className="text-cyan-400 text-xs font-bold">03</span>
-                                    </div>
-                                    <p className="text-slate-400 text-[13px] leading-relaxed">
-                                        <strong className="text-white">Activation:</strong> Once claimed, the account status moves to <span className="text-cyan-400">ACTIVE</span>, 
-                                        enabling permissions for the assigned operational tier.
-                                    </p>
-                                </div>
-                            </div>
-                        </section>
-
-                        <section>
-                            <h2 className="text-[11px] font-bold text-cyan-400 uppercase tracking-[0.3em] mb-6 flex items-center gap-2">
-                                <Ban className="w-4 h-4" />
-                                Access Enforcement
+                                1. What is a WUID?
                             </h2>
                             <p className="text-slate-400 text-[13px] leading-relaxed mb-6">
-                                Administrators can terminate or suspend access via the <strong className="text-white">Actions</strong> menu:
+                                A WUID (Wnode Universal ID) is the canonical identifier for any account in the ecosystem. It is immutable and serves as the primary key for all ledger transactions, affiliate mappings, and node ownership.
                             </p>
-                            <ul className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <li className="px-4 py-3 border border-white/5 bg-white/[0.01]">
-                                    <p className="text-white text-[11px] font-bold uppercase tracking-widest mb-1">Suspend Access</p>
-                                    <p className="text-slate-500 text-[12px]">Renders the account dormant. The user cannot authenticate until reinstated.</p>
-                                </li>
-                                <li className="px-4 py-3 border border-white/5 bg-white/[0.01]">
-                                    <p className="text-white text-[11px] font-bold uppercase tracking-widest mb-1">Remove User</p>
-                                    <p className="text-slate-500 text-[12px]">Purges the account record and revokes all identity-based permissions permanently.</p>
-                                </li>
+                            <ul className="list-disc pl-5 text-[12px] text-slate-400 space-y-2 mb-8">
+                                <li><strong>Format:</strong> Typically structured as <code>100001-XXXX-XX-AA</code>.</li>
+                                <li><strong>Anchored Finances:</strong> All Stripe PaymentIntents are tagged with the user's WUID for automated reconciliation.</li>
+                                <li><strong>Role Identification:</strong> WUIDs distinguish between Mesh (compute providers) and Nodlr (earners) roles.</li>
+                            </ul>
+                        </section>
+
+                        {/* 2. CRM Slide-Out Operations */}
+                        <section id="slide-out" className="scroll-mt-20">
+                            <h2 className="text-[11px] font-bold text-cyan-400 uppercase tracking-[0.3em] mb-6 flex items-center gap-2">
+                                <Search className="w-4 h-4" />
+                                2. CRM Slide-Out Operations
+                            </h2>
+                            <p className="text-slate-400 text-[13px] leading-relaxed mb-6">
+                                Clicking any user row in the CRM database opens the Detail Slide-out. This provides a deep-dive into the user's identity, contact info, and financial history without leaving the main list view.
+                            </p>
+                            <ul className="list-disc pl-5 text-[12px] text-slate-400 space-y-2 mb-8">
+                                <li><strong>Identity Verification:</strong> View official email, phone, and address data.</li>
+                                <li><strong>Network Status:</strong> Real-time count of active nodes and affiliate network depth.</li>
+                                <li><strong>Operational Logs:</strong> A timeline of events related to the user's account.</li>
+                            </ul>
+                        </section>
+
+                        {/* 3. Payments In/Out Visualization */}
+                        <section id="payments" className="scroll-mt-20">
+                            <h2 className="text-[11px] font-bold text-cyan-400 uppercase tracking-[0.3em] mb-6 flex items-center gap-2">
+                                <DollarSign className="w-4 h-4" />
+                                3. Payments In/Out Visualization
+                            </h2>
+                            <p className="text-slate-400 text-[13px] leading-relaxed mb-6">
+                                The CRM slide-out includes a dedicated Financials tab that displays the WUID-anchored ledger.
+                            </p>
+                            <ul className="list-disc pl-5 text-[12px] text-slate-400 space-y-2 mb-8">
+                                <li><strong>Payments In:</strong> Billing events, compute top-ups, and subscription payments.</li>
+                                <li><strong>Payments Out:</strong> Earnings distributions, commissions, and payout transfers.</li>
+                                <li><strong>Direct Trace:</strong> Each entry links directly to the authoritative Stripe record.</li>
                             </ul>
                         </section>
                     </div>
@@ -141,3 +87,4 @@ export default function PersonnelHelpPage() {
         </main>
     );
 }
+
