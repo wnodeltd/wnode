@@ -300,11 +300,6 @@ func (s *Server) handleHealth(c *fiber.Ctx) error {
 }
 
 func (s *Server) handleStats(c *fiber.Ctx) error {
-	peerCount := 0
-	if s.host != nil {
-		peerCount = s.host.PeerCount()
-	}
-
 	uptime := time.Since(s.startTime).Round(time.Second)
 
 	// Calculate Monthly Metrics (UTC)
@@ -335,8 +330,22 @@ func (s *Server) handleStats(c *fiber.Ctx) error {
 		}
 	}
 
+	activeNodes := 0
+	totalNodes := 0
+	if s.accountStore != nil {
+		nodes := s.accountStore.ListAllNodes()
+		totalNodes = len(nodes)
+		for _, n := range nodes {
+			if n.Status == "active" {
+				activeNodes++
+			}
+		}
+	}
+
 	return c.JSON(fiber.Map{
-		"activeNodes":         peerCount + 1,
+		"activeNodes":         activeNodes,
+		"totalNodes":          totalNodes,
+		"offlineNodes":        totalNodes - activeNodes,
 		"networkLoad":         15,
 		"version":             fmt.Sprintf("Go %s", "1.25.8"),
 		"uptime":              uptime.String(),
@@ -357,9 +366,11 @@ func (s *Server) handleNodesSummary(c *fiber.Ctx) error {
 	if s.accountStore != nil {
 		nodes := s.accountStore.ListAllNodes()
 		totalNodes = len(nodes)
-	}
-	if s.host != nil {
-		activeNodes = s.host.PeerCount() + 1
+		for _, n := range nodes {
+			if n.Status == "active" {
+				activeNodes++
+			}
+		}
 	}
 
 	offlineNodes := totalNodes - activeNodes
