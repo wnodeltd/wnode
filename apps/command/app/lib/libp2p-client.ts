@@ -35,6 +35,15 @@ export async function startNodlNode() {
       // 3. Start libp2p
       try {
         libp2p = await createLibp2p({
+          connectionGater: {
+            denyDialPeer: () => Promise.resolve(false),
+            denyDialMultiaddr: () => Promise.resolve(false),
+            denyInboundConnection: () => Promise.resolve(false),
+            denyOutboundConnection: () => Promise.resolve(false),
+            denyInboundUpgrade: () => Promise.resolve(false),
+            denyOutboundUpgrade: () => Promise.resolve(false),
+            filterMultiaddrForPeer: () => Promise.resolve(true)
+          },
           transports: [
             webSockets({
               filter: filters.all

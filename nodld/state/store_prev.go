@@ -121,7 +121,27 @@ func (s *Store) SeedFoundationIdentities() {
 		n.Verified = true
 	}
 
-	// 2. Test User (Read-Only Observer) - REMOVED placeholder account
+	// 2. Test User (Read-Only Observer)
+	testUserID := "100002-0426-01-AA"
+	if n, ok := s.nodlrs[testUserID]; !ok {
+		s.nodlrs[testUserID] = &Nodlr{
+			ID:                 testUserID,
+			Email:              "test@user.com",
+			DisplayName:        "Test User",
+			Role:               RoleObserver,
+			Permissions:        ObserverPermissions,
+			IsProtected:        true,
+			OnboardingComplete: true,
+			Verified:           true,
+			Status:             "active",
+			CreatedAt:          time.Now(),
+		}
+	} else {
+		n.DisplayName = "Test User"
+		n.Role = RoleObserver
+		n.Permissions = ObserverPermissions
+		n.IsProtected = true
+	}
 }
 
 func stringPtr(s string) *string {

@@ -19,8 +19,10 @@ import (
 	"github.com/libp2p/go-libp2p/p2p/transport/tcp"
 	libp2pwebrtc "github.com/libp2p/go-libp2p/p2p/transport/webrtc"
 	libp2pwebtransport "github.com/libp2p/go-libp2p/p2p/transport/webtransport"
+	libp2pnetwork "github.com/libp2p/go-libp2p/core/network"
 	"github.com/libp2p/go-libp2p/p2p/transport/websocket"
 	"github.com/multiformats/go-multiaddr"
+	"github.com/obregan/nodl/nodld/internal/network"
 	"go.uber.org/zap"
 )
 
@@ -94,11 +96,18 @@ func New(ctx context.Context, p2pPort int, priv crypto.PrivKey, bootstrapPeers [
 		libp2p.Transport(libp2pwebrtc.New),
 		libp2p.Transport(libp2pwebtransport.New),
 		libp2p.ConnectionManager(cm),
+		libp2p.ConnectionGater(network.NewConnectionGater()),
 		libp2p.EnableRelayService(), // Enable Circuit Relay v2 Service
 	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create libp2p host: %w", err)
 	}
+
+	// Register a dummy protocol handler to satisfy the browser's registration attempt
+	h.SetStreamHandler("/nodl/register/1.0.0", func(s libp2pnetwork.Stream) {
+		log.Info("Received registration stream from browser", zap.String("peer", s.Conn().RemotePeer().String()))
+		s.Reset()
+	})
 
 	log.Info("libp2p Anchor host started",
 		zap.String("id", h.ID().String()),
