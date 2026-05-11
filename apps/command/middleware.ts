@@ -16,6 +16,7 @@ export function middleware(request: NextRequest) {
       // Allow the identity and auth endpoints to be handled by the proxy/handler
       if (request.nextUrl.pathname === '/api/account/me' || 
           request.nextUrl.pathname.startsWith('/api/auth') ||
+          request.nextUrl.pathname.startsWith('/api/v1/stripe/ledger') ||
           request.nextUrl.pathname.startsWith('/api/discord')) {
         return NextResponse.next();
       }

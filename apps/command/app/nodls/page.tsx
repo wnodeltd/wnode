@@ -14,7 +14,7 @@ import MetricCard from "../components/MetricCard";
 
 export default function NodlsPage() {
     usePageTitle("Global Node Registry", "Monitor and manage all compute hardware across the Nodl mesh.");
-    const [nodls, setNodls] = useState<any[]>([]);
+    const [nodls, setNodls] = useState<any>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState("");
     const [filterTier, setFilterTier] = useState("All");
@@ -43,15 +43,25 @@ export default function NodlsPage() {
         return () => clearInterval(interval);
     }, []);
 
-    const filteredNodls = Array.isArray(nodls) ? nodls.filter(n => {
+    const list = Array.isArray(nodls)
+        ? nodls
+        : Array.isArray(nodls?.nodlrs)
+            ? nodls.nodlrs
+            : [];
+
+    const filteredNodls = list.filter((n: any) => {
         const idMatches = (n.id || n.node_id)?.toLowerCase().includes(search.toLowerCase());
         const userMatches = (n.userID || n.user_id)?.toLowerCase().includes(search.toLowerCase());
         const matchesSearch = idMatches || userMatches;
         const matchesTier = filterTier === "All" || n.tier === filterTier;
         return matchesSearch && matchesTier;
-    }) : [];
+    });
 
     const tiers = ["All", "Standard", "Boost", "Ultra", "DECC"];
+
+    if (!Array.isArray(list)) {
+        return <div className="p-4 text-red-500">Invalid node list format</div>;
+    }
 
     return (
         <>
@@ -61,14 +71,14 @@ export default function NodlsPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                     <MetricCard 
                         label="Total Nodes" 
-                        value={nodls.length} 
+                        value={list.length} 
                         icon={Server} 
                         statusColor="text-[#22D3EE]" 
                         sub="Global Registry"
                     />
                     <MetricCard 
                         label="Online Now" 
-                        value={nodls.filter(n => n.status === 'online' || n.status === 'active').length} 
+                        value={list.filter((n: any) => n.status === 'online' || n.status === 'active').length} 
                         icon={Activity} 
                         statusColor="text-green-400" 
                         sub="Active Peers"
@@ -76,7 +86,7 @@ export default function NodlsPage() {
                     />
                     <MetricCard 
                         label="Total Compute" 
-                        value={nodls.reduce((acc, n) => acc + (n.cpuCores || n.cpu_cores || 0), 0)} 
+                        value={list.reduce((acc: number, n: any) => acc + (n.cpuCores || n.cpu_cores || 0), 0)} 
                         unit="Cores"
                         icon={Cpu} 
                         statusColor="text-purple-400" 
@@ -84,7 +94,7 @@ export default function NodlsPage() {
                     />
                     <MetricCard 
                         label="Memory Pool" 
-                        value={nodls.reduce((acc, n) => acc + (n.memoryGB || n.memory_gb || 0), 0)} 
+                        value={list.reduce((acc: number, n: any) => acc + (n.memoryGB || n.memory_gb || 0), 0)} 
                         unit="GB"
                         icon={HardDrive} 
                         statusColor="text-blue-400" 
