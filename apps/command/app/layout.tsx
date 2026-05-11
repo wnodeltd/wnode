@@ -14,6 +14,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <html lang="en">
             <head>
                 <meta httpEquiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: filesystem:;" />
+                <link rel="icon" href="/favicon.ico" />
+                <title>Wnode Command</title>
             </head>
             <body
                 suppressHydrationWarning
