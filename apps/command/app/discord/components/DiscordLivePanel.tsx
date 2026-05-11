@@ -48,26 +48,38 @@ export default function DiscordLivePanel() {
     fetchInitialData();
 
     // SSE Subscription
-    const eventSource = new EventSource('/api/discord/gateway/stream');
+    let eventSource: EventSource | null = null;
     
-    eventSource.onopen = () => {
-      console.log("SSE Stream Connected");
-    };
+    try {
+      eventSource = new EventSource('/api/discord/gateway/stream');
+      
+      eventSource.onopen = () => {
+        console.log("SSE Stream Connected");
+      };
 
-    eventSource.onmessage = (event) => {
-      const payload = JSON.parse(event.data);
-      if (payload.t === 'MESSAGE_CREATE') {
-        setMessages(prev => [...prev.slice(-49), payload.d]);
-      }
-    };
+      eventSource.onmessage = (event) => {
+        try {
+          const payload = JSON.parse(event.data);
+          if (payload.t === 'MESSAGE_CREATE') {
+            setMessages(prev => [...prev.slice(-49), payload.d]);
+          }
+        } catch (parseErr) {
+          console.warn("Discord SSE parse error (non-fatal):", parseErr);
+        }
+      };
 
-    eventSource.onerror = (err) => {
-      console.error("SSE Connection Error:", err);
-      // setError("Live connection interrupted. Retrying...");
-    };
+      eventSource.onerror = (err) => {
+        // SSE often disconnects on tab sleep or network changes. 
+        // We log a non-fatal warning to avoid console spam.
+        console.warn("Discord SSE connection closed (non-fatal):", err);
+        eventSource?.close();
+      };
+    } catch (err) {
+      console.warn("Discord SSE setup failed (non-fatal):", err);
+    }
 
     return () => {
-      eventSource.close();
+      eventSource?.close();
     };
   }, []);
 

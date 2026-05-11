@@ -16,7 +16,8 @@ export default function AiIntelligencePanel() {
         setLoading(false);
       })
       .catch(err => {
-        console.error('AI status fetch failed:', err);
+        // AI status is non-critical telemetry; log as warning
+        console.warn('AI status fetch failed (non-fatal):', err);
         setError(true);
         setLoading(false);
       });

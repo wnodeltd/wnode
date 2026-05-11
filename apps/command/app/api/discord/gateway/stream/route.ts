@@ -1,25 +1,37 @@
 import { discordGateway } from "../../../../discord/gateway/client";
 
 export async function GET() {
+  let controllerRef: ReadableStreamDefaultController | null = null;
+  let heartbeat: NodeJS.Timeout;
+
+  const onEvent = (event: any) => {
+    if (!controllerRef) return;
+    try {
+      console.log("SSE FORWARD:", event?.t);
+      const data = `data: ${JSON.stringify(event)}\n\n`;
+      controllerRef.enqueue(new TextEncoder().encode(data));
+    } catch (e) {
+      // Stream likely closed
+    }
+  };
+
   const stream = new ReadableStream({
     start(controller) {
-      const onEvent = (event: any) => {
-        console.log("SSE FORWARD:", event?.t);
-        const data = `data: ${JSON.stringify(event)}\n\n`;
-        controller.enqueue(new TextEncoder().encode(data));
-      };
-      
+      controllerRef = controller;
       discordGateway.on('discord_event', onEvent);
       
-      const heartbeat = setInterval(() => {
-        controller.enqueue(new TextEncoder().encode("event: ping\ndata: {}\n\n"));
+      heartbeat = setInterval(() => {
+        try {
+          controller.enqueue(new TextEncoder().encode("event: ping\ndata: {}\n\n"));
+        } catch (e) {
+          // Stream likely closed
+        }
       }, 15000);
-      
-      // Cleanup on close
-      return () => {
-        discordGateway.off('discord_event', onEvent);
-        clearInterval(heartbeat);
-      };
+    },
+    cancel() {
+      discordGateway.off('discord_event', onEvent);
+      clearInterval(heartbeat);
+      controllerRef = null;
     }
   });
   

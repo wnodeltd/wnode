@@ -55,7 +55,7 @@ export default function CommandCentrePage() {
                 setBackendOnline(false);
             }
         } catch (err) {
-            console.error("Dashboard fetch failed:", err);
+            console.warn("Dashboard vital fetch failed (backend potentially offline):", err);
             setError("Backend Offline");
             setBackendOnline(false);
         } finally {

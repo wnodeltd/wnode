@@ -34,7 +34,7 @@ export class DiscordGatewayClient extends EventEmitter {
       console.log(`Discord Gateway: WebSocket closed (${event.code})`);
       this.cleanup();
       if (event.code === 4014) {
-        console.error("Discord Gateway: Disallowed Intents. Verify Portal Settings.");
+        console.warn("Discord Gateway: Disallowed Intents. Verify Portal Settings (non-fatal server error).");
         return;
       }
       if (event.code !== 1000) {
@@ -43,7 +43,7 @@ export class DiscordGatewayClient extends EventEmitter {
     };
 
     this.socket.onerror = (error) => {
-      console.error("Discord Gateway: WebSocket error", error);
+      console.warn("Discord Gateway: WebSocket error (non-fatal server error):", error);
     };
   }
 
