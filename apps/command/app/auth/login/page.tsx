@@ -27,7 +27,6 @@ export default function LoginPage() {
         try {
             const body = { 
                 email: normalizedEmail, 
-                password: normalizedPassword, 
                 domain: 'command' 
             };
             console.log('[DEBUG-SESSION-REQ]', {

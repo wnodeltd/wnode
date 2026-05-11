@@ -66,14 +66,15 @@ export async function startNodlNode() {
         }
 
         // 4. Connect to Anchor
-        const anchorAddr = process.env.NEXT_PUBLIC_ANCHOR_MULTIADDR || `/ip4/127.0.0.1/tcp/10000/ws/p2p/${process.env.NEXT_PUBLIC_ANCHOR_PEER_ID || 'PEER_ID'}`;
+        const anchorMultiaddr = process.env.NEXT_PUBLIC_ANCHOR_MULTIADDR;
         
-        if (anchorAddr.includes('PEER_ID') || !process.env.NEXT_PUBLIC_ANCHOR_PEER_ID) {
-          console.warn("[libp2p] Anchor peer ID not configured. Skipping connection.");
+        if (!anchorMultiaddr) {
+          console.warn("[libp2p] NEXT_PUBLIC_ANCHOR_MULTIADDR not configured. Skipping connection.");
           return;
         }
-          const ma = multiaddr(anchorAddr);
-          console.log('[libp2p] Attempting to dial Anchor:', anchorAddr);
+
+        const ma = multiaddr(anchorMultiaddr);
+        console.log('[libp2p] Attempting to dial Anchor:', anchorMultiaddr);
           
           try {
             await libp2p.dial(ma);
