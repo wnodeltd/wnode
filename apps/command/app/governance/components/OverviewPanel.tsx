@@ -68,7 +68,7 @@ export default function OverviewPanel({ onCrmClick, onSectionClick }: OverviewPa
           >
             <div className="flex items-center gap-2">
               <div className="opacity-60 group-hover:opacity-100 transition-opacity">
-                {React.cloneElement(m.icon as React.ReactElement, { className: "w-[18px] h-[18px] " + (m.icon as React.ReactElement).props.className })}
+                {React.cloneElement(m.icon as React.ReactElement<any>, { className: "w-[18px] h-[18px] " + ((m.icon as React.ReactElement<any>).props.className || "") })}
               </div>
               <span className="text-[11px] text-white uppercase tracking-widest font-semibold">{m.label}</span>
             </div>
