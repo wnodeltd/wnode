@@ -16,14 +16,14 @@ export async function GET() {
         const data = await res.json();
 
         return NextResponse.json({
-            totalPartners: data.l1Count,
-            totalReferrals: data.totalReferrals,
-            totalRevenue: data.totalRevenue,
-            totalEarned: data.totalRevenue * 0.03, // Provisional
-            conversionRate: data.conversionRate.toFixed(1),
-            monthlyGrowth: data.monthlyGrowth || 12.5, // Default growth if not available
+            totalPartners: data.l1Count || 0,
+            totalReferrals: data.totalReferrals || 0,
+            totalRevenue: data.totalRevenue || 0,
+            totalEarned: data.totalEarned || 0, 
+            conversionRate: (data.conversionRate || 0).toFixed(1),
+            monthlyGrowth: data.monthlyGrowth || 0,
             activationVolume: data.activationVolume || 0,
-            nextPayoutTotal: (data.totalRevenue * 0.03) * 0.2 // Mock pending component for now
+            nextPayoutTotal: data.pendingPayout || 0
         });
     } catch (err) {
         console.error("Affiliate Stats API error:", err);

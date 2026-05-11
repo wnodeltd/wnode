@@ -6,14 +6,14 @@ export async function GET(req: NextRequest) {
     const headers = resolveIdentityHeaders(req);
     
     try {
-        const res = await fetch(`${MESH_API_URL}/api/v1/nodes`, { 
+        const res = await fetch(`${MESH_API_URL}/api/v1/nodes/summary`, { 
             headers,
             cache: 'no-store' 
         });
         const data = await res.json();
         return NextResponse.json(data);
     } catch (error) {
-        console.error('Nodls Proxy Error:', error);
-        return NextResponse.json([], { status: 500 });
+        console.error('Nodes Summary Proxy Error:', error);
+        return NextResponse.json({ totalNodes: 0, activeNodes: 0, offlineNodes: 0 }, { status: 500 });
     }
 }

@@ -2,7 +2,7 @@
 
 The Sovereign Money Engine is the authoritative financial core of the Wnode ecosystem.
 
-![Ledger Statements](../screenshots/ledger-statements.png)
+![Ledger (Financials)](../screenshots/ledger-statements.png)
 
 ## Ledger Components
 

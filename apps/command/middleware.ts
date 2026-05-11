@@ -3,6 +3,9 @@ import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
   const session = request.cookies.get('cmd_session')?.value;
+  const authHeader = request.headers.get('Authorization');
+  const hasAuthToken = authHeader && authHeader.startsWith('Bearer ');
+  
   const isAuthPage = request.nextUrl.pathname.startsWith('/auth') || request.nextUrl.pathname === '/login';
   const isApiPage = request.nextUrl.pathname.startsWith('/api');
 
@@ -10,8 +13,8 @@ export function middleware(request: NextRequest) {
                        request.nextUrl.pathname.endsWith('.webp') ||
                        request.nextUrl.pathname.endsWith('.ico');
 
-  // If no session and trying to access protected page
-  if (!session && !isAuthPage && !isPublicFile) {
+  // If no session and no auth token and trying to access protected page
+  if (!session && !hasAuthToken && !isAuthPage && !isPublicFile) {
     if (isApiPage) {
       // Allow the identity and auth endpoints to be handled by the proxy/handler
       if (request.nextUrl.pathname === '/api/account/me' || 

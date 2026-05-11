@@ -2,7 +2,7 @@
 
 The User CRM is the authoritative registry for all platform participants.
 
-![CRM Slide-out](../screenshots/crm-slideout.png)
+![CRM (Users & WUIDs)](../screenshots/crm-slideout.png)
 
 ## What is a WUID?
 A WUID (Wnode Universal ID) is the canonical identifier for any account in the ecosystem. It is immutable and serves as the primary key for:

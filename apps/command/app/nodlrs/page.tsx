@@ -12,25 +12,7 @@ import { CrmPerson, CrmEvent, CrmNote } from "./types";
 import CrmDetailPanel from "./components/CrmDetailPanel";
 import { usePageTitle } from "../components/PageTitleContext";
 
-const STEPHEN_SOOS: CrmPerson = {
-  wuid: "100001-0426-01-AA",
-  name: "Stephen Soos",
-  email: "stephen@wnode.one",
-  address: "",
-  phone1: "",
-  phone2: "",
-  affiliateReferrer: "Founder",
-  createdAt: "2024-01-01T00:00:00Z",
-  lastContact: new Date().toISOString(),
-  isNodlr: true,
-  isFounderOrPartner: true,
-  isMeshCustomer: true,
-  activeNodes: 0,
-  l1Affiliates: 0,
-  l2Affiliates: 0,
-  events: [],
-  notes: []
-};
+
 
 export default function UserCrmPage() {
     // Header Fix (Phase 2.5) - Canonical Application Header
@@ -70,31 +52,9 @@ export default function UserCrmPage() {
         }
     }, []);
 
-    // Initial Load & Migration
+    // Initial Load
     useEffect(() => {
-        const saved = localStorage.getItem('crm_records');
-        if (saved) {
-            try {
-                let parsed = JSON.parse(saved);
-                if (Array.isArray(parsed)) {
-                    const hasStephen = parsed.find(p => p.wuid === STEPHEN_SOOS.wuid);
-                    const records = hasStephen ? parsed : [STEPHEN_SOOS, ...parsed];
-                    const normalized = records.map(p => ({
-                        ...p,
-                        createdAt: p.createdAt || new Date().toISOString(),
-                        lastContact: p.lastContact || p.createdAt || new Date().toISOString(),
-                        isMeshCustomer: p.isMeshCustomer !== undefined ? p.isMeshCustomer : false,
-                        isNodlr: p.isNodlr !== undefined ? p.isNodlr : true
-                    }));
-                    setCrmRecords(normalized);
-                    verifyReferralTree(normalized);
-                }
-            } catch (e) {
-                console.error("Failed to load CRM records");
-            }
-        } else {
-            setCrmRecords([STEPHEN_SOOS]);
-        }
+        fetchData();
     }, [verifyReferralTree]);
 
     // Unified Fetch
@@ -152,7 +112,7 @@ export default function UserCrmPage() {
             }
 
             const unifiedMap = new Map<string, CrmPerson>();
-            [STEPHEN_SOOS, ...nodlrs, ...clients].forEach(p => {
+            [...nodlrs, ...clients].forEach(p => {
                 if (unifiedMap.has(p.wuid)) {
                     const existing = unifiedMap.get(p.wuid)!;
                     unifiedMap.set(p.wuid, {

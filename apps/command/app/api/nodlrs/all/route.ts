@@ -1,10 +1,15 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
+import { resolveIdentityHeaders } from '@/app/lib/identity';
 
-export async function GET() {
-    const DISCOVERY_URL = process.env.DISCOVERY_URL || 'http://localhost:8082';
+export async function GET(req: NextRequest) {
+    const MESH_API_URL = process.env.MESH_API_URL || 'http://localhost:8081';
+    const headers = resolveIdentityHeaders(req);
     
     try {
-        const res = await fetch(`${DISCOVERY_URL}/api/v1/nodlrs`, { cache: 'no-store' });
+        const res = await fetch(`${MESH_API_URL}/api/v1/nodlrs`, { 
+            headers,
+            cache: 'no-store' 
+        });
         const data = await res.json();
         return NextResponse.json(data);
     } catch (error) {

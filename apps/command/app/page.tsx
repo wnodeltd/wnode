@@ -38,22 +38,33 @@ export default function CommandCentrePage() {
     const fetchData = async () => {
         try {
             const t0 = performance.now();
-            const [nodesRes, nodlrsRes, statsRes] = await Promise.all([
+            const [nodesRes, nodlrsRes, statsRes, summaryRes] = await Promise.all([
                 fetch('/api/nodls/all'),
                 fetch('/api/nodlrs/all'),
-                fetch('/api/stats')
+                fetch('/api/stats'),
+                fetch('/api/nodls/summary')
             ]);
             const latency = Math.round(performance.now() - t0);
             setApiLatencyMs(latency);
             
             if (nodesRes.ok) setNodes(await nodesRes.json());
             if (nodlrsRes.ok) setNodlrs(await nodlrsRes.json());
+            
+            let combinedStats = { totalNodes: 0, activeNodes: 0, offlineNodes: 0 };
             if (statsRes.ok) {
-                setStats(await statsRes.json());
+                const baseStats = await statsRes.json();
+                combinedStats = { ...combinedStats, ...baseStats };
                 setBackendOnline(true);
             } else {
                 setBackendOnline(false);
             }
+
+            if (summaryRes.ok) {
+                const summary = await summaryRes.json();
+                combinedStats = { ...combinedStats, ...summary };
+            }
+            
+            setStats(combinedStats);
         } catch (err) {
             console.warn("Dashboard vital fetch failed (backend potentially offline):", err);
             setError("Backend Offline");
@@ -108,7 +119,7 @@ export default function CommandCentrePage() {
         },
     ];
 
-    const offlineNodes = (stats?.totalNodes || 0) - (stats?.activeNodes || 0);
+    const offlineNodes = stats?.offlineNodes || 0;
 
     const operational = [
         {

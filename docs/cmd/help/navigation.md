@@ -2,7 +2,7 @@
 
 Understanding the sidebar, panels, and slide-out patterns is key to efficient resource management.
 
-![CMD Navigation](../screenshots/cmd-navigation.png)
+![Navigation & Layout](../screenshots/cmd-navigation.png)
 
 ## Interface Patterns
 

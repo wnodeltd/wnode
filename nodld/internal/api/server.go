@@ -217,6 +217,8 @@ func (s *Server) registerRoutes() {
 	apiV1.Post("/nodes/pairing-code/consume", s.requireLevel(account.RoleStandard), s.handleConsumePairingCode)
 	apiV1.Post("/nodes/register", s.requireLevel(account.RoleStandard), s.handleRegisterNode)
 	apiV1.Get("/nodes/verify-token", s.requireDeviceToken(), s.handleVerifyToken)
+	apiV1.Get("/nodes", s.handleListNodes)
+	apiV1.Get("/nodes/summary", s.handleNodesSummary)
 	
 	// CRM Registry
 	apiV1.Get("/nodlrs", s.handleListNodlrs)
@@ -346,6 +348,29 @@ func (s *Server) handleStats(c *fiber.Ctx) error {
 		"newNodesLastMonth":   nLast,
 		"redisStatus":         "active",  // Keep for internal API compatibility if needed
 		"registrySyncStatus": "synced", // Keep for internal API compatibility if needed
+	})
+}
+
+func (s *Server) handleNodesSummary(c *fiber.Ctx) error {
+	totalNodes := 0
+	activeNodes := 0
+	if s.accountStore != nil {
+		nodes := s.accountStore.ListAllNodes()
+		totalNodes = len(nodes)
+	}
+	if s.host != nil {
+		activeNodes = s.host.PeerCount() + 1
+	}
+
+	offlineNodes := totalNodes - activeNodes
+	if offlineNodes < 0 {
+		offlineNodes = 0
+	}
+
+	return c.JSON(fiber.Map{
+		"totalNodes":   totalNodes,
+		"activeNodes":  activeNodes,
+		"offlineNodes": offlineNodes,
 	})
 }
 
@@ -849,6 +874,13 @@ func (s *Server) resolveIdentity(c *fiber.Ctx) (string, string) {
 		}
 	}
 
+	// 2. Developer/Proxy Path: Identity Headers (Phase 4 Legacy Support)
+	if uid := c.Get("X-Owner-ID"); uid != "" {
+		return uid, string(account.RoleOwner)
+	}
+	if uid := c.Get("X-User-ID"); uid != "" {
+		return uid, c.Get("X-User-Role", "visitor")
+	}
 
 	return "", ""
 }

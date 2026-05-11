@@ -2,7 +2,7 @@
 
 The Node Inventory provides a real-time census of all hardware active in the mesh.
 
-![Nodes Overview](../screenshots/nodes-overview.png)
+![Nodes (Compute Health)](../screenshots/nodes-overview.png)
 
 ## Node Status Indicators
 - **Active / Online:** Heartbeating and ready to accept tasks.
