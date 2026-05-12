@@ -12,6 +12,8 @@ export interface CRMRecord {
     id?: string;
     displayName?: string;
     role?: string;
+    businessName?: string;
+    phone?: string;
 }
 
 export function useAccount() {

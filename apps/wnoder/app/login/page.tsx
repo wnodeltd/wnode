@@ -34,7 +34,7 @@ export default function LoginPage() {
         if (authMode === 'signup') {
             try {
                 // Using 8081 as the backend port for Wnode/Mesh as seen in .env
-                const res = await fetch('http://localhost:8081/api/v1/auth/signup', {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/signup`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email: normalizedEmail }),
@@ -52,53 +52,35 @@ export default function LoginPage() {
             }
         }
 
-        console.log('[Auth Debug] Attempting login with:', { 
-            email: normalizedEmail,
-            hasPassword: !!normalizedPassword
-        });
+        try {
+            const res = await fetch('/api/auth/debug-session', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    email: normalizedEmail, 
+                    password: normalizedPassword, 
+                    domain: 'nodlr' 
+                })
+            });
 
-        const isDevAccount = normalizedEmail === 'stephen@wnode.one' || normalizedEmail === 'stephen@nodl.one';
-        const isBetaAccount = normalizedEmail === 'test@user.com' && normalizedPassword === 'test';
-
-        if ((isDevAccount && normalizedPassword === 'command') || isBetaAccount) {
-            console.log(`[Auth Debug] ${isBetaAccount ? 'Beta' : 'Peak Developer'} credentials accepted. Requesting backend session...`);
-            
-            let userId = '100001-0426-01-AA';
-            if (normalizedEmail === 'stephen@nodl.one') userId = '100001-0426-01-AB';
-            if (isBetaAccount) userId = '100002-0426-01-AA';
-            
-            try {
-                const res = await fetch('/api/auth/debug-session', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ wuid: userId, domain: 'nodlr' })
-                });
-
-                if (res.ok) {
-                    console.log('[Auth Debug] Session established');
-                    localStorage.removeItem('nodl_auth_bypass');
-                    localStorage.removeItem('nodl_jwt');
-                    localStorage.removeItem('nodl_user_email');
-                    localStorage.removeItem('nodl_user_id');
-                    router.push('/dashboard');
-                    return;
-                } else {
-                    setError('Backend session issuance failed.');
-                }
-            } catch (e) {
-                console.error('[Auth Debug] Login error:', e);
-                setError('Authentication service unreachable.');
-            } finally {
-                setIsLoading(false);
+            if (res.ok) {
+                console.log('[Auth Debug] Session established');
+                localStorage.removeItem('nodl_auth_bypass');
+                localStorage.removeItem('nodl_jwt');
+                localStorage.removeItem('nodl_user_email');
+                localStorage.removeItem('nodl_user_id');
+                router.push('/dashboard');
+                return;
+            } else {
+                const data = await res.json();
+                setError(data.error || 'Invalid credentials.');
             }
-            return;
-        }
-
-        setTimeout(() => {
-            console.warn('[Auth Debug] Peak Developer credentials rejected.');
-            setError('Invalid credentials. Please use the developer seed account.');
+        } catch (e) {
+            console.error('[Auth Debug] Login error:', e);
+            setError('Authentication service unreachable.');
+        } finally {
             setIsLoading(false);
-        }, 800);
+        }
     };
 
     if (!mounted) return null;

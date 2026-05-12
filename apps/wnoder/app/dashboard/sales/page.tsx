@@ -49,7 +49,7 @@ export default function MeshSalesPage() {
 
             try {
                 // Synchronizing with the active nodld service on port 8082
-                const res = await fetch('http://127.0.0.1:8082/api/v1/account/opportunity', {
+                const res = await fetch('/api/v1/account/opportunity', {
                     headers: {
                         'Authorization': `Bearer ${token}`,
                         'X-User-ID': account?.nodlrId || '' // Authorized RBAC identity

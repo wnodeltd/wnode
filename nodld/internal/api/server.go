@@ -165,6 +165,9 @@ func (s *Server) registerRoutes() {
 	apiV1.Get("/account/lookup", s.handleLookupAccount)
 	apiV1.Post("/account/create", s.handleCreateAccount)
 	apiV1.Get("/account/me", s.requireLevel(account.RoleVisitor), s.handleGetMyAccount)
+	apiV1.Put("/me/profile", s.requireLevel(account.RoleStandard), s.handleUpdateMyAccount)
+	apiV1.Get("/crm/account/me", s.requireLevel(account.RoleStandard), s.handleGetCRMMe)
+	apiV1.Put("/crm/account/me", s.requireLevel(account.RoleStandard), s.handleUpdateCRMMe)
 	apiV1.Get("/account/:id", s.requireLevel(account.RoleVisitor), s.handleGetAccount)
 	apiV1.Put("/account/:id", s.requireLevel(account.RoleCustomerService), s.handleUpdateAccount)
 	apiV1.Post("/account/onboard", s.handleOnboardAccount)
@@ -647,18 +650,78 @@ func (s *Server) handleGetMyAccount(c *fiber.Ctx) error {
 	if !ok {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "account not found"})
 	}
-	
+
+	crm := s.accountStore.GetCRMRecord(userId)
+
 	// Unified Backend-First Identity Response
 	return c.JSON(fiber.Map{
-		"id":          acc.ID,
-		"email":       acc.Email,
-		"role":        string(acc.Role),
-		"permissions": acc.Permissions, // Pure backend-defined permissions
-		"firstName":   acc.FirstName,
-		"lastName":    acc.LastName,
-		"displayName": acc.DisplayName, 
-		"isFounder":   acc.IsFounder,
+		"id":           acc.ID,
+		"email":        acc.Email,
+		"role":         string(acc.Role),
+		"permissions":  acc.Permissions, // Pure backend-defined permissions
+		"firstName":    acc.FirstName,
+		"lastName":     acc.LastName,
+		"displayName":  acc.DisplayName,
+		"isFounder":    acc.IsFounder,
+		"businessName": crm.BusinessName,
+		"phone":        crm.Phone,
 	})
+}
+
+func (s *Server) handleUpdateMyAccount(c *fiber.Ctx) error {
+	userId := c.Locals("user_id").(string)
+	fmt.Printf("[DEBUG] handleUpdateMyAccount: userId=%s\n", userId)
+	var req struct {
+		DisplayName  string `json:"displayName"`
+		Email        string `json:"email"`
+		BusinessName string `json:"businessName"`
+		Phone        string `json:"phone"`
+	}
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request"})
+	}
+
+	// Update Nodlr (Safe fields)
+	acc, ok := s.accountStore.GetNodlr(userId)
+	if !ok {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "account not found"})
+	}
+
+	if req.DisplayName != "" {
+		acc.DisplayName = req.DisplayName
+	}
+	if req.Email != "" {
+		acc.Email = req.Email
+	}
+
+	// Update CRM
+	if req.BusinessName != "" || req.Phone != "" {
+		s.accountStore.UpdateCRMRecord(userId, req.BusinessName, req.Phone)
+	}
+
+	s.accountStore.SaveState()
+	return c.JSON(fiber.Map{"status": "success"})
+}
+
+func (s *Server) handleGetCRMMe(c *fiber.Ctx) error {
+	userId := c.Locals("user_id").(string)
+	crm := s.accountStore.GetCRMRecord(userId)
+	return c.JSON(crm)
+}
+
+func (s *Server) handleUpdateCRMMe(c *fiber.Ctx) error {
+	userId := c.Locals("user_id").(string)
+	var req account.CRMUpdate
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request"})
+	}
+
+	err := s.accountStore.UpdateCRMRecord(userId, req.BusinessName, req.Phone)
+	if err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": err.Error()})
+	}
+
+	return c.JSON(fiber.Map{"status": "success"})
 }
 
 func (s *Server) handleGetAccount(c *fiber.Ctx) error {
@@ -736,6 +799,7 @@ func (s *Server) handleVerifyMagicLink(c *fiber.Ctx) error {
 		HTTPOnly: true,
 		Secure:   false,
 		SameSite: "Lax",
+		Path:     "/",
 	})
 
 	return c.JSON(fiber.Map{"status": "success", "wuid": acc.ID, "role": acc.Role})
@@ -1522,6 +1586,11 @@ func (s *Server) handleDebugSession(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "account not found"})
 	}
 
+	// Verify canonical password from SOT
+	if acc.Password != "" && req.Password != acc.Password {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid developer password"})
+	}
+
 	sessionID := s.accountStore.CreateSession(acc.ID, req.Domain, acc.Role)
 
 	cookieName := "cmd_session"
@@ -1538,6 +1607,7 @@ func (s *Server) handleDebugSession(c *fiber.Ctx) error {
 		HTTPOnly: true,
 		Secure:   false,
 		SameSite: "Lax",
+		Path:     "/",
 	})
 
 	return c.JSON(fiber.Map{"status": "success", "session_id": sessionID})
@@ -1557,6 +1627,7 @@ func (s *Server) handleLogout(c *fiber.Ctx) error {
 			HTTPOnly: true,
 			Secure:   true,
 			SameSite: "Lax",
+			Path:     "/",
 		})
 	}
 

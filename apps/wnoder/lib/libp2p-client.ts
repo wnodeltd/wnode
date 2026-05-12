@@ -52,6 +52,12 @@ export async function startNodlNode() {
         const anchorAddr = process.env.NEXT_PUBLIC_ANCHOR_MULTIADDR || `/dns4/localhost/tcp/10002/ws/p2p/${process.env.NEXT_PUBLIC_ANCHOR_PEER_ID || 'PEER_ID'}`;
         console.log('[libp2p Debug] Dialing Anchor:', anchorAddr);
         try {
+          const MESH_ENABLED = false;
+          if (!MESH_ENABLED) {
+            console.log('[libp2p Guard] Mesh mode disabled. Skipping dial.');
+            return;
+          }
+
           if (anchorAddr.includes('PEER_ID')) {
             console.warn("Anchor node not configured: 'PEER_ID' placeholder detected. Skipping dial.");
             return;

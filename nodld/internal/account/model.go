@@ -262,5 +262,19 @@ type DomainSession struct {
 	CreatedAt time.Time `json:"createdAt"`
 }
 
+// CRMRecord represents the authoritative identity and contact data for a platform participant.
+type CRMRecord struct {
+	NodlrID      string    `json:"nodlrId"`
+	BusinessName string    `json:"businessName"`
+	Phone        string    `json:"phone"`
+	CreatedAt    time.Time `json:"createdAt"`
+}
+
+// CRMUpdate is used for incoming PUT requests to the CRM.
+type CRMUpdate struct {
+	BusinessName string `json:"businessName"`
+	Phone        string `json:"phone"`
+}
+
 
 

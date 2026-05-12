@@ -20,8 +20,8 @@ export default function ConnectPage() {
     const handleConnect = async () => {
         setStatus('linking');
         try {
-            const apiBase = "http://127.0.0.1:8082"; // Should be from config in production
-            const res = await fetch(`${apiBase}/api/nodes/register`, {
+            const apiBase = ""; // Should be from config in production
+            const res = await fetch(`/api/nodes/register`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

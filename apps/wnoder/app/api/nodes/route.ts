@@ -21,8 +21,8 @@ export async function GET(request: Request) {
 
     try {
         // Fetch all nodes from the Coordinator
-        const apiUrl = process.env.WNODE_BACKEND_URL || 'http://127.0.0.1:8082';
-        const res = await fetch(`${apiUrl}/api/v1/nodes`, {
+        const apiUrl = process.env.WNODE_BACKEND_URL || '';
+        const res = await fetch(`/api/v1/nodes`, {
             headers: {
                 'Authorization': authHeader,
                 'x-user-id': userId

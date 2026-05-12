@@ -5,57 +5,90 @@ import { User, Lock, CreditCard, ChevronRight, Check, Server, Shield, Activity, 
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAvatar } from '../../hooks/useAvatar';
 import FinancialStatus from '../../components/FinancialStatus';
+import { useAccount } from '../../hooks/useAccount';
 
 export default function SettingsPage() {
     const [activeTab, setActiveTab] = useState<'profile' | 'network' | 'payouts' | 'security'>('profile');
     const [isSaving, setIsSaving] = useState(false);
     const { avatar, uploadAvatar } = useAvatar();
     const fileInputRef = React.useRef<HTMLInputElement>(null);
+    const { account, loading: accountLoading } = useAccount();
 
-    // Initial state matching Stephen Soos simulation data
     const [profile, setProfile] = useState({
-        // Identity & Profile
-        displayName: 'Stephen Soos',
-        businessName: 'Nodl',
+        displayName: '',
+        businessName: '',
         avatarUrl: '',
-        bio: 'Founder & CEO, Nodl Protocol',
-        contactEmail: 'stephen@wnode.one',
-        phone: '+1-555-0101',
-        // Account Identifiers
-        protocolId: '100001-0426-01-AA',
+        bio: 'Node Operator',
+        contactEmail: '',
+        phone: '',
+        protocolId: '...',
         netId: '01',
-        userId: '100001-0426-01-AA',
-        role: 'owner',
-        // Network / Nodes
-        nodeCount: 3,
-        activeNodes: 3,
+        userId: '...',
+        role: 'operator',
+        nodeCount: 0,
+        activeNodes: 0,
         networkArchitecture: 'Mesh v2',
         lastSeen: new Date().toISOString(),
-        // Protocol / Registry
-        registryEntryId: 'REG-001',
+        registryEntryId: '...',
         registryStatus: 'verified',
         protocolVersion: '1.2.0',
-        capabilities: ['compute', 'storage', 'relay'],
-        // Financial / Yield
-        currentBalance: 250000,
-        pendingPayouts: 12500,
-        commissionRate: 0.03,
-        payoutAddress: 'acct_1test',
-        stripeVerification: 'verified',
-        // Security / Auth
-        mfaEnabled: true,
+        capabilities: ['compute'],
+        currentBalance: 0,
+        pendingPayouts: 0,
+        commissionRate: 0.70,
+        payoutAddress: '',
+        stripeVerification: 'pending',
+        mfaEnabled: false,
         lastLogin: new Date().toISOString(),
-        permissions: ['admin', 'finance', 'nodes', 'users', 'settings'],
+        permissions: ['standard'],
         notificationPrefs: { email: true, sms: false, push: true },
-        // Metadata
-        createdAt: '2025-01-15T00:00:00.000Z',
+        createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-        source: 'simulation'
+        source: 'sot'
     });
 
-    const handleSave = () => {
+    React.useEffect(() => {
+        if (account) {
+            setProfile(prev => ({
+                ...prev,
+                displayName: account.displayName || '',
+                contactEmail: account.email || '',
+                businessName: account.businessName || '',
+                phone: account.phone || '',
+                protocolId: account.id || '...',
+                userId: account.id || '...',
+                role: account.role || 'operator',
+                payoutAddress: account.stripeAccountId || '',
+                stripeVerification: account.stripeAccountId ? 'verified' : 'pending',
+            }));
+        }
+    }, [account]);
+
+    const handleSave = async () => {
         setIsSaving(true);
-        setTimeout(() => setIsSaving(false), 1000); // Simulate API latency
+        try {
+            const res = await fetch('/api/account/me', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    displayName: profile.displayName,
+                    email: profile.contactEmail,
+                    businessName: profile.businessName,
+                    phone: profile.phone
+                })
+            });
+            if (res.ok) {
+                // Force a reload or update local state
+                window.location.reload();
+            } else {
+                alert('Failed to save changes');
+            }
+        } catch (err) {
+            console.error('Save failed:', err);
+            alert('Network error while saving');
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     const handleAvatarClick = () => {
@@ -74,7 +107,7 @@ export default function SettingsPage() {
     };
 
     return (
-        <div className="max-w-6xl mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="max-w-6xl mx-auto space-y-10 pb-20 animate-in fade-in slide-in-from-bottom-4 duration-700">
             {/* Header */}
             <div className="flex justify-between items-end border-b border-white/10 pb-6">
                 <div>

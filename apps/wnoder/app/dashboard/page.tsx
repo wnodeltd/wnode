@@ -29,9 +29,9 @@ export default function DashboardPage() {
     const [isHarvesting, setIsHarvesting] = useState(false);
     const [allocation, setAllocation] = useState({ cpu: 0, gpu: 0, ram: 12 });
     
-    const apiBase = 'http://127.0.0.1:8082';
-    const { data: impactData } = useSWR(`${apiBase}/api/v1/impact`, fetcher, { refreshInterval: 10000 });
-    const { data: accountData } = useSWR(`${apiBase}/api/v1/account/me`, fetcher);
+    const apiBase = '';
+    const { data: impactData } = useSWR(`/api/v1/impact`, fetcher, { refreshInterval: 10000 });
+    const { data: accountData } = useSWR(`/api/account/me`, fetcher);
     const [showWizard, setShowWizard] = useState(false);
     const [hasSkipped, setHasSkipped] = useState(false);
     const [mounted, setMounted] = useState(false);

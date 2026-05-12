@@ -15,6 +15,7 @@ type AuthState struct {
 	MeshBucket         int                            `json:"mesh_bucket"`
 	MeshSequence       int                            `json:"mesh_sequence"`
 	MeshMonthYear      string                         `json:"mesh_month_year"`
+	CRMRecords         map[string]*CRMRecord          `json:"crm_records"`
 }
 
 func (s *Store) SaveState() error {
@@ -32,6 +33,7 @@ func (s *Store) SaveState() error {
 		MeshBucket:         s.meshBucket,
 		MeshSequence:       s.meshSequence,
 		MeshMonthYear:      s.meshMonthYear,
+		CRMRecords:         s.crmRecords,
 	}
 
 	data, err := json.MarshalIndent(state, "", "  ")
@@ -96,6 +98,9 @@ func (s *Store) LoadState() error {
 	s.meshBucket = state.MeshBucket
 	s.meshSequence = state.MeshSequence
 	s.meshMonthYear = state.MeshMonthYear
+	if state.CRMRecords != nil {
+		s.crmRecords = state.CRMRecords
+	}
 
 	return nil
 }

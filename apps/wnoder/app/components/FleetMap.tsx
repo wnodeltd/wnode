@@ -83,7 +83,7 @@ export default function FleetMap({
         
         try {
             setInternalLoading(true);
-            const res = await fetch('http://127.0.0.1:8082/api/v1/nodes', {
+            const res = await fetch('/api/v1/nodes', {
                 headers: { 
                     'Authorization': `Bearer ${accountContext.jwt}`,
                     'x-user-id': accountContext.id 

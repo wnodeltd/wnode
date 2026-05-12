@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Cpu, Users, Settings, LogOut, Upload, DollarSign, Plus, UserPlus, HelpCircle, AlertCircle, TrendingUp } from 'lucide-react';
+import { LayoutDashboard, Cpu, Users, Settings, LogOut, Upload, DollarSign, Plus, UserPlus, HelpCircle, AlertCircle, TrendingUp, Shield } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useAccount } from '../hooks/useAccount';
@@ -21,6 +21,7 @@ const navigation = [
     { name: 'Mesh Sales', href: '/dashboard/sales', icon: TrendingUp, color: 'text-[#ffff00]' },
     { name: 'Money', href: '/dashboard/finances', icon: DollarSign, color: 'text-[#10b981]' },
     { name: 'Affiliates', href: '/dashboard/affiliates', icon: Users, color: 'text-[#3b82f6]' },
+    { name: 'Governance', href: '/dashboard/governance', icon: Shield, color: 'text-[#22D3EE]' },
     { name: 'Settings', href: '/dashboard/settings', icon: Settings, color: 'text-[#f59e0b]' },
     { name: 'Help', href: '/dashboard/help', icon: HelpCircle, color: 'text-[#f472b6]' },
 ];
@@ -42,7 +43,7 @@ export default function DashboardLayout({
     const [isAuditOpen, setIsAuditOpen] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    const { data: pulse } = useSWR('http://127.0.0.1:8082/api/v1/system/pulse', fetcher, {
+    const { data: pulse } = useSWR('/api/v1/system/pulse', fetcher, {
         refreshInterval: 30000 // Check every 30s
     });
 
@@ -136,6 +137,7 @@ export default function DashboardLayout({
                             item.name === 'Mesh Sales' ? 'Ambassador Intelligence & yield analytics' :
                             item.name === 'Money' ? 'Earnings ledger & Stripe settlements' :
                             item.name === 'Affiliates' ? 'Manage your referral network & lineage returns' :
+                            item.name === 'Governance' ? 'Protocol policy & community oversight' :
                             item.name === 'Settings' ? 'Platform, identity & payout configurations' :
                             item.name === 'Help' ? 'Documentation & support center' : '';
 
@@ -262,7 +264,7 @@ export default function DashboardLayout({
                 <AddMachineModal 
                     isOpen={isModalOpen} 
                     onClose={() => setIsModalOpen(false)} 
-                    apiBase="http://127.0.0.1:8082" 
+                    apiBase="" 
                 />
 
                 <ConnectivityAudit 

@@ -8,8 +8,8 @@ import useSWR from 'swr';
 const fetcher = (url: string) => fetch(url).then(res => res.json());
 
 export default function FinancialStatus() {
-    const apiBase = 'http://127.0.0.1:8082';
-    const { data: pulse, error, mutate } = useSWR(`${apiBase}/api/v1/system/pulse`, fetcher, {
+    const apiBase = '';
+    const { data: pulse, error, mutate } = useSWR(`/api/v1/system/pulse`, fetcher, {
         refreshInterval: 60000 // Check every minute
     });
 

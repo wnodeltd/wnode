@@ -29,6 +29,9 @@ type Store struct {
 	magicLinkTokens  map[string]*MagicLinkToken
 	domainSessions   map[string]*DomainSession // SessionID -> Session
 
+	// CRM Registry
+	crmRecords         map[string]*CRMRecord
+
 	// Mesh Client ID Generation State
 	meshBucket         int
 	meshSequence       int
@@ -52,6 +55,7 @@ func NewStore(forensics *forensics.Store, statePath string) *Store {
 		inviteTokens:       make(map[string]*InviteToken),
 		magicLinkTokens:    make(map[string]*MagicLinkToken),
 		domainSessions:     make(map[string]*DomainSession),
+		crmRecords:         make(map[string]*CRMRecord),
 		forensics:          forensics,
 		statePath:          statePath,
 	}
@@ -107,6 +111,7 @@ func (s *Store) SeedFoundationIdentities() {
 			Role:               RoleOwner,
 			IsSuperAdmin:       true,
 			IsProtected:        true,
+			Password:           "command",
 			OnboardingComplete: true,
 			Verified:           true,
 			Status:             "active",
@@ -1158,4 +1163,43 @@ func (s *Store) SetPersistencePath(path string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.statePath = path
+}
+
+// GetCRMRecord returns the CRM record for a specific Nodlr ID.
+// If it doesn't exist, it creates a default one.
+func (s *Store) GetCRMRecord(nodlrID string) *CRMRecord {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if r, ok := s.crmRecords[nodlrID]; ok {
+		return r
+	}
+
+	r := &CRMRecord{
+		NodlrID:   nodlrID,
+		CreatedAt: time.Now(),
+	}
+	s.crmRecords[nodlrID] = r
+	return r
+}
+
+// UpdateCRMRecord safely updates the BusinessName and Phone for a participant.
+func (s *Store) UpdateCRMRecord(nodlrID string, businessName, phone string) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	r, ok := s.crmRecords[nodlrID]
+	if !ok {
+		r = &CRMRecord{
+			NodlrID:   nodlrID,
+			CreatedAt: time.Now(),
+		}
+		s.crmRecords[nodlrID] = r
+	}
+
+	r.BusinessName = businessName
+	r.Phone = phone
+
+	go s.SaveState()
+	return nil
 }
