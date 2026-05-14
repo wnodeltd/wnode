@@ -40,9 +40,20 @@ export default function Header({ onContactClick }: HeaderProps) {
             name: "About",
             isDropdown: true,
             subLinks: [
-                { name: "Founder's Note", href: "/about/founders-note", color: "text-slate-500" },
-                { name: "Governance", href: "/constitution", color: "text-slate-500" },
-                { name: "Wnode Management", href: "/governance/management", color: "text-slate-500" }
+                { name: "Founder's Note", href: "/about/founders-note", color: "text-slate-500" }
+            ]
+        },
+        {
+            name: "Governance",
+            isDropdown: true,
+            subLinks: [
+                { name: "Governance Overview", href: "/governance/overview", color: "text-slate-500" },
+                { name: "Constitution", href: "/governance/constitution", color: "text-slate-500" },
+                { name: "Roles & Responsibilities", href: "/governance/roles", color: "text-slate-500" },
+                { name: "Treasury Transparency", href: "/governance/treasury", color: "text-slate-500" },
+                { name: "Whitepaper", href: "/governance/whitepaper", color: "text-slate-500" },
+                { name: "DAO Mechanics", href: "/governance/dao", color: "text-slate-500" },
+                { name: "Token Model & Economics", href: "/governance/tokens", color: "text-slate-500" }
             ]
         },
         {
