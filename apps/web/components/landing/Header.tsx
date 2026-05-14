@@ -41,7 +41,7 @@ export default function Header({ onContactClick }: HeaderProps) {
             isDropdown: true,
             subLinks: [
                 { name: "Founder's Note", href: "/about/founders-note", color: "text-slate-500" },
-                { name: "Wnode Governance", href: "/governance/mesh", color: "text-slate-500" },
+                { name: "Wnode Constitution", href: "/constitution", color: "text-slate-500" },
                 { name: "Wnode Management", href: "/governance/management", color: "text-slate-500" }
             ]
         },
