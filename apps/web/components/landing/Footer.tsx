@@ -30,7 +30,7 @@ export default function Footer({ onContactClick }: FooterProps) {
 
                             <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-4 bg-black border border-white/25 p-6 rounded-2xl opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-all flex flex-col gap-4 min-w-[260px] shadow-[0_-20px_50px_rgba(0,0,0,0.5)] backdrop-blur-xl">
                                 <a href="/about/founders-note" className="text-white/40 hover:text-white text-[10px] uppercase tracking-widest transition-colors">Founder's Note</a>
-                                <a href="/constitution" className="text-white/40 hover:text-white text-[10px] uppercase tracking-widest transition-colors">Wnode Constitution</a>
+                                <a href="/constitution" className="text-white/40 hover:text-white text-[10px] uppercase tracking-widest transition-colors">Governance</a>
                                 <a href="/governance/management" className="text-white/40 hover:text-white text-[10px] uppercase tracking-widest transition-colors">Wnode Management</a>
                             </div>
                         </div>
