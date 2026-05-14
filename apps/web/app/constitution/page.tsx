@@ -34,7 +34,7 @@ export default function ConstitutionPage() {
     return (
         <AppLayout>
             <div className="bg-black text-white min-h-screen pt-40 pb-40 px-6 md:px-12">
-                <div className="max-w-4xl mx-auto space-y-12 font-inter text-slate-300">
+                <div className="max-w-4xl mx-auto space-y-6 font-inter text-slate-300">
                     
                     {/* TITLE & DOWNLOAD */}
                     <div className="space-y-6 pb-8 border-b border-white/10">
@@ -76,10 +76,10 @@ export default function ConstitutionPage() {
                     </div>
 
                     {/* DOCUMENT BODY */}
-                    <div className="space-y-24 pt-12 leading-relaxed text-sm md:text-base">
+                    <div className="space-y-10 pt-6 leading-relaxed text-sm md:text-base">
                         
                         {/* PREAMBLE */}
-                        <div id="preamble" className="scroll-mt-24 space-y-8">
+                        <div id="preamble" className="scroll-mt-24 space-y-4">
                             <h2 className="text-xl font-bold text-white uppercase tracking-tight font-space-grotesk">FOUNDERS’ PREAMBLE</h2>
                             <div className="space-y-6">
                                 <p>By: Stephen Soos (WUID 1000001-0426-01-AA)</p>
@@ -104,12 +104,12 @@ export default function ConstitutionPage() {
                         <hr className="border-white/5" />
 
                         {/* SECTION 1 */}
-                        <div id="section1" className="scroll-mt-24 space-y-8">
+                        <div id="section1" className="scroll-mt-24 space-y-4">
                             <h2 className="text-xl font-bold text-white uppercase tracking-tight font-space-grotesk">SECTION 1 — DEFINITIONS</h2>
                             <p className="italic text-slate-500">(This section establishes the precise meaning of all governance terms used throughout the Constitution.)</p>
                             <p>For the purposes of this Constitution, the following terms shall have the meanings set out below:</p>
                             
-                            <div className="space-y-10">
+                            <div className="space-y-6">
                                 {[
                                     { t: "1.1 “Wnode Mesh”", d: "The decentralised compute network operated collectively by node operators, governed by the DAO, and maintained through the governance structures defined in this Constitution." },
                                     { t: "1.2 “DAO” or “Wnode DAO”", d: "The decentralised autonomous organisation composed of verified token holders and NODLR Souls, empowered to vote on proposals and amend this Constitution." },
@@ -144,7 +144,7 @@ export default function ConstitutionPage() {
                         <hr className="border-white/5" />
 
                         {/* SECTION 2 */}
-                        <div id="section2" className="scroll-mt-24 space-y-8">
+                        <div id="section2" className="scroll-mt-24 space-y-4">
                             <h2 className="text-xl font-bold text-white uppercase tracking-tight font-space-grotesk">SECTION 2 — GOVERNANCE HIERARCHY</h2>
                             <p>This section establishes the structural order of authority within the Wnode DAO and defines how governance power is distributed, limited, and safeguarded.</p>
                             <p>The Wnode governance model is a hybrid constitutional system combining:</p>
@@ -156,7 +156,7 @@ export default function ConstitutionPage() {
                                 <li>technical protection through the Infrastructure Manager.</li>
                             </ul>
                             
-                            <div className="space-y-12 pt-6">
+                            <div className="space-y-8 pt-4">
                                 <div className="space-y-4">
                                     <h3 className="text-lg font-bold text-white">2.1 The DAO (Wnode DAO)</h3>
                                     <p>The DAO is the sovereign community governance body of the Wnode Mesh.</p>
@@ -218,7 +218,7 @@ export default function ConstitutionPage() {
                         <hr className="border-white/5" />
 
                         {/* SECTION 3 */}
-                        <div id="section3" className="scroll-mt-24 space-y-8">
+                        <div id="section3" className="scroll-mt-24 space-y-4">
                             <h2 className="text-xl font-bold text-white uppercase tracking-tight font-space-grotesk">SECTION 3 — SOULS, IDENTITY & VOTING RIGHTS</h2>
                             <p>This section defines the identity system of the Wnode Mesh, the structure of Souls, and the rules governing voting rights within the DAO. It establishes the 1 Soul = 1 Vote model and ensures that governance remains decentralised and resistant to capture.</p>
                             
@@ -283,7 +283,7 @@ export default function ConstitutionPage() {
                         <hr className="border-white/5" />
 
                         {/* SECTION 4 */}
-                        <div id="section4" className="scroll-mt-24 space-y-8">
+                        <div id="section4" className="scroll-mt-24 space-y-4">
                             <h2 className="text-xl font-bold text-white uppercase tracking-tight font-space-grotesk">SECTION 4 — NODES, NODLRS & OPERATIONAL PARTICIPATION</h2>
                             <p>This section defines the operational layer, including node operation, NODLR status, verification, and compute network participation.</p>
                             
@@ -342,7 +342,7 @@ export default function ConstitutionPage() {
                         <hr className="border-white/5" />
 
                         {/* SECTION 5 */}
-                        <div id="section5" className="scroll-mt-24 space-y-8">
+                        <div id="section5" className="scroll-mt-24 space-y-4">
                             <h2 className="text-xl font-bold text-white uppercase tracking-tight font-space-grotesk">SECTION 5 — GOVERNANCE PROPOSALS & VOTING PROCEDURES</h2>
                             <p>This section defines how proposals are created, submitted, validated, and enacted.</p>
                             
@@ -382,7 +382,7 @@ export default function ConstitutionPage() {
                         <hr className="border-white/5" />
 
                         {/* SECTION 6 */}
-                        <div id="section6" className="scroll-mt-24 space-y-8">
+                        <div id="section6" className="scroll-mt-24 space-y-4">
                             <h2 className="text-xl font-bold text-white uppercase tracking-tight font-space-grotesk">SECTION 6 — THE STEWARDSHIP LICENCE</h2>
                             <p>The Stewardship Licence defines the commercial and operational authority granted to the Steward. It is a commercial licence, not a governance role. The Founder is the Initial Steward.</p>
                             
@@ -397,7 +397,7 @@ export default function ConstitutionPage() {
                         <hr className="border-white/5" />
 
                         {/* SECTION 7 */}
-                        <div id="section7" className="scroll-mt-24 space-y-8">
+                        <div id="section7" className="scroll-mt-24 space-y-4">
                             <h2 className="text-xl font-bold text-white uppercase tracking-tight font-space-grotesk">SECTION 7 — Affiliate Tree ASSETS</h2>
                             <p>Affiliate Tree Assets (Founder infinite-depth, NODLR L1+L2 only) are commercial, non-governance assets representing referral lineage. They are permanent, transferable, and sellable, with zero influence over governance or tokens. <span className="text-blue-500 font-bold uppercase text-xs">Core Immutable Provision.</span></p>
                             <p>The Founder receives 3% of the entire Founder Affiliate Tree to infinity. NODLRs earn 3% from Level 1 and 7% from Level 2. Trees may be frozen for fraud or malicious behavior, restricting new recruitment but allowing existing revenue flow.</p>
@@ -406,7 +406,7 @@ export default function ConstitutionPage() {
                         <hr className="border-white/5" />
 
                         {/* SECTION 8 */}
-                        <div id="section8" className="scroll-mt-24 space-y-8">
+                        <div id="section8" className="scroll-mt-24 space-y-4">
                             <h2 className="text-xl font-bold text-white uppercase tracking-tight font-space-grotesk">SECTION 8 — EMERGENCY POWERS & NETWORK PROTECTION</h2>
                             <p>Emergency powers (Technical, Security, Governance, Regulatory, Operational) exist solely to protect the Mesh from catastrophic harm. They are defensive, time-limited (72 hours initially), and require full transparency and DAO oversight.</p>
                             <p>The Infrastructure Manager may suspend nodes or block actors to protect technical stability. The Founder Board may override malicious proposals or remove the Steward to protect the Constitution.</p>
@@ -415,7 +415,7 @@ export default function ConstitutionPage() {
                         <hr className="border-white/5" />
 
                         {/* SECTION 9 */}
-                        <div id="section9" className="scroll-mt-24 space-y-8">
+                        <div id="section9" className="scroll-mt-24 space-y-4">
                             <h2 className="text-xl font-bold text-white uppercase tracking-tight font-space-grotesk">SECTION 9 — TOKENOMICS & ECONOMIC MODEL</h2>
                             <p>The Wnode Token is a utility token for staking and incentives; it confers no voting rights. Governance remains strictly Soul-based. <span className="text-blue-500 font-bold uppercase text-xs">Core Immutable Provision.</span></p>
                             <p>Revenue flow: 70% to Node Operators, 10% to Sales Source, 7% to Steward, 3% Level 1, 7% Level 2, and 3% Founder override. The Treasury is DAO-controlled and audited quarterly.</p>
@@ -424,7 +424,7 @@ export default function ConstitutionPage() {
                         <hr className="border-white/5" />
 
                         {/* SECTION 10 */}
-                        <div id="section10" className="scroll-mt-24 space-y-8">
+                        <div id="section10" className="scroll-mt-24 space-y-4">
                             <h2 className="text-xl font-bold text-white uppercase tracking-tight font-space-grotesk">SECTION 10 — COMPLIANCE, LIABILITY & GENERAL PROVISIONS</h2>
                             <p>Compliance with AML, KYC (Stripe), and GDPR is mandatory. The Mesh is governed by the laws of England & Wales, with arbitration in London under LCIA Rules. Liability is limited, and participants indemnify the DAO against claims arising from their operation of nodes.</p>
                         </div>
@@ -432,7 +432,7 @@ export default function ConstitutionPage() {
                         <hr className="border-white/5" />
 
                         {/* SECTION 11 */}
-                        <div id="section11" className="scroll-mt-24 space-y-8">
+                        <div id="section11" className="scroll-mt-24 space-y-4">
                             <h2 className="text-xl font-bold text-white uppercase tracking-tight font-space-grotesk">SECTION 11 — ENFORCEMENT, SANCTIONS & APPEALS</h2>
                             <p>Sanctions (suspension, Tree freezing, Soul revocation) follow due process based on documented evidence of fraud, malicious behavior, or breach. Affected parties have 7 days to respond and may appeal to the Governance Board, Founder Board, and finally the DAO.</p>
                         </div>
@@ -440,7 +440,7 @@ export default function ConstitutionPage() {
                         <hr className="border-white/5" />
 
                         {/* SECTION 12 */}
-                        <div id="section12" className="scroll-mt-24 space-y-8">
+                        <div id="section12" className="scroll-mt-24 space-y-4">
                             <h2 className="text-xl font-bold text-white uppercase tracking-tight font-space-grotesk">SECTION 12 — FINAL PROVISIONS</h2>
                             <p>Constitutional amendments require {">"}87% approval; Core Immutable Provisions (1 Soul = 1 Vote, Identity Permanence, Founder 3% entitlement) require 100% DAO approval. This document constitutes the entire understanding between participants and the Founder.</p>
                         </div>
@@ -448,7 +448,7 @@ export default function ConstitutionPage() {
                         <hr className="border-white/5" />
 
                         {/* SECTION 13 */}
-                        <div id="section13" className="scroll-mt-24 space-y-8">
+                        <div id="section13" className="scroll-mt-24 space-y-4">
                             <h2 className="text-xl font-bold text-white uppercase tracking-tight font-space-grotesk">SECTION 13 — SOVEREIGNTY AND INFRASTRUCTURE INDEPENDENCE</h2>
                             <p>Wnode owns and operates bare-metal servers, development environments, UPS systems, solar arrays, and its own recursive AI LLM. These sovereignty measures ensure resistance to censorship and external control while accelerating innovation.</p>
                         </div>
