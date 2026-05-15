@@ -61,7 +61,7 @@ export default function TokenModelPage() {
                         <h2 className="text-xl font-bold text-white uppercase tracking-tight font-space-grotesk">Tokenomics Summary</h2>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
                             {[
-                                { l: "Total Supply", v: "1,000,000,000" },
+                                { l: "Total Supply", v: "10,000,000" },
                                 { l: "Circulating", v: "TBA" },
                                 { l: "Launch Price", v: "$0.00 (Fair Launch)" },
                                 { l: "Staking APY", v: "Dynamic" }

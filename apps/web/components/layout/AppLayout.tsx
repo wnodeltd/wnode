@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState } from "react";
 import ContactModal from "../landing/ContactModal";
 
 import Header from "../landing/Header";

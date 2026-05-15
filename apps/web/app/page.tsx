@@ -41,15 +41,21 @@ export default function LandingPage() {
                         className="w-full h-auto rounded-[2rem] border border-white/15 shadow-2xl mb-12" 
                     />
                     <div className="flex flex-col items-center">
-                        <span className="text-blue-400 text-[10px] font-bold uppercase tracking-[0.4em] mb-3">Join The Community</span>
-                        <a 
-                            href="https://discord.gg/5BNhsfg5Br"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="bg-[#5865F2] hover:bg-[#4752C4] text-white px-10 py-3 rounded-full font-bold text-base transition-all shadow-2xl"
-                        >
-                            Discord
-                        </a>
+                        <span className="text-blue-400 text-[10px] font-bold uppercase tracking-[0.4em] mb-8">Join The Community</span>
+                        <div className="flex items-center gap-10">
+                            <a href="https://x.com/wnodemesh" target="_blank" rel="noopener noreferrer" className="hover:drop-shadow-[0_0_25px_rgba(59,130,246,0.9)] transition-all">
+                                <img src="/icons/x_neon.png" alt="X (Twitter)" className="h-28 w-auto" />
+                            </a>
+                            <a href="https://discord.gg/5BNhsfg5Br" target="_blank" rel="noopener noreferrer" className="hover:drop-shadow-[0_0_25px_rgba(34,197,94,0.9)] transition-all">
+                                <img src="/icons/discord_neon.png" alt="Discord" className="h-28 w-auto" />
+                            </a>
+                            <a href="https://t.me/wnodemesh" target="_blank" rel="noopener noreferrer" className="hover:drop-shadow-[0_0_25px_rgba(239,68,68,0.9)] transition-all">
+                                <img src="/icons/telegram_neon.png" alt="Telegram" className="h-28 w-auto" />
+                            </a>
+                            <a href="https://www.youtube.com/channel/UCJsyB9UrIP1eXzkdJpPDFww" target="_blank" rel="noopener noreferrer" className="hover:drop-shadow-[0_0_25px_rgba(255,0,0,0.9)] transition-all">
+                                <img src="/icons/youtube_neon.png" alt="YouTube" className="h-20 w-auto" />
+                            </a>
+                        </div>
                     </div>
                 </div>
                 <TrustSection onOpenModal={openModal} />

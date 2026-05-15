@@ -16,10 +16,13 @@ export default function GovernanceOverviewPage() {
                         </p>
                     </div>
 
-                    {/* Governance Diagram Placeholder */}
-                    <div className="w-full aspect-video bg-white/[0.02] border border-white/5 rounded-sm flex items-center justify-center group relative overflow-hidden">
-                        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                        <span className="text-[10px] uppercase tracking-[0.5em] text-slate-600 font-black">[ Governance Architecture Diagram ]</span>
+                    {/* Governance Diagram */}
+                    <div className="w-full border border-white/10 rounded-2xl overflow-hidden shadow-[0_0_50px_rgba(59,130,246,0.1)]">
+                        <img 
+                            src="/governance_model.png" 
+                            alt="Wnode Governance Architecture" 
+                            className="w-full h-auto" 
+                        />
                     </div>
 
                     {/* Content Sections */}

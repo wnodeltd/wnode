@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 
 interface HeaderProps {
     onContactClick: () => void;
@@ -17,11 +17,9 @@ export default function Header({ onContactClick }: HeaderProps) {
         const handleScroll = () => {
             const currentScrollY = window.scrollY;
             
-            // Show header if scrolling up or at the top
             if (currentScrollY < lastScrollY || currentScrollY < 50) {
                 setIsVisible(true);
             } 
-            // Hide header if scrolling down and past a threshold
             else if (currentScrollY > 100 && currentScrollY > lastScrollY) {
                 setIsVisible(false);
             }
@@ -40,7 +38,8 @@ export default function Header({ onContactClick }: HeaderProps) {
             name: "About",
             isDropdown: true,
             subLinks: [
-                { name: "Founder's Note", href: "/about/founders-note", color: "text-slate-500" }
+                { name: "Founder's Note", href: "/about/founders-note", color: "text-slate-500" },
+                { name: "Node Operator", href: "/about/node-operator", color: "text-slate-500" }
             ]
         },
         {
@@ -53,7 +52,11 @@ export default function Header({ onContactClick }: HeaderProps) {
                 { name: "Treasury Transparency", href: "/governance/treasury", color: "text-slate-500" },
                 { name: "Whitepaper", href: "/governance/whitepaper", color: "text-slate-500" },
                 { name: "DAO Mechanics", href: "/governance/dao", color: "text-slate-500" },
-                { name: "Token Model & Economics", href: "/governance/tokens", color: "text-slate-500" }
+                { name: "Tokenomics", href: "/governance/tokenomics", color: "text-slate-500" },
+                { name: "Investors", isHeader: true },
+                { name: "Investor One-Pager", href: "/governance/investors/investor-1-pager", color: "text-slate-500" },
+                { name: "Investor Relations", href: "/governance/investors/investor-relations", color: "text-slate-500" },
+                { name: "Pitch Deck", href: "/governance/investors/pitchdeck", color: "text-slate-500" }
             ]
         },
         {
@@ -81,7 +84,6 @@ export default function Header({ onContactClick }: HeaderProps) {
                 isVisible ? "block" : "hidden"
             }`}>
                 <div className="max-w-7xl mx-auto px-8 flex justify-between items-center">
-                    {/* Logo / Brand */}
                     <a href="/" className="flex items-center gap-4 group">
                         <img src="/logo.png" alt="wnode" className="w-10 h-10 transition-transform group-hover:scale-110" />
                         <div className="flex flex-col">
@@ -90,19 +92,34 @@ export default function Header({ onContactClick }: HeaderProps) {
                         </div>
                     </a>
 
-                    {/* Burger Button - Visible on all screen sizes */}
-                    <button 
-                        className="text-white z-[90] relative w-8 h-8 flex flex-col justify-center items-center gap-1.5"
-                        onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                    >
-                        <span className={`w-8 h-0.5 bg-white transition-all duration-300 ${mobileMenuOpen ? "rotate-45 translate-y-2" : ""}`} />
-                        <span className={`w-8 h-0.5 bg-white transition-all duration-300 ${mobileMenuOpen ? "opacity-0" : ""}`} />
-                        <span className={`w-8 h-0.5 bg-white transition-all duration-300 ${mobileMenuOpen ? "-rotate-45 -translate-y-2" : ""}`} />
-                    </button>
+                    <div className="flex items-center gap-6">
+                        <div className="hidden md:flex items-center gap-4 mr-4">
+                            <a href="https://x.com/wnodemesh" target="_blank" rel="noopener noreferrer" className="hover:drop-shadow-[0_0_12px_rgba(59,130,246,0.7)] transition-all">
+                                <img src="/icons/x_neon.png" alt="X (Twitter)" className="h-16 w-auto" />
+                            </a>
+                            <a href="https://discord.gg/5BNhsfg5Br" target="_blank" rel="noopener noreferrer" className="hover:drop-shadow-[0_0_12px_rgba(34,197,94,0.7)] transition-all">
+                                <img src="/icons/discord_neon.png" alt="Discord" className="h-16 w-auto" />
+                            </a>
+                            <a href="https://t.me/wnodemesh" target="_blank" rel="noopener noreferrer" className="hover:drop-shadow-[0_0_12px_rgba(239,68,68,0.7)] transition-all">
+                                <img src="/icons/telegram_neon.png" alt="Telegram" className="h-16 w-auto" />
+                            </a>
+                            <a href="https://www.youtube.com/channel/UCJsyB9UrIP1eXzkdJpPDFww" target="_blank" rel="noopener noreferrer" className="hover:drop-shadow-[0_0_12px_rgba(255,0,0,0.7)] transition-all">
+                                <img src="/icons/youtube_neon.png" alt="YouTube" className="h-12 w-auto" />
+                            </a>
+                        </div>
+                        
+                        <button 
+                            className="text-white z-[90] relative w-8 h-8 flex flex-col justify-center items-center gap-1.5"
+                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                        >
+                            <span className={`w-8 h-0.5 bg-white transition-all duration-300 ${mobileMenuOpen ? "rotate-45 translate-y-2" : ""}`} />
+                            <span className={`w-8 h-0.5 bg-white transition-all duration-300 ${mobileMenuOpen ? "opacity-0" : ""}`} />
+                            <span className={`w-8 h-0.5 bg-white transition-all duration-300 ${mobileMenuOpen ? "-rotate-45 -translate-y-2" : ""}`} />
+                        </button>
+                    </div>
                 </div>
             </header>
 
-            {/* Mobile Menu Overlay - Used for all screen sizes now */}
             <div className={`fixed inset-0 bg-black z-[70] transition-all duration-500 ${
                 mobileMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
             }`}>
@@ -117,16 +134,22 @@ export default function Header({ onContactClick }: HeaderProps) {
                                     {link.name}
                                     <span className={`transition-transform duration-300 text-slate-600 ${openDropdown === link.name ? "rotate-180" : ""}`}>↓</span>
                                 </button>
-                                <div className={`flex flex-col items-center space-y-6 overflow-hidden transition-all duration-500 ${openDropdown === link.name ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0"}`}>
+                                <div className={`flex flex-col items-center space-y-6 overflow-hidden transition-all duration-500 ${openDropdown === link.name ? "max-h-[800px] opacity-100" : "max-h-0 opacity-0"}`}>
                                     {link.subLinks?.map((sub) => (
-                                        <a 
-                                            key={sub.name}
-                                            href={sub.href} 
-                                            onClick={() => setMobileMenuOpen(false)}
-                                            className="text-xl font-bold uppercase tracking-[0.4em] text-slate-500 hover:text-white transition-all text-center px-8"
-                                        >
-                                            {sub.name}
-                                        </a>
+                                        (sub as any).isHeader ? (
+                                            <div key={sub.name} className="pt-8 pb-2">
+                                                <span className="text-[10px] font-black uppercase tracking-[0.5em] text-blue-500">{sub.name}</span>
+                                            </div>
+                                        ) : (
+                                            <a 
+                                                key={sub.name}
+                                                href={sub.href} 
+                                                onClick={() => setMobileMenuOpen(false)}
+                                                className="text-xl font-bold uppercase tracking-[0.4em] text-slate-500 hover:text-white transition-all text-center px-8"
+                                            >
+                                                {sub.name}
+                                            </a>
+                                        )
                                     ))}
                                 </div>
                             </div>
@@ -142,7 +165,7 @@ export default function Header({ onContactClick }: HeaderProps) {
                         )
                     ))}
 
-                    <div className="pt-8 flex flex-col items-center space-y-6">
+                    <div className="pt-8 flex flex-col items-center space-y-8">
                         <button 
                             onClick={() => {
                                 setMobileMenuOpen(false);
@@ -152,15 +175,21 @@ export default function Header({ onContactClick }: HeaderProps) {
                         >
                             Contact
                         </button>
-                        <a 
-                            href="https://discord.gg/5BNhsfg5Br"
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={() => setMobileMenuOpen(false)}
-                            className="bg-[#5865F2] hover:bg-[#4752C4] text-white px-12 py-4 rounded-full font-bold text-lg transition-all"
-                        >
-                            Discord
-                        </a>
+                        
+                        <div className="flex items-center gap-8 pt-4">
+                            <a href="https://x.com/wnodemesh" target="_blank" rel="noopener noreferrer" className="hover:drop-shadow-[0_0_15px_rgba(59,130,246,0.9)] transition-all">
+                                <img src="/icons/x_neon.png" alt="X (Twitter)" className="h-28 w-auto" />
+                            </a>
+                            <a href="https://discord.gg/5BNhsfg5Br" target="_blank" rel="noopener noreferrer" className="hover:drop-shadow-[0_0_15px_rgba(34,197,94,0.9)] transition-all">
+                                <img src="/icons/discord_neon.png" alt="Discord" className="h-28 w-auto" />
+                            </a>
+                            <a href="https://t.me/wnodemesh" target="_blank" rel="noopener noreferrer" className="hover:drop-shadow-[0_0_15px_rgba(239,68,68,0.9)] transition-all">
+                                <img src="/icons/telegram_neon.png" alt="Telegram" className="h-28 w-auto" />
+                            </a>
+                            <a href="https://www.youtube.com/channel/UCJsyB9UrIP1eXzkdJpPDFww" target="_blank" rel="noopener noreferrer" className="hover:drop-shadow-[0_0_15px_rgba(255,0,0,0.9)] transition-all">
+                                <img src="/icons/youtube_neon.png" alt="YouTube" className="h-20 w-auto" />
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
