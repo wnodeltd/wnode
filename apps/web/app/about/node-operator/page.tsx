@@ -140,9 +140,13 @@ export default function NodeOperatorPage() {
                         </div>
                     </div>
 
-                    <ImagePlaceholder 
-                        description="Everyday people surrounded by devices contributing to a global mesh." 
-                    />
+                    <div className="w-full my-12">
+                        <img 
+                            src="/everydaypeople.png" 
+                            alt="Everyday people contributing to a global mesh" 
+                            className="w-full h-auto rounded-[2rem] border border-white/5 shadow-2xl" 
+                        />
+                    </div>
 
                     {/* What is a NODLR */}
                     <div className="space-y-12 mb-32">
@@ -223,10 +227,14 @@ export default function NodeOperatorPage() {
                             </p>
                         </div>
 
-                        <ImagePlaceholder 
-                            description="Revenue flow diagram showing: 70% Operator → 10% Sales → 3% Level 1 → 10% Level 2 → 7% Steward." 
-                            caption="Transparent economic distribution."
-                        />
+                        <div className="w-full my-12">
+                            <img 
+                                src="/revenue.png" 
+                                alt="Revenue flow diagram" 
+                                className="w-full h-auto rounded-[2rem] border border-white/5 shadow-2xl" 
+                            />
+                            <p className="text-[9px] uppercase tracking-[0.3em] text-slate-700 text-center font-bold mt-4">Transparent economic distribution.</p>
+                        </div>
                     </div>
 
                     {/* Supported Devices */}
@@ -274,9 +282,13 @@ export default function NodeOperatorPage() {
                             />
                         </div>
 
-                        <ImagePlaceholder 
-                            description="Visual grid of connected everyday electronics." 
-                        />
+                        <div className="w-full my-12">
+                            <img 
+                                src="/planet.png" 
+                                alt="Visual grid of connected everyday electronics" 
+                                className="w-full h-auto rounded-[2rem] border border-white/5 shadow-2xl" 
+                            />
+                        </div>
                     </div>
 
                     {/* Market Comparison */}
@@ -342,9 +354,13 @@ export default function NodeOperatorPage() {
                             />
                         </div>
 
-                        <ImagePlaceholder 
-                            description="Comparative earnings visualization chart." 
-                        />
+                        <div className="w-full my-12">
+                            <img 
+                                src="/chart.png" 
+                                alt="Comparative earnings visualization chart" 
+                                className="w-full h-auto rounded-[2rem] border border-white/5 shadow-2xl" 
+                            />
+                        </div>
                     </div>
 
                     {/* Why Wnode Different */}
@@ -366,9 +382,13 @@ export default function NodeOperatorPage() {
                             ))}
                         </div>
 
-                        <ImagePlaceholder 
-                            description="DAO governance structure visualization." 
-                        />
+                        <div className="w-full my-12">
+                            <img 
+                                src="/governance_model.png" 
+                                alt="DAO governance structure visualization" 
+                                className="w-full h-auto rounded-[2rem] border border-white/5 shadow-2xl" 
+                            />
+                        </div>
                     </div>
 
                     {/* Final CTA */}
