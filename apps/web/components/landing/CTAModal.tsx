@@ -38,8 +38,8 @@ export default function CTAModal({ isOpen, onClose, mode }: CTAModalProps) {
             tag: "developer"
         },
         investor: {
-            title: "Investor Waitlist",
-            line: "Join the priority list for our upcoming strategic round.",
+            title: "Nodlr Waitlist",
+            line: "Join the priority list to become a node operator and activate your device on the mesh.",
             tag: "investor"
         },
         persona_creator: {
