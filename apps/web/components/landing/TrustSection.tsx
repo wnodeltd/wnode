@@ -51,18 +51,18 @@ export default function TrustSection({ onOpenModal }: TrustSectionProps) {
                         alt="Wnode Network Topology" 
                         className="w-full max-w-5xl h-auto shadow-[0_0_50px_rgba(59,130,246,0.1)] rounded-3xl mb-12" 
                     />
-                    <div className="flex items-center gap-10 mt-12">
+                    <div className="flex flex-wrap items-center justify-center gap-6 md:gap-10 mt-12">
                         <a href="https://x.com/wnodemesh" target="_blank" rel="noopener noreferrer" className="hover:drop-shadow-[0_0_25px_rgba(59,130,246,0.9)] transition-all">
-                            <img src="/icons/x_neon.png" alt="X (Twitter)" className="h-28 w-auto" />
+                            <img src="/icons/x_neon.png" alt="X (Twitter)" className="h-20 md:h-28 w-auto" />
                         </a>
                         <a href="https://discord.gg/5BNhsfg5Br" target="_blank" rel="noopener noreferrer" className="hover:drop-shadow-[0_0_25px_rgba(34,197,94,0.9)] transition-all">
-                            <img src="/icons/discord_neon.png" alt="Discord" className="h-28 w-auto" />
+                            <img src="/icons/discord_neon.png" alt="Discord" className="h-20 md:h-28 w-auto" />
                         </a>
                         <a href="https://t.me/wnodemesh" target="_blank" rel="noopener noreferrer" className="hover:drop-shadow-[0_0_25px_rgba(239,68,68,0.9)] transition-all">
-                            <img src="/icons/telegram_neon.png" alt="Telegram" className="h-28 w-auto" />
+                            <img src="/icons/telegram_neon.png" alt="Telegram" className="h-20 md:h-28 w-auto" />
                         </a>
                         <a href="https://www.youtube.com/channel/UCJsyB9UrIP1eXzkdJpPDFww" target="_blank" rel="noopener noreferrer" className="hover:drop-shadow-[0_0_25px_rgba(255,0,0,0.9)] transition-all">
-                            <img src="/icons/youtube_neon.png" alt="YouTube" className="h-20 w-auto" />
+                            <img src="/icons/youtube_neon.png" alt="YouTube" className="h-16 md:h-20 w-auto" />
                         </a>
                     </div>
                 </div>

@@ -54,54 +54,56 @@ export function ComparisonMinimal() {
           How Wnode Compares
         </h2>
 
-        <div className="rounded-2xl border border-white/25 overflow-hidden bg-white/[0.01] backdrop-blur-sm">
-          {/* Header Row */}
-          <div className="grid grid-cols-3 border-b border-white/25 bg-white/[0.03]">
-            <div className="p-6 text-center border-r border-white/15">
-              <h3 className="text-white font-bold text-sm md:text-base uppercase tracking-[0.2em]">Wnode</h3>
-            </div>
-            <div className="p-6 text-center border-r border-white/15">
-              <h3 className="text-gray-500 font-bold text-sm md:text-base uppercase tracking-[0.1em]">AWS / GCP / Azure</h3>
-            </div>
-            <div className="p-6 text-center">
-              <h3 className="text-gray-600 font-bold text-sm md:text-base uppercase tracking-[0.1em]">Other DePINs</h3>
-            </div>
-          </div>
-
-          {/* Feature Rows */}
-          <div className="flex flex-col">
-            {features.map((f, i) => (
-              <div 
-                key={i} 
-                className={`grid grid-cols-3 group hover:bg-white/[0.04] transition-all duration-150 ${
-                  i !== features.length - 1 ? "border-b border-white/15" : ""
-                }`}
-              >
-                {/* Wnode Column */}
-                <div className="flex flex-col items-center justify-center p-6 border-r border-white/15 space-y-3">
-                  <IconRenderer type={f.wnode} />
-                  <span className="text-[10px] md:text-xs text-white text-center font-bold uppercase tracking-tight max-w-[140px]">
-                    <StatusLabel type={f.wnode} name={f.name} />
-                  </span>
-                </div>
-
-                {/* Cloud Column */}
-                <div className="flex flex-col items-center justify-center p-6 border-r border-white/15 space-y-3">
-                  <IconRenderer type={f.cloud} />
-                  <span className="text-[10px] md:text-xs text-gray-500 text-center font-bold uppercase tracking-widest max-w-[140px]">
-                    <StatusLabel type={f.cloud} name={f.name} />
-                  </span>
-                </div>
-
-                {/* Other Column */}
-                <div className="flex flex-col items-center justify-center p-6 space-y-3">
-                  <IconRenderer type={f.other} />
-                  <span className="text-[10px] md:text-xs text-gray-600 text-center font-bold uppercase tracking-widest max-w-[140px]">
-                    <StatusLabel type={f.other} name={f.name} />
-                  </span>
-                </div>
+        <div className="overflow-x-auto custom-scrollbar">
+          <div className="rounded-2xl border border-white/25 bg-white/[0.01] backdrop-blur-sm min-w-[600px] md:min-w-full overflow-hidden">
+            {/* Header Row */}
+            <div className="grid grid-cols-3 border-b border-white/25 bg-white/[0.03]">
+              <div className="p-4 md:p-6 text-center border-r border-white/15">
+                <h3 className="text-white font-bold text-xs md:text-base uppercase tracking-[0.2em]">Wnode</h3>
               </div>
-            ))}
+              <div className="p-4 md:p-6 text-center border-r border-white/15">
+                <h3 className="text-gray-500 font-bold text-xs md:text-base uppercase tracking-[0.1em]">AWS / GCP / Azure</h3>
+              </div>
+              <div className="p-4 md:p-6 text-center">
+                <h3 className="text-gray-600 font-bold text-xs md:text-base uppercase tracking-[0.1em]">Other DePINs</h3>
+              </div>
+            </div>
+  
+            {/* Feature Rows */}
+            <div className="flex flex-col">
+              {features.map((f, i) => (
+                <div 
+                  key={i} 
+                  className={`grid grid-cols-3 group hover:bg-white/[0.04] transition-all duration-150 ${
+                    i !== features.length - 1 ? "border-b border-white/15" : ""
+                  }`}
+                >
+                  {/* Wnode Column */}
+                  <div className="flex flex-col items-center justify-center p-4 md:p-6 border-r border-white/15 space-y-3">
+                    <IconRenderer type={f.wnode} />
+                    <span className="text-[9px] md:text-xs text-white text-center font-bold uppercase tracking-tight max-w-[140px]">
+                      <StatusLabel type={f.wnode} name={f.name} />
+                    </span>
+                  </div>
+  
+                  {/* Cloud Column */}
+                  <div className="flex flex-col items-center justify-center p-4 md:p-6 border-r border-white/15 space-y-3">
+                    <IconRenderer type={f.cloud} />
+                    <span className="text-[9px] md:text-xs text-gray-500 text-center font-bold uppercase tracking-widest max-w-[140px]">
+                      <StatusLabel type={f.cloud} name={f.name} />
+                    </span>
+                  </div>
+  
+                  {/* Other Column */}
+                  <div className="flex flex-col items-center justify-center p-4 md:p-6 space-y-3">
+                    <IconRenderer type={f.other} />
+                    <span className="text-[9px] md:text-xs text-gray-600 text-center font-bold uppercase tracking-widest max-w-[140px]">
+                      <StatusLabel type={f.other} name={f.name} />
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

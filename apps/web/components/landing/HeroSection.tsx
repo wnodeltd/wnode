@@ -40,7 +40,7 @@ export default function HeroSection({ onOpenModal }: HeroSectionProps) {
                     </div>
                 </div>
 
-                <div className="hidden lg:block relative">
+                <div className="relative">
                     <div className="relative w-full flex items-center justify-center">
                         <div className="absolute inset-0 bg-blue-500/10 blur-[120px] rounded-full animate-pulse" />
                         <img 
