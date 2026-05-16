@@ -61,6 +61,39 @@ export default function InvestorRelationsPage() {
                             </p>
                         </div>
 
+                        {/* Investor Communications */}
+                        <Section id="communications" title={
+                            <div className="flex items-center gap-3">
+                                <svg className="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                                </svg>
+                                <span>Investor Communications</span>
+                            </div>
+                        } id="communications">
+                            <div className="border border-white/20 rounded-2xl p-8 bg-white/[0.02]">
+                                <div className="max-h-[500px] overflow-y-auto pr-4 space-y-12 custom-scrollbar">
+                                    <div className="space-y-4">
+                                        <h3 className="text-xl font-bold text-white uppercase tracking-tight font-space-grotesk">
+                                            Item 1: Detailed Pitch Deck
+                                        </h3>
+                                        <p className="text-lg text-slate-400 leading-relaxed">
+                                            This deck provides a full, end‑to‑end view of Wnode and the market forces driving the opportunity, the architecture powering the mesh, the fiat‑first economic engine, the governance model, and the roadmap to planetary activation. It is designed for investors, partners, and technical evaluators who want a deeper understanding of the system.
+                                        </p>
+                                        <div className="pt-2">
+                                            <a 
+                                                href="/docs/detailed_pitchdeck.pdf" 
+                                                target="_blank"
+                                                className="text-blue-500 hover:text-blue-400 font-bold uppercase tracking-widest text-xs flex items-center gap-2 group"
+                                            >
+                                                View the Detailed Pitch Deck
+                                                <span className="group-hover:translate-x-1 transition-transform">→</span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </Section>
+
                         {/* Our Approach */}
                         <Section id="approach" title="Our Approach">
                             <ul className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">

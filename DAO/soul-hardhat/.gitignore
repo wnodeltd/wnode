@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+
+# Hardhat artifacts
+cache/
+artifacts/
+typechain-types/
+
+# Coverage
+coverage/
+coverage.json
+
+# Environment (MetaMask private keys — NEVER commit)
+.env
+.env.*
+!.env.example

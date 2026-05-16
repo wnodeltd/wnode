@@ -30,7 +30,6 @@ export default function OnboardPage() {
                     publishableKey: 'pk_test_51TBQaCDWCb8zLVhTViXQyO4QvU8vWq6q8XU7vWq6q8XU7vWq6q8XU7vWq6q8XU7vWq6q8XU7vWq6q8XU7', // Placeholder, should be from env
                     fetchClientSecret: () => Promise.resolve(clientSecret),
                     appearance: {
-                        theme: 'night',
                         variables: {
                             colorPrimary: '#22d3ee',
                         },

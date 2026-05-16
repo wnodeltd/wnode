@@ -1600,13 +1600,21 @@ func (s *Server) handleDebugSession(c *fiber.Ctx) error {
 		cookieName = "mesh_session"
 	}
 
+	secureFlag := true
+	domainFlag := ".wnode.one"
+	if os.Getenv("DEVELOPMENT_MODE") == "true" {
+		secureFlag = false
+		domainFlag = "" // or "localhost" if specifically needed, but empty usually works better for localhost
+	}
+
 	c.Cookie(&fiber.Cookie{
 		Name:     cookieName,
 		Value:    sessionID,
 		Expires:  time.Now().Add(24 * time.Hour),
 		HTTPOnly: true,
-		Secure:   false,
+		Secure:   secureFlag,
 		SameSite: "Lax",
+		Domain:   domainFlag,
 		Path:     "/",
 	})
 
@@ -1619,14 +1627,22 @@ func (s *Server) handleLogout(c *fiber.Ctx) error {
 			s.accountStore.RevokeSession(sessionID)
 		}
 
+		secureFlag := true
+		domainFlag := ".wnode.one"
+		if os.Getenv("DEVELOPMENT_MODE") == "true" {
+			secureFlag = false
+			domainFlag = ""
+		}
+
 		// Clear the cookie on the client
 		c.Cookie(&fiber.Cookie{
 			Name:     cookieName,
 			Value:    "",
 			Expires:  time.Now().Add(-24 * time.Hour),
 			HTTPOnly: true,
-			Secure:   true,
+			Secure:   secureFlag,
 			SameSite: "Lax",
+			Domain:   domainFlag,
 			Path:     "/",
 		})
 	}

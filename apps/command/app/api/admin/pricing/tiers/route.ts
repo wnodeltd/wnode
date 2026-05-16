@@ -13,7 +13,7 @@ export async function GET() {
     const apiUrl = process.env.NODLD_API_URL || 'https://api.wnode.one';
 
     try {
-        const res = await fetch(`${apiUrl}/api/admin/pricing/tiers`, {
+        const res = await fetch(`${apiUrl}/api/v1/meta/tiers`, {
             cache: 'no-store',
             headers: { 'Accept': 'application/json' }
         });

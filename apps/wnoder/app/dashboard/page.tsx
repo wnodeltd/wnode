@@ -145,9 +145,10 @@ export default function DashboardPage() {
                     {/* Fleet Map */}
                     <div title="Geographic distribution and real-time status of your active nodes">
                         <FleetMap 
-                            nodes={nodes}
+                            nodes={nodes || []}
+                            nodlrs={[]} // Placeholder for missing prop
                             loading={nodesLoading}
-                            id="nodlr-fleet-map"
+                            onNodeSelect={(id) => console.log('Selected node:', id)}
                         />
                     </div>
                 </div>

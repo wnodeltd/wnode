@@ -5,7 +5,9 @@ import { useRouter, usePathname } from 'next/navigation';
 
 interface AuthContextType {
     account: any | null;
+    profile: any | null;
     isLoading: boolean;
+    updateProfile: (data: any) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -43,9 +45,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
     }, [isLoading, account, pathname, router]);
 
+    const updateProfile = (data: any) => {
+        setAccount((prev: any) => ({ ...prev, ...data }));
+    };
+
     const value = useMemo(() => ({
         account,
-        isLoading
+        profile: account, // Mapping account to profile for compatibility
+        isLoading,
+        updateProfile
     }), [account, isLoading]);
 
     if (isLoading) {

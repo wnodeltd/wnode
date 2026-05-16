@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import DetailPanel from '../../components/DetailPanel';
+import DetailPanel from '../../../components/DetailPanel';
 import { User, Shield, IdCard } from 'lucide-react';
 
 interface SlideOutHostProps {

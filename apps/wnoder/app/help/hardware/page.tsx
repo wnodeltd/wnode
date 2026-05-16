@@ -2,7 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
-import { ChevronLeft, Monitor, Cpu, Server, HardDrive } from "lucide-react";
+import { ChevronLeft, Monitor, Cpu, Server, HardDrive, Activity } from "lucide-react";
 import { usePageTitle } from "../../components/PageTitleContext";
 
 export default function WnoderHardwareHelp() {

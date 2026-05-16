@@ -1,0 +1,5 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- WNODE Logo Vector (Manual Reconstruction) -->
+  <path d="M100 512V180C100 80.5887 180.589 0 280 0C379.411 0 460 80.5887 460 180V512H380V180C380 124.772 335.228 80 280 80C224.772 80 180 124.772 180 180V512H100Z" fill="white"/>
+  <circle cx="280" cy="300" r="80" fill="white"/>
+</svg>
