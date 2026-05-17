@@ -66,7 +66,6 @@ export default function Footer({ onContactClick }: FooterProps) {
                             </div>
                         </div>
 
-                        <a href="https://github.com/wnodeltd/wnode" className="text-white/40 hover:text-white transition-colors text-xs uppercase tracking-[0.2em]">GitHub</a>
                         <a href="/partners" className="text-white/40 hover:text-white transition-colors text-xs uppercase tracking-[0.2em]">Partners</a>
                         <button 
                             onClick={(e) => {
@@ -95,6 +94,9 @@ export default function Footer({ onContactClick }: FooterProps) {
                         </a>
                         <a href="https://www.youtube.com/channel/UCJsyB9UrIP1eXzkdJpPDFww" target="_blank" rel="noopener noreferrer" className="hover:drop-shadow-[0_0_12px_rgba(255,0,0,0.7)] transition-all">
                             <img src="/icons/youtube_neon.png" alt="YouTube" className="h-10 w-auto" />
+                        </a>
+                        <a href="https://github.com/wnodeltd/wnode" target="_blank" rel="noopener noreferrer" className="hover:drop-shadow-[0_0_12px_rgba(255,255,255,0.7)] transition-all">
+                            <img src="/icons/gitlogo.png" alt="GitHub" className="h-14 w-auto" />
                         </a>
                     </div>
 

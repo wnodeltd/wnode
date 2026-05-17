@@ -64,6 +64,9 @@ export default function TrustSection({ onOpenModal }: TrustSectionProps) {
                         <a href="https://www.youtube.com/channel/UCJsyB9UrIP1eXzkdJpPDFww" target="_blank" rel="noopener noreferrer" className="hover:drop-shadow-[0_0_25px_rgba(255,0,0,0.9)] transition-all">
                             <img src="/icons/youtube_neon.png" alt="YouTube" className="h-16 md:h-20 w-auto" />
                         </a>
+                        <a href="https://github.com/wnodeltd/wnode" target="_blank" rel="noopener noreferrer" className="hover:drop-shadow-[0_0_25px_rgba(255,255,255,0.9)] transition-all">
+                            <img src="/icons/gitlogo.png" alt="GitHub" className="h-16 md:h-20 w-auto" />
+                        </a>
                     </div>
                 </div>
             </div>

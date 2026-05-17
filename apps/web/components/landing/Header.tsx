@@ -79,7 +79,6 @@ export default function Header({ onContactClick }: HeaderProps) {
                 { name: "Cookies", href: "/cookies", color: "text-slate-500" }
             ]
         },
-        { name: "GitHub", href: "https://github.com/wnodeltd/wnode" },
         { name: "Partners", href: "/partners" },
     ];
 
@@ -116,6 +115,9 @@ export default function Header({ onContactClick }: HeaderProps) {
                             </a>
                             <a href="https://www.youtube.com/channel/UCJsyB9UrIP1eXzkdJpPDFww" target="_blank" rel="noopener noreferrer" className="hover:drop-shadow-[0_0_12px_rgba(255,0,0,0.7)] transition-all">
                                 <img src="/icons/youtube_neon.png" alt="YouTube" className="h-12 w-auto" />
+                            </a>
+                            <a href="https://github.com/wnodeltd/wnode" target="_blank" rel="noopener noreferrer" className="hover:drop-shadow-[0_0_12px_rgba(255,255,255,0.7)] transition-all">
+                                <img src="/icons/gitlogo.png" alt="GitHub" className="h-16 w-auto" />
                             </a>
                         </div>
                         
@@ -199,6 +201,9 @@ export default function Header({ onContactClick }: HeaderProps) {
                             </a>
                             <a href="https://www.youtube.com/channel/UCJsyB9UrIP1eXzkdJpPDFww" target="_blank" rel="noopener noreferrer" className="hover:drop-shadow-[0_0_15px_rgba(255,0,0,0.9)] transition-all">
                                 <img src="/icons/youtube_neon.png" alt="YouTube" className="h-20 w-auto" />
+                            </a>
+                            <a href="https://github.com/wnodeltd/wnode" target="_blank" rel="noopener noreferrer" className="hover:drop-shadow-[0_0_15px_rgba(255,255,255,0.9)] transition-all">
+                                <img src="/icons/gitlogo.png" alt="GitHub" className="h-28 w-auto" />
                             </a>
                         </div>
                     </div>
